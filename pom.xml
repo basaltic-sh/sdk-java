@@ -3,13 +3,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>sh.basaltic</groupId>
   <artifactId>sdk-java</artifactId>
-  <version>0.2.0</version>
+  <version>0.2.1</version>
   <name>Basaltic Java SDK</name>
   <description>Typed Java client for the Basaltic Cloud API.</description>
   <url>https://github.com/basaltic-sh/sdk-java</url>
   <licenses><license><name>Apache License, Version 2.0</name><url>https://www.apache.org/licenses/LICENSE-2.0.txt</url><distribution>repo</distribution></license></licenses>
   <developers><developer><id>basaltic</id><name>Basaltic</name><url>https://basaltic.sh</url></developer></developers>
-  <scm><connection>scm:git:https://github.com/basaltic-sh/sdk-java.git</connection><developerConnection>scm:git:https://github.com/basaltic-sh/sdk-java.git</developerConnection><url>https://github.com/basaltic-sh/sdk-java</url><tag>v0.2.0</tag></scm>
+  <scm><connection>scm:git:https://github.com/basaltic-sh/sdk-java.git</connection><developerConnection>scm:git:https://github.com/basaltic-sh/sdk-java.git</developerConnection><url>https://github.com/basaltic-sh/sdk-java</url><tag>v0.2.1</tag></scm>
   <properties>
     <maven.compiler.release>17</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

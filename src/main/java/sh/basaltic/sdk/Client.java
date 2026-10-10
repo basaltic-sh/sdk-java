@@ -4,7 +4,7 @@ import java.util.Objects;
 
 /** Thread-safe client. Close it to cancel outstanding requests and release its timer. */
 public final class Client extends GeneratedClient implements AutoCloseable {
-  public static final String VERSION = "0.2.0";
+  public static final String VERSION = "0.2.1";
   private final Transport transport;
 
   public Client(Config config) {
