@@ -2834,6 +2834,38 @@ public final class Compute {
       return family;
     }
 
+    /**
+     * Aggregate instance network throughput limit in megabits per second. Omitted when uncapped.
+     */
+    @JsonProperty(value = "net_mbps", required = false)
+    private Long net_mbps;
+
+    @JsonProperty("net_mbps")
+    public Long getNetMbps() {
+      return net_mbps;
+    }
+
+    /** Guaranteed CPU floor as a percentage of each vCPU. Omitted when no floor is guaranteed. */
+    @JsonProperty(value = "cpu_baseline_pct", required = false)
+    private Long cpu_baseline_pct;
+
+    @JsonProperty("cpu_baseline_pct")
+    public Long getCpuBaselinePct() {
+      return cpu_baseline_pct;
+    }
+
+    /**
+     * CPU ceiling as a percentage of each vCPU. A value of 100 or an omitted field allows the full
+     * vCPU count.
+     */
+    @JsonProperty(value = "cpu_burst_pct", required = false)
+    private Long cpu_burst_pct;
+
+    @JsonProperty("cpu_burst_pct")
+    public Long getCpuBurstPct() {
+      return cpu_burst_pct;
+    }
+
     @JsonProperty(value = "status", required = false)
     private FlavorStatus status;
 
@@ -3065,6 +3097,19 @@ public final class Compute {
   public static final class InstancePoolCreateRequestInput extends Model {
     public InstancePoolCreateRequestInput() {}
 
+    @JsonProperty(value = "autoscaling", required = false)
+    private AutoscalingPolicyInput autoscaling;
+
+    @JsonProperty("autoscaling")
+    public AutoscalingPolicyInput getAutoscaling() {
+      return autoscaling;
+    }
+
+    public InstancePoolCreateRequestInput withAutoscaling(AutoscalingPolicyInput value) {
+      this.autoscaling = value;
+      return this;
+    }
+
     /**
      * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
      * braced, or urn:uuid: forms, in either case).
@@ -3166,6 +3211,403 @@ public final class Compute {
       this.max_count = value;
       return this;
     }
+  }
+
+  public static final class AutoscalingPolicyInput extends Model {
+    public AutoscalingPolicyInput() {}
+
+    @JsonProperty(value = "enabled", required = true)
+    private Boolean enabled;
+
+    @JsonProperty("enabled")
+    public Boolean getEnabled() {
+      return enabled;
+    }
+
+    public AutoscalingPolicyInput withEnabled(Boolean value) {
+      this.enabled = value;
+      return this;
+    }
+
+    @JsonProperty(value = "metrics", required = true)
+    private List<ScalingMetricInput> metrics;
+
+    @JsonProperty("metrics")
+    public List<ScalingMetricInput> getMetrics() {
+      return metrics;
+    }
+
+    public AutoscalingPolicyInput withMetrics(List<ScalingMetricInput> value) {
+      this.metrics = value;
+      return this;
+    }
+
+    @JsonProperty(value = "warmup_seconds", required = false)
+    private Long warmup_seconds;
+
+    @JsonProperty("warmup_seconds")
+    public Long getWarmupSeconds() {
+      return warmup_seconds;
+    }
+
+    public AutoscalingPolicyInput withWarmupSeconds(Long value) {
+      this.warmup_seconds = value;
+      return this;
+    }
+
+    @JsonProperty(value = "cooldown_seconds", required = false)
+    private Long cooldown_seconds;
+
+    @JsonProperty("cooldown_seconds")
+    public Long getCooldownSeconds() {
+      return cooldown_seconds;
+    }
+
+    public AutoscalingPolicyInput withCooldownSeconds(Long value) {
+      this.cooldown_seconds = value;
+      return this;
+    }
+
+    @JsonProperty(value = "scale_down_stabilization_seconds", required = false)
+    private Long scale_down_stabilization_seconds;
+
+    @JsonProperty("scale_down_stabilization_seconds")
+    public Long getScaleDownStabilizationSeconds() {
+      return scale_down_stabilization_seconds;
+    }
+
+    public AutoscalingPolicyInput withScaleDownStabilizationSeconds(Long value) {
+      this.scale_down_stabilization_seconds = value;
+      return this;
+    }
+
+    @JsonProperty(value = "max_scale_out_step", required = false)
+    private Long max_scale_out_step;
+
+    @JsonProperty("max_scale_out_step")
+    public Long getMaxScaleOutStep() {
+      return max_scale_out_step;
+    }
+
+    public AutoscalingPolicyInput withMaxScaleOutStep(Long value) {
+      this.max_scale_out_step = value;
+      return this;
+    }
+
+    @JsonProperty(value = "max_scale_in_step", required = false)
+    private Long max_scale_in_step;
+
+    @JsonProperty("max_scale_in_step")
+    public Long getMaxScaleInStep() {
+      return max_scale_in_step;
+    }
+
+    public AutoscalingPolicyInput withMaxScaleInStep(Long value) {
+      this.max_scale_in_step = value;
+      return this;
+    }
+
+    /**
+     * Grace period after route withdrawal and proxy acknowledgements, before deleting a retiring
+     * member. Long-lived TCP/UDP sessions may end at the deadline; arbitrary application shutdown
+     * hooks are not supported.
+     */
+    @JsonProperty(value = "drain_seconds", required = false)
+    private Long drain_seconds;
+
+    @JsonProperty("drain_seconds")
+    public Long getDrainSeconds() {
+      return drain_seconds;
+    }
+
+    public AutoscalingPolicyInput withDrainSeconds(Long value) {
+      this.drain_seconds = value;
+      return this;
+    }
+  }
+
+  public static final class ScalingMetricInput extends Model {
+    public ScalingMetricInput() {}
+
+    @JsonProperty(value = "source", required = true)
+    private ScalingMetricInputSource source;
+
+    @JsonProperty("source")
+    public ScalingMetricInputSource getSource() {
+      return source;
+    }
+
+    public ScalingMetricInput withSource(ScalingMetricInputSource value) {
+      this.source = value;
+      return this;
+    }
+
+    @JsonProperty(value = "target_type", required = true)
+    private ScalingMetricInputTargetType target_type;
+
+    @JsonProperty("target_type")
+    public ScalingMetricInputTargetType getTargetType() {
+      return target_type;
+    }
+
+    public ScalingMetricInput withTargetType(ScalingMetricInputTargetType value) {
+      this.target_type = value;
+      return this;
+    }
+
+    @JsonProperty(value = "target_value", required = true)
+    private BigDecimal target_value;
+
+    @JsonProperty("target_value")
+    public BigDecimal getTargetValue() {
+      return target_value;
+    }
+
+    public ScalingMetricInput withTargetValue(BigDecimal value) {
+      this.target_value = value;
+      return this;
+    }
+
+    @JsonProperty(value = "name", required = false)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    public ScalingMetricInput withName(String value) {
+      this.name = value;
+      return this;
+    }
+
+    /** Exact-match labels; tenancy labels and __name__ cannot be supplied. */
+    @JsonProperty(value = "labels", required = false)
+    private Map<String, String> labels;
+
+    @JsonProperty("labels")
+    public Map<String, String> getLabels() {
+      return labels;
+    }
+
+    public ScalingMetricInput withLabels(Map<String, String> value) {
+      this.labels = value;
+      return this;
+    }
+
+    /**
+     * Use last for queue gauges; rate for monotonically increasing counters, with reset handling.
+     */
+    @JsonProperty(value = "sample_aggregation", required = false)
+    private ScalingMetricInputSampleAggregation sample_aggregation;
+
+    @JsonProperty("sample_aggregation")
+    public ScalingMetricInputSampleAggregation getSampleAggregation() {
+      return sample_aggregation;
+    }
+
+    public ScalingMetricInput withSampleAggregation(ScalingMetricInputSampleAggregation value) {
+      this.sample_aggregation = value;
+      return this;
+    }
+
+    @JsonProperty(value = "series_aggregation", required = false)
+    private ScalingMetricInputSeriesAggregation series_aggregation;
+
+    @JsonProperty("series_aggregation")
+    public ScalingMetricInputSeriesAggregation getSeriesAggregation() {
+      return series_aggregation;
+    }
+
+    public ScalingMetricInput withSeriesAggregation(ScalingMetricInputSeriesAggregation value) {
+      this.series_aggregation = value;
+      return this;
+    }
+
+    /** Exact expected cardinality; incomplete or ambiguous selectors are unavailable. */
+    @JsonProperty(value = "expected_series", required = false)
+    private Long expected_series;
+
+    @JsonProperty("expected_series")
+    public Long getExpectedSeries() {
+      return expected_series;
+    }
+
+    public ScalingMetricInput withExpectedSeries(Long value) {
+      this.expected_series = value;
+      return this;
+    }
+
+    @JsonProperty(value = "window_seconds", required = false)
+    private Long window_seconds;
+
+    @JsonProperty("window_seconds")
+    public Long getWindowSeconds() {
+      return window_seconds;
+    }
+
+    public ScalingMetricInput withWindowSeconds(Long value) {
+      this.window_seconds = value;
+      return this;
+    }
+
+    /**
+     * Actual newest observation age per series; must not exceed window_seconds. Defaults to the
+     * smaller of 90 and the window.
+     */
+    @JsonProperty(value = "max_age_seconds", required = false)
+    private Long max_age_seconds;
+
+    @JsonProperty("max_age_seconds")
+    public Long getMaxAgeSeconds() {
+      return max_age_seconds;
+    }
+
+    public ScalingMetricInput withMaxAgeSeconds(Long value) {
+      this.max_age_seconds = value;
+      return this;
+    }
+  }
+
+  public static final class ScalingMetricInputSource {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public ScalingMetricInputSource(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof ScalingMetricInputSource v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final ScalingMetricInputSource CPU = new ScalingMetricInputSource("cpu");
+    public static final ScalingMetricInputSource TELEMETRY =
+        new ScalingMetricInputSource("telemetry");
+  }
+
+  public static final class ScalingMetricInputTargetType {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public ScalingMetricInputTargetType(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof ScalingMetricInputTargetType v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final ScalingMetricInputTargetType UTILIZATION =
+        new ScalingMetricInputTargetType("utilization");
+    public static final ScalingMetricInputTargetType AVERAGE_VALUE =
+        new ScalingMetricInputTargetType("average_value");
+  }
+
+  public static final class ScalingMetricInputSampleAggregation {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public ScalingMetricInputSampleAggregation(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof ScalingMetricInputSampleAggregation v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final ScalingMetricInputSampleAggregation LAST =
+        new ScalingMetricInputSampleAggregation("last");
+    public static final ScalingMetricInputSampleAggregation AVG =
+        new ScalingMetricInputSampleAggregation("avg");
+    public static final ScalingMetricInputSampleAggregation MAX =
+        new ScalingMetricInputSampleAggregation("max");
+    public static final ScalingMetricInputSampleAggregation RATE =
+        new ScalingMetricInputSampleAggregation("rate");
+  }
+
+  public static final class ScalingMetricInputSeriesAggregation {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public ScalingMetricInputSeriesAggregation(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof ScalingMetricInputSeriesAggregation v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final ScalingMetricInputSeriesAggregation SUM =
+        new ScalingMetricInputSeriesAggregation("sum");
+    public static final ScalingMetricInputSeriesAggregation AVG =
+        new ScalingMetricInputSeriesAggregation("avg");
+    public static final ScalingMetricInputSeriesAggregation MAX =
+        new ScalingMetricInputSeriesAggregation("max");
   }
 
   public static final class InstancePoolTemplateRequestInput extends Model {
@@ -3300,8 +3742,9 @@ public final class Compute {
     }
 
     /**
-     * Per-replica disks, the boot disk included — mark it with `boot: true`. Same shape as instance
-     * create.
+     * Per-replica disks, the boot disk included — mark it with `boot: true`. Each new replica
+     * receives the configured provisioned performance. Omitted performance uses the included
+     * allowance. Existing volumes and snapshot schedules are not supported in pool templates.
      */
     @JsonProperty(value = "volumes", required = false)
     private List<InstanceVolumeInput> volumes;
@@ -3364,6 +3807,19 @@ public final class Compute {
       return this;
     }
 
+    @JsonProperty(value = "performance", required = false)
+    private VolumePerformanceRequestInput performance;
+
+    @JsonProperty("performance")
+    public VolumePerformanceRequestInput getPerformance() {
+      return performance;
+    }
+
+    public InstanceVolumeInput withPerformance(VolumePerformanceRequestInput value) {
+      this.performance = value;
+      return this;
+    }
+
     @JsonProperty(value = "mount_path", required = false)
     private String mount_path;
 
@@ -3420,6 +3876,39 @@ public final class Compute {
 
   public static final class InstancePool extends Model {
     public InstancePool() {}
+
+    @JsonProperty(value = "autoscaling", required = false)
+    private AutoscalingPolicy autoscaling;
+
+    @JsonProperty("autoscaling")
+    public AutoscalingPolicy getAutoscaling() {
+      return autoscaling;
+    }
+
+    @JsonProperty(value = "autoscaling_status", required = false)
+    private AutoscalingStatus autoscaling_status;
+
+    @JsonProperty("autoscaling_status")
+    public AutoscalingStatus getAutoscalingStatus() {
+      return autoscaling_status;
+    }
+
+    /** Temporary rollout capacity; desired_count remains the steady target. */
+    @JsonProperty(value = "rollout_surge", required = false)
+    private Boolean rollout_surge;
+
+    @JsonProperty("rollout_surge")
+    public Boolean getRolloutSurge() {
+      return rollout_surge;
+    }
+
+    @JsonProperty(value = "retiring_instances", required = false)
+    private List<RetiringPoolMember> retiring_instances;
+
+    @JsonProperty("retiring_instances")
+    public List<RetiringPoolMember> getRetiringInstances() {
+      return retiring_instances;
+    }
 
     @JsonProperty(value = "id", required = false)
     private String id;
@@ -3602,6 +4091,480 @@ public final class Compute {
     }
   }
 
+  public static final class AutoscalingPolicy extends Model {
+    public AutoscalingPolicy() {}
+
+    @JsonProperty(value = "enabled", required = true)
+    private Boolean enabled;
+
+    @JsonProperty("enabled")
+    public Boolean getEnabled() {
+      return enabled;
+    }
+
+    @JsonProperty(value = "metrics", required = true)
+    private List<ScalingMetric> metrics;
+
+    @JsonProperty("metrics")
+    public List<ScalingMetric> getMetrics() {
+      return metrics;
+    }
+
+    @JsonProperty(value = "warmup_seconds", required = false)
+    private Long warmup_seconds;
+
+    @JsonProperty("warmup_seconds")
+    public Long getWarmupSeconds() {
+      return warmup_seconds;
+    }
+
+    @JsonProperty(value = "cooldown_seconds", required = false)
+    private Long cooldown_seconds;
+
+    @JsonProperty("cooldown_seconds")
+    public Long getCooldownSeconds() {
+      return cooldown_seconds;
+    }
+
+    @JsonProperty(value = "scale_down_stabilization_seconds", required = false)
+    private Long scale_down_stabilization_seconds;
+
+    @JsonProperty("scale_down_stabilization_seconds")
+    public Long getScaleDownStabilizationSeconds() {
+      return scale_down_stabilization_seconds;
+    }
+
+    @JsonProperty(value = "max_scale_out_step", required = false)
+    private Long max_scale_out_step;
+
+    @JsonProperty("max_scale_out_step")
+    public Long getMaxScaleOutStep() {
+      return max_scale_out_step;
+    }
+
+    @JsonProperty(value = "max_scale_in_step", required = false)
+    private Long max_scale_in_step;
+
+    @JsonProperty("max_scale_in_step")
+    public Long getMaxScaleInStep() {
+      return max_scale_in_step;
+    }
+
+    /**
+     * Grace period after route withdrawal and proxy acknowledgements, before deleting a retiring
+     * member. Long-lived TCP/UDP sessions may end at the deadline; arbitrary application shutdown
+     * hooks are not supported.
+     */
+    @JsonProperty(value = "drain_seconds", required = false)
+    private Long drain_seconds;
+
+    @JsonProperty("drain_seconds")
+    public Long getDrainSeconds() {
+      return drain_seconds;
+    }
+  }
+
+  public static final class ScalingMetric extends Model {
+    public ScalingMetric() {}
+
+    @JsonProperty(value = "source", required = true)
+    private ScalingMetricSource source;
+
+    @JsonProperty("source")
+    public ScalingMetricSource getSource() {
+      return source;
+    }
+
+    @JsonProperty(value = "target_type", required = true)
+    private ScalingMetricTargetType target_type;
+
+    @JsonProperty("target_type")
+    public ScalingMetricTargetType getTargetType() {
+      return target_type;
+    }
+
+    @JsonProperty(value = "target_value", required = true)
+    private BigDecimal target_value;
+
+    @JsonProperty("target_value")
+    public BigDecimal getTargetValue() {
+      return target_value;
+    }
+
+    @JsonProperty(value = "name", required = false)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    /** Exact-match labels; tenancy labels and __name__ cannot be supplied. */
+    @JsonProperty(value = "labels", required = false)
+    private Map<String, String> labels;
+
+    @JsonProperty("labels")
+    public Map<String, String> getLabels() {
+      return labels;
+    }
+
+    /**
+     * Use last for queue gauges; rate for monotonically increasing counters, with reset handling.
+     */
+    @JsonProperty(value = "sample_aggregation", required = false)
+    private ScalingMetricSampleAggregation sample_aggregation;
+
+    @JsonProperty("sample_aggregation")
+    public ScalingMetricSampleAggregation getSampleAggregation() {
+      return sample_aggregation;
+    }
+
+    @JsonProperty(value = "series_aggregation", required = false)
+    private ScalingMetricSeriesAggregation series_aggregation;
+
+    @JsonProperty("series_aggregation")
+    public ScalingMetricSeriesAggregation getSeriesAggregation() {
+      return series_aggregation;
+    }
+
+    /** Exact expected cardinality; incomplete or ambiguous selectors are unavailable. */
+    @JsonProperty(value = "expected_series", required = false)
+    private Long expected_series;
+
+    @JsonProperty("expected_series")
+    public Long getExpectedSeries() {
+      return expected_series;
+    }
+
+    @JsonProperty(value = "window_seconds", required = false)
+    private Long window_seconds;
+
+    @JsonProperty("window_seconds")
+    public Long getWindowSeconds() {
+      return window_seconds;
+    }
+
+    /**
+     * Actual newest observation age per series; must not exceed window_seconds. Defaults to the
+     * smaller of 90 and the window.
+     */
+    @JsonProperty(value = "max_age_seconds", required = false)
+    private Long max_age_seconds;
+
+    @JsonProperty("max_age_seconds")
+    public Long getMaxAgeSeconds() {
+      return max_age_seconds;
+    }
+  }
+
+  public static final class ScalingMetricSource {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public ScalingMetricSource(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof ScalingMetricSource v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final ScalingMetricSource CPU = new ScalingMetricSource("cpu");
+    public static final ScalingMetricSource TELEMETRY = new ScalingMetricSource("telemetry");
+  }
+
+  public static final class ScalingMetricTargetType {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public ScalingMetricTargetType(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof ScalingMetricTargetType v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final ScalingMetricTargetType UTILIZATION =
+        new ScalingMetricTargetType("utilization");
+    public static final ScalingMetricTargetType AVERAGE_VALUE =
+        new ScalingMetricTargetType("average_value");
+  }
+
+  public static final class ScalingMetricSampleAggregation {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public ScalingMetricSampleAggregation(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof ScalingMetricSampleAggregation v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final ScalingMetricSampleAggregation LAST =
+        new ScalingMetricSampleAggregation("last");
+    public static final ScalingMetricSampleAggregation AVG =
+        new ScalingMetricSampleAggregation("avg");
+    public static final ScalingMetricSampleAggregation MAX =
+        new ScalingMetricSampleAggregation("max");
+    public static final ScalingMetricSampleAggregation RATE =
+        new ScalingMetricSampleAggregation("rate");
+  }
+
+  public static final class ScalingMetricSeriesAggregation {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public ScalingMetricSeriesAggregation(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof ScalingMetricSeriesAggregation v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final ScalingMetricSeriesAggregation SUM =
+        new ScalingMetricSeriesAggregation("sum");
+    public static final ScalingMetricSeriesAggregation AVG =
+        new ScalingMetricSeriesAggregation("avg");
+    public static final ScalingMetricSeriesAggregation MAX =
+        new ScalingMetricSeriesAggregation("max");
+  }
+
+  public static final class AutoscalingStatus extends Model {
+    public AutoscalingStatus() {}
+
+    @JsonProperty(value = "status", required = true)
+    private AutoscalingStatusStatus status;
+
+    @JsonProperty("status")
+    public AutoscalingStatusStatus getStatus() {
+      return status;
+    }
+
+    @JsonProperty(value = "reason", required = true)
+    private String reason;
+
+    @JsonProperty("reason")
+    public String getReason() {
+      return reason;
+    }
+
+    @JsonProperty(value = "evaluated_at", required = false)
+    private String evaluated_at;
+
+    @JsonProperty("evaluated_at")
+    public String getEvaluatedAt() {
+      return evaluated_at;
+    }
+
+    @JsonProperty(value = "last_scaled_at", required = false)
+    private String last_scaled_at;
+
+    @JsonProperty("last_scaled_at")
+    public String getLastScaledAt() {
+      return last_scaled_at;
+    }
+
+    @JsonProperty(value = "history", required = true)
+    private List<AutoscalingStatusHistoryItem> history;
+
+    @JsonProperty("history")
+    public List<AutoscalingStatusHistoryItem> getHistory() {
+      return history;
+    }
+  }
+
+  public static final class AutoscalingStatusStatus {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public AutoscalingStatusStatus(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof AutoscalingStatusStatus v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final AutoscalingStatusStatus PENDING = new AutoscalingStatusStatus("pending");
+    public static final AutoscalingStatusStatus DISABLED = new AutoscalingStatusStatus("disabled");
+    public static final AutoscalingStatusStatus STABLE = new AutoscalingStatusStatus("stable");
+    public static final AutoscalingStatusStatus SCALING = new AutoscalingStatusStatus("scaling");
+    public static final AutoscalingStatusStatus WAITING = new AutoscalingStatusStatus("waiting");
+    public static final AutoscalingStatusStatus WARMING_UP =
+        new AutoscalingStatusStatus("warming_up");
+    public static final AutoscalingStatusStatus METRICS_UNAVAILABLE =
+        new AutoscalingStatusStatus("metrics_unavailable");
+    public static final AutoscalingStatusStatus STABILIZING =
+        new AutoscalingStatusStatus("stabilizing");
+    public static final AutoscalingStatusStatus COOLDOWN = new AutoscalingStatusStatus("cooldown");
+    public static final AutoscalingStatusStatus DRAINING = new AutoscalingStatusStatus("draining");
+  }
+
+  public static final class AutoscalingStatusHistoryItem extends Model {
+    public AutoscalingStatusHistoryItem() {}
+
+    @JsonProperty(value = "at", required = true)
+    private String at;
+
+    @JsonProperty("at")
+    public String getAt() {
+      return at;
+    }
+
+    @JsonProperty(value = "from", required = true)
+    private Long from;
+
+    @JsonProperty("from")
+    public Long getFrom() {
+      return from;
+    }
+
+    @JsonProperty(value = "to", required = true)
+    private Long to;
+
+    @JsonProperty("to")
+    public Long getTo() {
+      return to;
+    }
+
+    @JsonProperty(value = "reason", required = true)
+    private String reason;
+
+    @JsonProperty("reason")
+    public String getReason() {
+      return reason;
+    }
+  }
+
+  public static final class RetiringPoolMember extends Model {
+    public RetiringPoolMember() {}
+
+    @JsonProperty(value = "requested_at", required = true)
+    private String requested_at;
+
+    @JsonProperty("requested_at")
+    public String getRequestedAt() {
+      return requested_at;
+    }
+
+    @JsonProperty(value = "drain_seconds", required = true)
+    private Long drain_seconds;
+
+    @JsonProperty("drain_seconds")
+    public Long getDrainSeconds() {
+      return drain_seconds;
+    }
+
+    @JsonProperty(value = "agent_acknowledged_at", required = false)
+    private String agent_acknowledged_at;
+
+    @JsonProperty("agent_acknowledged_at")
+    public String getAgentAcknowledgedAt() {
+      return agent_acknowledged_at;
+    }
+
+    /** Earliest deletion time; absent while withdrawal is pending. */
+    @JsonProperty(value = "drain_until", required = false)
+    private String drain_until;
+
+    @JsonProperty("drain_until")
+    public String getDrainUntil() {
+      return drain_until;
+    }
+
+    @JsonProperty(value = "instance_id", required = true)
+    private String instance_id;
+
+    @JsonProperty("instance_id")
+    public String getInstanceId() {
+      return instance_id;
+    }
+  }
+
   public static final class InstancePoolStatus {
     private final String value;
 
@@ -3712,8 +4675,9 @@ public final class Compute {
     }
 
     /**
-     * Per-replica disks, the boot disk included — mark it with `boot: true`. Same shape as instance
-     * create.
+     * Per-replica disks, the boot disk included — mark it with `boot: true`. Each new replica
+     * receives the configured provisioned performance. Omitted performance uses the included
+     * allowance. Existing volumes and snapshot schedules are not supported in pool templates.
      */
     @JsonProperty(value = "volumes", required = false)
     private List<InstanceVolume> volumes;
@@ -4197,6 +5161,14 @@ public final class Compute {
       return volume_type;
     }
 
+    @JsonProperty(value = "performance", required = false)
+    private VolumePerformanceRequest performance;
+
+    @JsonProperty("performance")
+    public VolumePerformanceRequest getPerformance() {
+      return performance;
+    }
+
     @JsonProperty(value = "mount_path", required = false)
     private String mount_path;
 
@@ -4221,6 +5193,26 @@ public final class Compute {
     @JsonProperty("delete_on_termination")
     public Boolean getDeleteOnTermination() {
       return delete_on_termination;
+    }
+  }
+
+  public static final class VolumePerformanceRequest extends Model {
+    public VolumePerformanceRequest() {}
+
+    @JsonProperty(value = "iops", required = false)
+    private Long iops;
+
+    @JsonProperty("iops")
+    public Long getIops() {
+      return iops;
+    }
+
+    @JsonProperty(value = "throughput_mib_s", required = false)
+    private BigDecimal throughput_mib_s;
+
+    @JsonProperty("throughput_mib_s")
+    public BigDecimal getThroughputMibS() {
+      return throughput_mib_s;
     }
   }
 
@@ -6587,6 +7579,19 @@ public final class Compute {
 
   public static final class InstancePoolUpdateRequestInput extends Model {
     public InstancePoolUpdateRequestInput() {}
+
+    @JsonProperty(value = "autoscaling", required = false)
+    private AutoscalingPolicyInput autoscaling;
+
+    @JsonProperty("autoscaling")
+    public AutoscalingPolicyInput getAutoscaling() {
+      return autoscaling;
+    }
+
+    public InstancePoolUpdateRequestInput withAutoscaling(AutoscalingPolicyInput value) {
+      this.autoscaling = value;
+      return this;
+    }
 
     /**
      * Customer note on the pool. Omit to preserve it; send an empty string to clear it. Changes no
