@@ -14,6 +14,18 @@ ROOT = Path(__file__).resolve().parents[1]
 NS = {"m": "http://maven.apache.org/POM/4.0.0"}
 
 
+def check_install_examples(readme, version):
+    # The introductory Maven/Gradle coordinates must install this API surface.
+    coordinates = re.findall(r"sh\.basaltic:sdk-java:([0-9A-Za-z.-]+)", readme)
+    assert len(coordinates) >= 2 and all(v == version for v in coordinates), "README coordinates must match the release"
+    dependencies = [ET.fromstring(block) for block in re.findall(r"```xml\n(.*?)```", readme, re.S)]
+    examples = [d for d in dependencies if d.findtext("artifactId") == "sdk-java"]
+    assert examples, "README has no Maven installation dependency"
+    for dependency in examples:
+        assert dependency.findtext("groupId") == "sh.basaltic"
+        assert dependency.findtext("version") == version, "README Maven version must match the release"
+
+
 def main():
     pom = ET.parse(ROOT / "pom.xml").getroot()
     value = lambda path: pom.findtext(path, namespaces=NS)
@@ -29,6 +41,7 @@ def main():
     if os.environ.get("RELEASE_TAG"): assert os.environ["RELEASE_TAG"] == "v" + version
     client = (ROOT / "src/main/java/sh/basaltic/sdk/Client.java").read_text()
     assert re.search(r'VERSION\s*=\s*"' + re.escape(version) + '"', client)
+    check_install_examples((ROOT / "README.md").read_text(), version)
     maven = os.environ.get("MAVEN", "mvn")
     subprocess.run([maven, "-B", "-ntp", "-DskipTests", "package", "dependency:build-classpath", "-DincludeScope=runtime", "-Dmdep.outputFile=target/runtime-classpath.txt"], cwd=ROOT, check=True)
     artifacts = {suffix: ROOT / "target" / ("sdk-java-" + version + suffix + ".jar") for suffix in ("", "-sources", "-javadoc")}
