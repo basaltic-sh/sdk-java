@@ -445,6 +445,26 @@ public final class Storage {
       return size_gb;
     }
 
+    /**
+     * Frozen logical restore capacity in bytes (size_gb multiplied by 2^30), not measured written
+     * data.
+     */
+    @JsonProperty(value = "logical_size_bytes", required = false)
+    private Long logical_size_bytes;
+
+    @JsonProperty("logical_size_bytes")
+    public Long getLogicalSizeBytes() {
+      return logical_size_bytes;
+    }
+
+    @JsonProperty(value = "snapshot_usage", required = false)
+    private SnapshotUsage snapshot_usage;
+
+    @JsonProperty("snapshot_usage")
+    public SnapshotUsage getSnapshotUsage() {
+      return snapshot_usage;
+    }
+
     @JsonProperty(value = "status", required = false)
     private SnapshotStatus status;
 
@@ -480,6 +500,128 @@ public final class Storage {
     public String getUpdatedAt() {
       return updated_at;
     }
+  }
+
+  public static final class SnapshotUsage extends Model {
+    public SnapshotUsage() {}
+
+    /**
+     * Measured means a complete observation with a matching current catalog generation and age at
+     * most 90 minutes. Stale means its generation changed or it expired. This is a last-observed
+     * value, not continuous backend verification. Unknown and stale never imply zero usage.
+     */
+    @JsonProperty(value = "state", required = true)
+    private SnapshotUsageState state;
+
+    @JsonProperty("state")
+    public SnapshotUsageState getState() {
+      return state;
+    }
+
+    @JsonProperty(value = "scope", required = true)
+    private SnapshotUsageScope scope;
+
+    @JsonProperty("scope")
+    public SnapshotUsageScope getScope() {
+      return scope;
+    }
+
+    /** These observations do not produce charges. */
+    @JsonProperty(value = "billable", required = true)
+    private Boolean billable;
+
+    @JsonProperty("billable")
+    public Boolean getBillable() {
+      return billable;
+    }
+
+    /** Observation timestamp for measured or stale data; null when unknown. */
+    @JsonProperty(value = "measured_at", required = true)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> measured_at = JsonField.missing();
+
+    @JsonProperty("measured_at")
+    public JsonField<String> getMeasuredAt() {
+      return measured_at;
+    }
+
+    /**
+     * Exact retained lineage bytes only when measured; null when unknown or stale. An explicit
+     * measured zero is distinct from unavailable data.
+     */
+    @JsonProperty(value = "lineage_retained_bytes", required = true)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<Long> lineage_retained_bytes = JsonField.missing();
+
+    @JsonProperty("lineage_retained_bytes")
+    public JsonField<Long> getLineageRetainedBytes() {
+      return lineage_retained_bytes;
+    }
+  }
+
+  public static final class SnapshotUsageState {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public SnapshotUsageState(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof SnapshotUsageState v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final SnapshotUsageState UNKNOWN = new SnapshotUsageState("unknown");
+    public static final SnapshotUsageState STALE = new SnapshotUsageState("stale");
+    public static final SnapshotUsageState MEASURED = new SnapshotUsageState("measured");
+  }
+
+  public static final class SnapshotUsageScope {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public SnapshotUsageScope(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof SnapshotUsageScope v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final SnapshotUsageScope VOLUME_LINEAGE =
+        new SnapshotUsageScope("volume_lineage");
   }
 
   public static final class SnapshotStatus {
