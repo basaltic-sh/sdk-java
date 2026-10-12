@@ -6,7 +6,6 @@ import sh.basaltic.sdk.models.Certificate.Certificate2;
 import sh.basaltic.sdk.models.Certificate.CertificateIssueRequestInput;
 import sh.basaltic.sdk.models.Certificate.CertificateListResponse;
 import sh.basaltic.sdk.models.Certificate.CertificateResponse;
-import sh.basaltic.sdk.models.Certificate.CreateCertificateResponse;
 import sh.basaltic.sdk.models.Certificate.GetCertificateScope;
 import sh.basaltic.sdk.models.Certificate.ListCertificatesQuery;
 import sh.basaltic.sdk.models.Certificate.MaterialResponse;
@@ -97,7 +96,7 @@ public final class CertificateService {
           "application/json");
 
   /** Create certificate */
-  public Request<CreateCertificateResponse> createCertificate(CertificateIssueRequestInput body) {
+  public Request<CertificateResponse> createCertificate(CertificateIssueRequestInput body) {
     return new Request<>(
         new Core(
             transport,
@@ -107,7 +106,7 @@ public final class CertificateService {
             Map.ofEntries(),
             body,
             null),
-        new TypeReference<CreateCertificateResponse>() {});
+        new TypeReference<CertificateResponse>() {});
   }
 
   /** Delete certificate */

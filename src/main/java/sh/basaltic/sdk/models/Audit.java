@@ -1,7 +1,6 @@
 package sh.basaltic.sdk.models;
 
 import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.*;
 import sh.basaltic.sdk.JsonField;
 import sh.basaltic.sdk.internal.Model;
@@ -53,12 +52,15 @@ public final class Audit {
     }
 
     /**
-     * Immutable event-time actor identity. Null for historical entries without a snapshot. New user
-     * events use crn:workspace:::organization/&lt;organization-uuid&gt;/user/&lt;user-uuid&gt;;
-     * service accounts use crn:iam::&lt;account-handle&gt;:service-account/&lt;name&gt;; assumed
-     * roles use crn:iam::&lt;account-handle&gt;:role/&lt;name&gt;, with the session identity in
-     * details.actor_session_crn. Historical entries retain their original CRNs, including legacy
-     * IAM organization identities. System actors use crn:iam::platform:system/&lt;service&gt;, with
+     * Immutable event-time actor identity. Null for historical entries without a snapshot.
+     * Authenticated user events use crn:workspace:::user/&lt;username&gt;, with the user UUID as a
+     * fallback when a username is unavailable; service accounts use
+     * crn:iam::&lt;account-handle&gt;:service-account/&lt;name&gt;; assumed roles use
+     * crn:iam::&lt;account-handle&gt;:role/&lt;name&gt;, with the session identity in
+     * details.actor_session_crn and verified ancestry in details.auth_chain. Federated assumptions
+     * identify the verified provider in actor_crn and the verified subject in actor_name and
+     * details.auth_chain. Historical entries retain their original CRNs, including legacy IAM
+     * organization identities. System actors use crn:iam::platform:system/&lt;service&gt;, with
      * service names certificate, registry, secrets, queue, notifications and email.
      */
     @JsonProperty(value = "actor_crn", required = false)
@@ -75,6 +77,9 @@ public final class Audit {
      * enumerated events whose target cannot be identified from event-time data, such as an
      * unknown-email password reset or a lookup that never resolved a row. A known target UUID is
      * retained in details.resource_id; it is never substituted for the immutable name in a CRN.
+     * AssumeRole and AssumeRoleWithWebIdentity target the role being assumed. GetToken targets the
+     * authenticated service account. These authentication events record the resulting session in
+     * details.session_crn.
      */
     @JsonProperty(value = "resource_crn", required = false)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -165,13 +170,21 @@ public final class Audit {
 
     /**
      * Additional action-specific details. For assumed-role actors, actor_session_crn records
-     * crn:iam:::sts-session/&lt;id&gt; to correlate the event with its AssumeRole call.
+     * crn:iam::&lt;account-handle&gt;:sts-session/&lt;id&gt; to correlate the event with its
+     * AssumeRole call. auth_chain is an immutable snapshot of verified identities, ordered from the
+     * original user, service account or workload through every assumed role to the effective actor.
+     * It contains identifiers and session metadata, never credentials. Historical events without
+     * recorded ancestry omit auth_chain; reads do not reconstruct it from current sessions or
+     * identities. Authentication grants include session_id, session_crn, grant_type and expires_at.
+     * A federated origin includes its verified issuer and subject independently of the
+     * caller-supplied session name. Initiated background work retains the original audit
+     * attribution and request correlation.
      */
     @JsonProperty(value = "details", required = false)
-    private Map<String, JsonNode> details;
+    private AuditLogDetails details;
 
     @JsonProperty("details")
-    public Map<String, JsonNode> getDetails() {
+    public AuditLogDetails getDetails() {
       return details;
     }
 
@@ -227,6 +240,134 @@ public final class Audit {
     public static final AuditLogStatus SUCCESS = new AuditLogStatus("success");
     public static final AuditLogStatus FAILURE = new AuditLogStatus("failure");
     public static final AuditLogStatus DENIED = new AuditLogStatus("denied");
+  }
+
+  public static final class AuditLogDetails extends Model {
+    public AuditLogDetails() {}
+
+    @JsonProperty(value = "auth_chain", required = false)
+    private List<AuditAuthenticationStep> auth_chain;
+
+    @JsonProperty("auth_chain")
+    public List<AuditAuthenticationStep> getAuthChain() {
+      return auth_chain;
+    }
+  }
+
+  public static final class AuditAuthenticationStep extends Model {
+    public AuditAuthenticationStep() {}
+
+    /**
+     * Stable principal UUID. For a federated workload this is derived from its verified issuer and
+     * subject.
+     */
+    @JsonProperty(value = "principal_id", required = true)
+    private String principal_id;
+
+    @JsonProperty("principal_id")
+    public String getPrincipalId() {
+      return principal_id;
+    }
+
+    /** Identity kind, such as user, service_account, assumed_role, instance or web_identity. */
+    @JsonProperty(value = "principal_type", required = true)
+    private String principal_type;
+
+    @JsonProperty("principal_type")
+    public String getPrincipalType() {
+      return principal_type;
+    }
+
+    /** Recorded principal identity; for web identity this identifies the verified provider. */
+    @JsonProperty(value = "principal_crn", required = false)
+    private String principal_crn;
+
+    @JsonProperty("principal_crn")
+    public String getPrincipalCrn() {
+      return principal_crn;
+    }
+
+    /** Display name captured when the request was authenticated, when available. */
+    @JsonProperty(value = "name", required = false)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    /** Verified issuer of the originating web identity token, when applicable. */
+    @JsonProperty(value = "issuer", required = false)
+    private String issuer;
+
+    @JsonProperty("issuer")
+    public String getIssuer() {
+      return issuer;
+    }
+
+    /** Verified subject of the originating web identity token, independent of the session label. */
+    @JsonProperty(value = "subject", required = false)
+    private String subject;
+
+    @JsonProperty("subject")
+    public String getSubject() {
+      return subject;
+    }
+
+    /** User email captured when the request was authenticated, when available. */
+    @JsonProperty(value = "email", required = false)
+    private String email;
+
+    @JsonProperty("email")
+    public String getEmail() {
+      return email;
+    }
+
+    @JsonProperty(value = "session_id", required = false)
+    private String session_id;
+
+    @JsonProperty("session_id")
+    public String getSessionId() {
+      return session_id;
+    }
+
+    /** Account-qualified STS session identity, when applicable. */
+    @JsonProperty(value = "session_crn", required = false)
+    private String session_crn;
+
+    @JsonProperty("session_crn")
+    public String getSessionCrn() {
+      return session_crn;
+    }
+
+    /** Caller-supplied session label, not proof of identity. */
+    @JsonProperty(value = "session_name", required = false)
+    private String session_name;
+
+    @JsonProperty("session_name")
+    public String getSessionName() {
+      return session_name;
+    }
+
+    /**
+     * How this session was issued, such as assume_role, client_credentials, imds or web_identity.
+     */
+    @JsonProperty(value = "grant_type", required = false)
+    private String grant_type;
+
+    @JsonProperty("grant_type")
+    public String getGrantType() {
+      return grant_type;
+    }
+
+    /** When this session was created. */
+    @JsonProperty(value = "issued_at", required = false)
+    private String issued_at;
+
+    @JsonProperty("issued_at")
+    public String getIssuedAt() {
+      return issued_at;
+    }
   }
 
   public static final class GetAuditLogScope extends Model {

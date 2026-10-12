@@ -1,11 +1,9 @@
 package sh.basaltic.sdk.models;
 
 import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.*;
 import sh.basaltic.sdk.JsonField;
-import sh.basaltic.sdk.internal.Json;
 import sh.basaltic.sdk.internal.Model;
 
 /** Typed certificate wire models. Unknown string enum values are retained. */
@@ -656,41 +654,6 @@ public final class Certificate {
 
     public static final FaultSeverity ERROR = new FaultSeverity("error");
     public static final FaultSeverity WARNING = new FaultSeverity("warning");
-  }
-
-  public static final class CreateCertificateResponse {
-    private final JsonNode value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public CreateCertificateResponse(JsonNode value) {
-      this.value = Objects.requireNonNull(value).deepCopy();
-    }
-
-    @JsonValue
-    public JsonNode json() {
-      return value.deepCopy();
-    }
-
-    @Override
-    public String toString() {
-      return "CreateCertificateResponse{[REDACTED]}";
-    }
-
-    public static CreateCertificateResponse ofVariant1(CertificateResponse value) {
-      Model.validate(value);
-      return new CreateCertificateResponse(Json.tree(value));
-    }
-
-    public Optional<CertificateResponse> asVariant1() {
-      try {
-        CertificateResponse result =
-            Json.convert(value, new TypeReference<CertificateResponse>() {});
-        Model.validate(result);
-        return Optional.ofNullable(result);
-      } catch (sh.basaltic.sdk.SdkException e) {
-        return Optional.empty();
-      }
-    }
   }
 
   public static final class GetCertificateScope extends Model {

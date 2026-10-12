@@ -139,7 +139,17 @@ Save organization billing details
 `PUT /v1/profile`
 
 ```java
-public Request<BillingProfile> updateBillingProfile(BillingProfileInput body)
+public Request<BillingProfile> updateBillingProfile(BillingProfileUpdateInput body)
+```
+
+## `catalog.getCountry`
+
+Get a country and its address rules
+
+`GET /v1/countries/{country}`
+
+```java
+public Request<GetCountryResponse> getCountry(String country)
 ```
 
 ## `catalog.getRegion`
@@ -152,6 +162,26 @@ Get a region
 public Request<Region> getRegion(String code)
 ```
 
+## `catalog.listCities`
+
+List cities
+
+`GET /v1/cities`
+
+```java
+public PagedRequest<ListCitiesResponse,City> listCities(ListCitiesQuery query)
+```
+
+## `catalog.listCountries`
+
+List countries
+
+`GET /v1/countries`
+
+```java
+public PagedRequest<ListCountriesResponse,Country> listCountries()
+```
+
 ## `catalog.listRegions`
 
 List regions
@@ -162,6 +192,26 @@ List regions
 public PagedRequest<ListRegionsResponse,Region> listRegions(ListRegionsQuery query)
 ```
 
+## `catalog.listStates`
+
+List a country's states
+
+`GET /v1/states`
+
+```java
+public PagedRequest<ListStatesResponse,State> listStates(ListStatesQuery query)
+```
+
+## `catalog.lookupPostalCode`
+
+Look up a postal code
+
+`GET /v1/postal-codes/{code}`
+
+```java
+public Request<LookupPostalCodeResponse> lookupPostalCode(String code,LookupPostalCodeQuery query)
+```
+
 ## `certificate.createCertificate`
 
 Create certificate
@@ -169,7 +219,7 @@ Create certificate
 `POST /v1/certificates`
 
 ```java
-public Request<CreateCertificateResponse> createCertificate(CertificateIssueRequestInput body)
+public Request<CertificateResponse> createCertificate(CertificateIssueRequestInput body)
 ```
 
 ## `certificate.deleteCertificate`
@@ -1442,6 +1492,46 @@ Get a KMS key
 public Request<KeyResponse> getKey(String key_id)
 ```
 
+## `kms.getKeyRotation`
+
+Get a key rotation
+
+`GET /v1/keys/{key_id}/rotations/{rotation_id}`
+
+```java
+public Request<KeyRotationResponse> getKeyRotation(String key_id,String rotation_id)
+```
+
+## `kms.getKeyRotationStatus`
+
+Get key rotation status
+
+`GET /v1/keys/{key_id}/rotation`
+
+```java
+public Request<KeyRotationStatusResponse> getKeyRotationStatus(String key_id)
+```
+
+## `kms.getPublicKey`
+
+Get a versioned public key
+
+`GET /v1/keys/{key_id}/public-key`
+
+```java
+public Request<PublicKeyResponse> getPublicKey(String key_id,GetPublicKeyQuery query)
+```
+
+## `kms.listKeyRotations`
+
+List key rotation history
+
+`GET /v1/keys/{key_id}/rotations`
+
+```java
+public PagedRequest<KeyRotationListResponse,KeyRotation> listKeyRotations(String key_id,ListKeyRotationsQuery query)
+```
+
 ## `kms.listKeys`
 
 List KMS keys
@@ -1452,6 +1542,26 @@ List KMS keys
 public PagedRequest<KeyListResponse,Key> listKeys(ListKeysQuery query)
 ```
 
+## `kms.rewrap`
+
+Rewrap ciphertext with current key material
+
+`POST /v1/keys/{key_id}/rewrap`
+
+```java
+public Request<EncryptResponse> rewrap(String key_id,RewrapRequestInput body)
+```
+
+## `kms.rotateKeyOnDemand`
+
+Rotate key material now
+
+`POST /v1/keys/{key_id}/rotate`
+
+```java
+public Request<KeyRotationResponse> rotateKeyOnDemand(String key_id)
+```
+
 ## `kms.scheduleKeyDeletion`
 
 Schedule key for deletion
@@ -1460,6 +1570,16 @@ Schedule key for deletion
 
 ```java
 public Request<KeyResponse> scheduleKeyDeletion(String key_id,ScheduleKeyDeletionRequestInput body)
+```
+
+## `kms.setKeyRotation`
+
+Configure automatic key rotation
+
+`PUT /v1/keys/{key_id}/rotation`
+
+```java
+public Request<KeyRotationPolicyResponse> setKeyRotation(String key_id,SetKeyRotationRequestInput body)
 ```
 
 ## `kms.sign`

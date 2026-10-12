@@ -4,20 +4,20 @@ Typed Java 17+ client for the Basaltic Cloud API: 15 services and 401 operations
 Uses the JDK HTTP client and Jackson. Synchronous calls, asynchronous calls and
 backpressure-aware pagination share the same request builders and models.
 
-Maven coordinates: `sh.basaltic:sdk-java:0.3.1`.
+Maven coordinates: `sh.basaltic:sdk-java:0.4.0`.
 
 ```xml
 <dependency>
   <groupId>sh.basaltic</groupId>
   <artifactId>sdk-java</artifactId>
-  <version>0.3.1</version>
+  <version>0.4.0</version>
 </dependency>
 ```
 
 Gradle:
 
 ```kotlin
-implementation("sh.basaltic:sdk-java:0.3.1")
+implementation("sh.basaltic:sdk-java:0.4.0")
 ```
 
 You can also build and install a source checkout with `mvn -B -ntp install`.
@@ -159,3 +159,17 @@ to [security@basaltic.sh](mailto:security@basaltic.sh); see
 [SECURITY.md](https://github.com/basaltic-sh/sdk-java/blob/main/SECURITY.md).
 
 Licensed under Apache-2.0.
+
+## KMS key rotation
+
+The KMS client supports automatic rotation policies, on-demand rotation, paginated
+rotation history, public keys by material version, and ciphertext rewrapping.
+Reuse an idempotency key when retrying the same on-demand rotation. A `202`
+response represents accepted work; poll its rotation ID until it completes.
+Persist the material version returned by signing and supply it when verifying
+or retrieving a public key. Verification without a version remains compatible
+with older signatures. Rotation retains existing key identities and historical
+material; it does not rewrite stored ciphertext.
+
+See [KMS rotation](https://docs.basaltic.sh/kms/rotation) for the lifecycle,
+permissions, and migration workflow.

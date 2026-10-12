@@ -3,7 +3,7 @@ package sh.basaltic.sdk;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.*;
 import sh.basaltic.sdk.models.Billing.BillingProfile;
-import sh.basaltic.sdk.models.Billing.BillingProfileInput;
+import sh.basaltic.sdk.models.Billing.BillingProfileUpdateInput;
 import sh.basaltic.sdk.models.Billing.Credit;
 import sh.basaltic.sdk.models.Billing.CreditListResponse;
 import sh.basaltic.sdk.models.Billing.CurrentUsage;
@@ -410,7 +410,7 @@ public final class BillingService {
   }
 
   /** Save organization billing details */
-  public Request<BillingProfile> updateBillingProfile(BillingProfileInput body) {
+  public Request<BillingProfile> updateBillingProfile(BillingProfileUpdateInput body) {
     return new Request<>(
         new Core(
             transport,

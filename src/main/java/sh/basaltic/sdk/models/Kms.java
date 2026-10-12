@@ -494,8 +494,8 @@ public final class Kms {
     public EncryptResponse() {}
 
     /**
-     * Base64-encoded ciphertext. Opaque — store verbatim. For AES-GCM the layout is nonce(12) || ct
-     * || tag; for RSA-OAEP the standard PKCS#1 RSAES output.
+     * Base64-encoded opaque, versioned ciphertext. Store verbatim; do not parse its internal
+     * layout. Decrypt selects the original material version automatically after rotation.
      */
     @JsonProperty(value = "ciphertext", required = false)
     private String ciphertext;
@@ -520,8 +520,7 @@ public final class Kms {
 
     /**
      * Size of the generated data key in bytes: 16 (AES-128), 32 (AES-256, the default) or 64
-     * (HMAC-SHA512). No other size is supported — the HSM mints data keys at those three widths
-     * only, and any other value fails the operation.
+     * (HMAC-SHA512). No other size is supported; any other value fails the operation.
      */
     @JsonProperty(value = "number_of_bytes", required = false)
     private Long number_of_bytes;
@@ -628,6 +627,395 @@ public final class Kms {
     public static final KeyStateInput PENDING_DELETION = new KeyStateInput("pending_deletion");
   }
 
+  public static final class KeyRotationResponse extends Model {
+    public KeyRotationResponse() {}
+
+    @JsonProperty(value = "rotation", required = true)
+    private KeyRotation rotation;
+
+    @JsonProperty("rotation")
+    public KeyRotation getRotation() {
+      return rotation;
+    }
+  }
+
+  public static final class KeyRotation extends Model {
+    public KeyRotation() {}
+
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
+    @JsonProperty(value = "key_id", required = true)
+    private String key_id;
+
+    @JsonProperty("key_id")
+    public String getKeyId() {
+      return key_id;
+    }
+
+    @JsonProperty(value = "trigger", required = true)
+    private KeyRotationTrigger trigger;
+
+    @JsonProperty("trigger")
+    public KeyRotationTrigger getTrigger() {
+      return trigger;
+    }
+
+    /**
+     * Pending work is durable. Reconciliation_required means the backend outcome is unknown; no
+     * second rotation is sent and further requests are blocked until resolved. Failed means the
+     * request was cancelled before dispatch.
+     */
+    @JsonProperty(value = "status", required = true)
+    private KeyRotationStatus status;
+
+    @JsonProperty("status")
+    public KeyRotationStatus getStatus() {
+      return status;
+    }
+
+    @JsonProperty(value = "previous_version", required = true)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<Long> previous_version = JsonField.missing();
+
+    @JsonProperty("previous_version")
+    public JsonField<Long> getPreviousVersion() {
+      return previous_version;
+    }
+
+    /** New material version, populated only on success. */
+    @JsonProperty(value = "key_version", required = true)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<Long> key_version = JsonField.missing();
+
+    @JsonProperty("key_version")
+    public JsonField<Long> getKeyVersion() {
+      return key_version;
+    }
+
+    @JsonProperty(value = "requested_at", required = true)
+    private String requested_at;
+
+    @JsonProperty("requested_at")
+    public String getRequestedAt() {
+      return requested_at;
+    }
+
+    @JsonProperty(value = "started_at", required = true)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> started_at = JsonField.missing();
+
+    @JsonProperty("started_at")
+    public JsonField<String> getStartedAt() {
+      return started_at;
+    }
+
+    @JsonProperty(value = "completed_at", required = true)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> completed_at = JsonField.missing();
+
+    @JsonProperty("completed_at")
+    public JsonField<String> getCompletedAt() {
+      return completed_at;
+    }
+
+    /** Machine-readable cancellation or reconciliation reason. Null on success. */
+    @JsonProperty(value = "error_code", required = true)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> error_code = JsonField.missing();
+
+    @JsonProperty("error_code")
+    public JsonField<String> getErrorCode() {
+      return error_code;
+    }
+  }
+
+  public static final class KeyRotationTrigger {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public KeyRotationTrigger(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof KeyRotationTrigger v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final KeyRotationTrigger ON_DEMAND = new KeyRotationTrigger("on_demand");
+    public static final KeyRotationTrigger AUTOMATIC = new KeyRotationTrigger("automatic");
+  }
+
+  public static final class KeyRotationStatus {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public KeyRotationStatus(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof KeyRotationStatus v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final KeyRotationStatus PENDING = new KeyRotationStatus("pending");
+    public static final KeyRotationStatus IN_PROGRESS = new KeyRotationStatus("in_progress");
+    public static final KeyRotationStatus RECONCILIATION_REQUIRED =
+        new KeyRotationStatus("reconciliation_required");
+    public static final KeyRotationStatus SUCCEEDED = new KeyRotationStatus("succeeded");
+    public static final KeyRotationStatus FAILED = new KeyRotationStatus("failed");
+  }
+
+  public static final class KeyRotationStatusResponse extends Model {
+    public KeyRotationStatusResponse() {}
+
+    @JsonProperty(value = "rotation", required = true)
+    private KeyRotationStatus2 rotation;
+
+    @JsonProperty("rotation")
+    public KeyRotationStatus2 getRotation() {
+      return rotation;
+    }
+  }
+
+  public static final class KeyRotationStatus2 extends Model {
+    public KeyRotationStatus2() {}
+
+    /** Automatic rotation is opt-in and defaults to false. */
+    @JsonProperty(value = "enabled", required = true)
+    private Boolean enabled;
+
+    @JsonProperty("enabled")
+    public Boolean getEnabled() {
+      return enabled;
+    }
+
+    @JsonProperty(value = "rotation_period_days", required = true)
+    private Long rotation_period_days;
+
+    @JsonProperty("rotation_period_days")
+    public Long getRotationPeriodDays() {
+      return rotation_period_days;
+    }
+
+    /**
+     * Next scheduled rotation, or null when automatic rotation is disabled. Disabled keys are
+     * skipped until re-enabled.
+     */
+    @JsonProperty(value = "next_rotation_at", required = true)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> next_rotation_at = JsonField.missing();
+
+    @JsonProperty("next_rotation_at")
+    public JsonField<String> getNextRotationAt() {
+      return next_rotation_at;
+    }
+
+    /** Current material version used for new cryptographic operations. */
+    @JsonProperty(value = "current_version", required = true)
+    private Long current_version;
+
+    @JsonProperty("current_version")
+    public Long getCurrentVersion() {
+      return current_version;
+    }
+  }
+
+  public static final class GetPublicKeyQuery extends Model {
+    public GetPublicKeyQuery() {}
+
+    @JsonProperty(value = "key_version", required = false)
+    private Long key_version;
+
+    @JsonProperty("key_version")
+    public Long getKeyVersion() {
+      return key_version;
+    }
+
+    public GetPublicKeyQuery withKeyVersion(Long value) {
+      this.key_version = value;
+      return this;
+    }
+  }
+
+  public static final class PublicKeyResponse extends Model {
+    public PublicKeyResponse() {}
+
+    @JsonProperty(value = "key_crn", required = true)
+    private String key_crn;
+
+    @JsonProperty("key_crn")
+    public String getKeyCrn() {
+      return key_crn;
+    }
+
+    @JsonProperty(value = "key_version", required = true)
+    private Long key_version;
+
+    @JsonProperty("key_version")
+    public Long getKeyVersion() {
+      return key_version;
+    }
+
+    @JsonProperty(value = "key_spec", required = true)
+    private KeySpec key_spec;
+
+    @JsonProperty("key_spec")
+    public KeySpec getKeySpec() {
+      return key_spec;
+    }
+
+    @JsonProperty(value = "key_usage", required = true)
+    private KeyUsage key_usage;
+
+    @JsonProperty("key_usage")
+    public KeyUsage getKeyUsage() {
+      return key_usage;
+    }
+
+    /**
+     * PEM-encoded SubjectPublicKeyInfo for the requested asymmetric material version. No private
+     * material is exported.
+     */
+    @JsonProperty(value = "public_key", required = true)
+    private String public_key;
+
+    @JsonProperty("public_key")
+    public String getPublicKey() {
+      return public_key;
+    }
+  }
+
+  public static final class ListKeyRotationsQuery extends Model {
+    public ListKeyRotationsQuery() {}
+
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
+
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
+    }
+
+    public ListKeyRotationsQuery withLimit(Long value) {
+      this.limit = value;
+      return this;
+    }
+
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    public ListKeyRotationsQuery withMarker(String value) {
+      this.marker = value;
+      return this;
+    }
+  }
+
+  public static final class KeyRotationListResponse extends Model {
+    public KeyRotationListResponse() {}
+
+    @JsonProperty(value = "rotations", required = true)
+    private List<KeyRotation> rotations;
+
+    @JsonProperty("rotations")
+    public List<KeyRotation> getRotations() {
+      return rotations;
+    }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
+    }
+  }
+
+  public static final class PaginationMeta extends Model {
+    public PaginationMeta() {}
+
+    /** Total number of items */
+    @JsonProperty(value = "total", required = false)
+    private Long total;
+
+    @JsonProperty("total")
+    public Long getTotal() {
+      return total;
+    }
+
+    /** Number of items per page */
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
+
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
+    }
+
+    /**
+     * Opaque cursor for the next page. Pass it back as the `marker` query parameter; treat it as a
+     * token, not a value to parse.
+     */
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    /** Whether there are more items */
+    @JsonProperty(value = "has_more", required = false)
+    private Boolean has_more;
+
+    @JsonProperty("has_more")
+    public Boolean getHasMore() {
+      return has_more;
+    }
+  }
+
   public static final class ListKeysQuery extends Model {
     public ListKeysQuery() {}
 
@@ -717,46 +1105,24 @@ public final class Kms {
     }
   }
 
-  public static final class PaginationMeta extends Model {
-    public PaginationMeta() {}
-
-    /** Total number of items */
-    @JsonProperty(value = "total", required = false)
-    private Long total;
-
-    @JsonProperty("total")
-    public Long getTotal() {
-      return total;
-    }
-
-    /** Number of items per page */
-    @JsonProperty(value = "limit", required = false)
-    private Long limit;
-
-    @JsonProperty("limit")
-    public Long getLimit() {
-      return limit;
-    }
+  public static final class RewrapRequestInput extends Model {
+    public RewrapRequestInput() {}
 
     /**
-     * Opaque cursor for the next page. Pass it back as the `marker` query parameter; treat it as a
-     * token, not a value to parse.
+     * Base64-encoded ciphertext or wrapped data key produced by this KMS key. AAD is neither
+     * required nor changed.
      */
-    @JsonProperty(value = "marker", required = false)
-    private String marker;
+    @JsonProperty(value = "ciphertext", required = true)
+    private String ciphertext;
 
-    @JsonProperty("marker")
-    public String getMarker() {
-      return marker;
+    @JsonProperty("ciphertext")
+    public String getCiphertext() {
+      return ciphertext;
     }
 
-    /** Whether there are more items */
-    @JsonProperty(value = "has_more", required = false)
-    private Boolean has_more;
-
-    @JsonProperty("has_more")
-    public Boolean getHasMore() {
-      return has_more;
+    public RewrapRequestInput withCiphertext(String value) {
+      this.ciphertext = value;
+      return this;
     }
   }
 
@@ -778,6 +1144,83 @@ public final class Kms {
     public ScheduleKeyDeletionRequestInput withRecoveryWindowDays(Long value) {
       this.recovery_window_days = value;
       return this;
+    }
+  }
+
+  public static final class SetKeyRotationRequestInput extends Model {
+    public SetKeyRotationRequestInput() {}
+
+    @JsonProperty(value = "enabled", required = true)
+    private Boolean enabled;
+
+    @JsonProperty("enabled")
+    public Boolean getEnabled() {
+      return enabled;
+    }
+
+    public SetKeyRotationRequestInput withEnabled(Boolean value) {
+      this.enabled = value;
+      return this;
+    }
+
+    /** Whole days between rotations. Omission selects 365 days. */
+    @JsonProperty(value = "rotation_period_days", required = false)
+    private Long rotation_period_days;
+
+    @JsonProperty("rotation_period_days")
+    public Long getRotationPeriodDays() {
+      return rotation_period_days;
+    }
+
+    public SetKeyRotationRequestInput withRotationPeriodDays(Long value) {
+      this.rotation_period_days = value;
+      return this;
+    }
+  }
+
+  public static final class KeyRotationPolicyResponse extends Model {
+    public KeyRotationPolicyResponse() {}
+
+    @JsonProperty(value = "rotation", required = true)
+    private KeyRotationPolicy rotation;
+
+    @JsonProperty("rotation")
+    public KeyRotationPolicy getRotation() {
+      return rotation;
+    }
+  }
+
+  public static final class KeyRotationPolicy extends Model {
+    public KeyRotationPolicy() {}
+
+    /** Automatic rotation is opt-in and defaults to false. */
+    @JsonProperty(value = "enabled", required = true)
+    private Boolean enabled;
+
+    @JsonProperty("enabled")
+    public Boolean getEnabled() {
+      return enabled;
+    }
+
+    @JsonProperty(value = "rotation_period_days", required = true)
+    private Long rotation_period_days;
+
+    @JsonProperty("rotation_period_days")
+    public Long getRotationPeriodDays() {
+      return rotation_period_days;
+    }
+
+    /**
+     * Next scheduled rotation, or null when automatic rotation is disabled. Disabled keys are
+     * skipped until re-enabled.
+     */
+    @JsonProperty(value = "next_rotation_at", required = true)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> next_rotation_at = JsonField.missing();
+
+    @JsonProperty("next_rotation_at")
+    public JsonField<String> getNextRotationAt() {
+      return next_rotation_at;
     }
   }
 
@@ -853,6 +1296,18 @@ public final class Kms {
 
   public static final class SignResponse extends Model {
     public SignResponse() {}
+
+    /**
+     * Material version that produced this signature. Persist with the signature for explicit
+     * verification and public-key retrieval.
+     */
+    @JsonProperty(value = "key_version", required = false)
+    private Long key_version;
+
+    @JsonProperty("key_version")
+    public Long getKeyVersion() {
+      return key_version;
+    }
 
     /**
      * Base64-encoded signature. RSA-PSS: PKCS#1 octet string with saltLen=hashLen=32. ECDSA: ASN.1
@@ -942,6 +1397,23 @@ public final class Kms {
 
   public static final class VerifyRequestInput extends Model {
     public VerifyRequestInput() {}
+
+    /**
+     * Optional material version returned by Sign. When omitted, all retained public-key versions
+     * are tried for compatibility with older signatures.
+     */
+    @JsonProperty(value = "key_version", required = false)
+    private Long key_version;
+
+    @JsonProperty("key_version")
+    public Long getKeyVersion() {
+      return key_version;
+    }
+
+    public VerifyRequestInput withKeyVersion(Long value) {
+      this.key_version = value;
+      return this;
+    }
 
     /** Base64-encoded original message. */
     @JsonProperty(value = "message", required = true)

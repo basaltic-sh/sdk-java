@@ -718,4 +718,44 @@ final class ClientTest {
       assertEquals(SdkException.Kind.CLOSED, assertThrows(SdkException.class, call::send).kind());
     }
   }
+
+  @Test
+  void kmsRotationKeepsAcceptedResponsesTypedAndDisabledPoliciesExplicit() throws Exception {
+    try (Fixture f =
+            new Fixture(
+                r ->
+                    r.method().equals("PUT")
+                        ? new Reply(
+                            200,
+                            "{\"rotation\":{\"enabled\":false,\"rotation_period_days\":90,\"next_rotation_at\":null}}")
+                        : new Reply(
+                            202,
+                            "{\"rotation\":{\"id\":\"rotation\",\"key_id\":\"key\",\"trigger\":\"on_demand\",\"status\":\"pending\",\"previous_version\":null,\"key_version\":null,\"requested_at\":\"2026-10-12T12:00:00Z\",\"started_at\":null,\"completed_at\":null,\"error_code\":null}}"));
+        Client c = new Client(f.config().endpoint("kms", f.url()).build())) {
+      var body =
+          new sh.basaltic.sdk.models.Kms.SetKeyRotationRequestInput()
+              .withEnabled(false)
+              .withRotationPeriodDays(90L);
+      var policy = c.kms().setKeyRotation("key", body).send();
+      assertFalse(policy.data().getRotation().getEnabled());
+      assertTrue(policy.data().getRotation().getNextRotationAt().isNull());
+      var result =
+          c.kms()
+              .rotateKeyOnDemand("key")
+              .options(RequestOptions.builder().idempotencyKey("rotation-request").build())
+              .send();
+      assertEquals(202, result.status());
+      assertEquals("rotation", result.data().getRotation().getId());
+      assertTrue(result.data().getRotation().getKeyVersion().isNull());
+      assertEquals("rotation-request", f.requests.get(1).header("Idempotency-Key"));
+      assertEquals("/v1/keys/key/rotate", f.requests.get(1).uri().getPath());
+      assertFalse(Json.tree(body).get("enabled").asBoolean());
+      var verify =
+          new sh.basaltic.sdk.models.Kms.VerifyRequestInput()
+              .withMessage("bXNn")
+              .withSignature("c2ln")
+              .withKeyVersion(1L);
+      assertEquals(1, Json.tree(verify).get("key_version").asInt());
+    }
+  }
 }

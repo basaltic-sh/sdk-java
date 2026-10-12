@@ -16,7 +16,7 @@ public final class Billing {
   public static final class BillingProfile extends Model {
     public BillingProfile() {}
 
-    @JsonProperty(value = "customer_type", required = false)
+    @JsonProperty(value = "customer_type", required = true)
     private BillingProfileCustomerType customer_type;
 
     @JsonProperty("customer_type")
@@ -25,7 +25,7 @@ public final class Billing {
     }
 
     /** Full legal name of the individual or company. */
-    @JsonProperty(value = "company_name", required = false)
+    @JsonProperty(value = "company_name", required = true)
     private String company_name;
 
     @JsonProperty("company_name")
@@ -33,19 +33,11 @@ public final class Billing {
       return company_name;
     }
 
-    /** ISO 3166-1 alpha-2 country code. */
-    @JsonProperty(value = "country", required = false)
-    private String country;
-
-    @JsonProperty("country")
-    public String getCountry() {
-      return country;
-    }
-
     /**
-     * CPF for a Brazilian individual or CNPJ for a Brazilian company. Check digits are validated.
+     * The recipient's tax identifier in the country — CPF or CNPJ in Brazil, an EIN, a VAT number.
+     * Stored without separators and upper-cased.
      */
-    @JsonProperty(value = "tax_id", required = false)
+    @JsonProperty(value = "tax_id", required = true)
     private String tax_id;
 
     @JsonProperty("tax_id")
@@ -53,17 +45,20 @@ public final class Billing {
       return tax_id;
     }
 
-    /** Foreign identifier; not validated as a Brazilian document. */
-    @JsonProperty(value = "foreign_tax_id", required = false)
-    private String foreign_tax_id;
+    /**
+     * The country rule the identifier satisfied, from `CountryRules.tax_ids`. Empty when there is
+     * no identifier.
+     */
+    @JsonProperty(value = "tax_id_kind", required = true)
+    private String tax_id_kind;
 
-    @JsonProperty("foreign_tax_id")
-    public String getForeignTaxId() {
-      return foreign_tax_id;
+    @JsonProperty("tax_id_kind")
+    public String getTaxIdKind() {
+      return tax_id_kind;
     }
 
-    /** Required for a foreign recipient without a tax identifier. */
-    @JsonProperty(value = "no_tax_id_reason", required = false)
+    /** Why there is no identifier, where the country's rule does not require one. */
+    @JsonProperty(value = "no_tax_id_reason", required = true)
     private String no_tax_id_reason;
 
     @JsonProperty("no_tax_id_reason")
@@ -75,7 +70,7 @@ public final class Billing {
      * Billing email for fiscal invoice delivery. The onboarding form prefills this from the
      * signed-in user's email.
      */
-    @JsonProperty(value = "email", required = false)
+    @JsonProperty(value = "email", required = true)
     private String email;
 
     @JsonProperty("email")
@@ -83,7 +78,8 @@ public final class Billing {
       return email;
     }
 
-    @JsonProperty(value = "phone", required = false)
+    /** E.164 phone number, or empty. */
+    @JsonProperty(value = "phone", required = true)
     private String phone;
 
     @JsonProperty("phone")
@@ -91,74 +87,47 @@ public final class Billing {
       return phone;
     }
 
-    @JsonProperty(value = "street_name", required = false)
-    private String street_name;
+    @JsonProperty(value = "country", required = true)
+    private ResourceRef country;
 
-    @JsonProperty("street_name")
-    public String getStreetName() {
-      return street_name;
+    @JsonProperty("country")
+    public ResourceRef getCountry() {
+      return country;
     }
 
-    @JsonProperty(value = "street_number", required = false)
-    private String street_number;
-
-    @JsonProperty("street_number")
-    public String getStreetNumber() {
-      return street_number;
-    }
-
-    @JsonProperty(value = "complement", required = false)
-    private String complement;
-
-    @JsonProperty("complement")
-    public String getComplement() {
-      return complement;
-    }
-
-    @JsonProperty(value = "neighborhood", required = false)
-    private String neighborhood;
-
-    @JsonProperty("neighborhood")
-    public String getNeighborhood() {
-      return neighborhood;
-    }
-
-    @JsonProperty(value = "city", required = false)
-    private String city;
-
-    @JsonProperty("city")
-    public String getCity() {
-      return city;
-    }
-
-    /** Seven-digit IBGE municipality code, required for a Brazilian recipient. */
-    @JsonProperty(value = "municipality_code", required = false)
-    private String municipality_code;
-
-    @JsonProperty("municipality_code")
-    public String getMunicipalityCode() {
-      return municipality_code;
-    }
-
-    /** Two-letter UF for Brazil; free-form state/province abroad. */
-    @JsonProperty(value = "state", required = false)
-    private String state;
+    /**
+     * The catalog state, where the country lists states. Otherwise the state is text in
+     * `address.state`.
+     */
+    @JsonProperty(value = "state", required = true)
+    private BillingProfileState state;
 
     @JsonProperty("state")
-    public String getState() {
+    public BillingProfileState getState() {
       return state;
     }
 
-    /** Eight-digit CEP for Brazil; optional international postal code abroad. */
-    @JsonProperty(value = "postal_code", required = false)
-    private String postal_code;
+    /**
+     * The catalog city, where the country lists cities. Otherwise the city is text in
+     * `address.city`.
+     */
+    @JsonProperty(value = "city", required = true)
+    private BillingProfileCity city;
 
-    @JsonProperty("postal_code")
-    public String getPostalCode() {
-      return postal_code;
+    @JsonProperty("city")
+    public BillingProfileCity getCity() {
+      return city;
     }
 
-    @JsonProperty(value = "ready", required = false)
+    @JsonProperty(value = "address", required = true)
+    private BillingAddress address;
+
+    @JsonProperty("address")
+    public BillingAddress getAddress() {
+      return address;
+    }
+
+    @JsonProperty(value = "ready", required = true)
     private Boolean ready;
 
     @JsonProperty("ready")
@@ -166,7 +135,12 @@ public final class Billing {
       return ready;
     }
 
-    @JsonProperty(value = "missing_fields", required = false)
+    /**
+     * What stops the profile from being ready: `customer_type`, `company_name`, `email`, `tax_id`,
+     * `tax_id_or_reason`, or an address key. A stored value that no longer satisfies the country's
+     * rules is listed as missing.
+     */
+    @JsonProperty(value = "missing_fields", required = true)
     private List<String> missing_fields;
 
     @JsonProperty("missing_fields")
@@ -208,6 +182,200 @@ public final class Billing {
         new BillingProfileCustomerType("individual");
     public static final BillingProfileCustomerType COMPANY =
         new BillingProfileCustomerType("company");
+  }
+
+  public static final class ResourceRef extends Model {
+    public ResourceRef() {}
+
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    /**
+     * Display label at response time — the resource's name where it has one, otherwise its human
+     * label (an invoice number, an account display name). Absent when the target is gone. Not a
+     * lookup key.
+     */
+    @JsonProperty(value = "name", required = false)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+  }
+
+  public static final class BillingProfileState {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public BillingProfileState(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "BillingProfileState{[REDACTED]}";
+    }
+
+    public static BillingProfileState ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new BillingProfileState(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static BillingProfileState ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new BillingProfileState(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class BillingProfileCity {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public BillingProfileCity(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "BillingProfileCity{[REDACTED]}";
+    }
+
+    public static BillingProfileCity ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new BillingProfileCity(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static BillingProfileCity ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new BillingProfileCity(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class BillingAddress extends Model {
+    public BillingAddress() {}
+
+    @JsonProperty(value = "street_name", required = false)
+    private String street_name;
+
+    @JsonProperty("street_name")
+    public String getStreetName() {
+      return street_name;
+    }
+
+    @JsonProperty(value = "street_number", required = false)
+    private String street_number;
+
+    @JsonProperty("street_number")
+    public String getStreetNumber() {
+      return street_number;
+    }
+
+    @JsonProperty(value = "complement", required = false)
+    private String complement;
+
+    @JsonProperty("complement")
+    public String getComplement() {
+      return complement;
+    }
+
+    @JsonProperty(value = "neighborhood", required = false)
+    private String neighborhood;
+
+    @JsonProperty("neighborhood")
+    public String getNeighborhood() {
+      return neighborhood;
+    }
+
+    @JsonProperty(value = "city", required = false)
+    private String city;
+
+    @JsonProperty("city")
+    public String getCity() {
+      return city;
+    }
+
+    @JsonProperty(value = "state", required = false)
+    private String state;
+
+    @JsonProperty("state")
+    public String getState() {
+      return state;
+    }
+
+    /** Stored without mask literals. */
+    @JsonProperty(value = "postal_code", required = false)
+    private String postal_code;
+
+    @JsonProperty("postal_code")
+    public String getPostalCode() {
+      return postal_code;
+    }
   }
 
   public static final class CurrentUsage extends Model {
@@ -1707,23 +1875,22 @@ public final class Billing {
     public static final TransactionType CREDIT_APPLIED = new TransactionType("credit_applied");
   }
 
-  public static final class BillingProfileInput extends Model {
-    public BillingProfileInput() {}
+  public static final class BillingProfileUpdateInput extends Model {
+    public BillingProfileUpdateInput() {}
 
     @JsonProperty(value = "customer_type", required = false)
-    private BillingProfileInputCustomerType customer_type;
+    private BillingProfileUpdateInputCustomerType customer_type;
 
     @JsonProperty("customer_type")
-    public BillingProfileInputCustomerType getCustomerType() {
+    public BillingProfileUpdateInputCustomerType getCustomerType() {
       return customer_type;
     }
 
-    public BillingProfileInput withCustomerType(BillingProfileInputCustomerType value) {
+    public BillingProfileUpdateInput withCustomerType(BillingProfileUpdateInputCustomerType value) {
       this.customer_type = value;
       return this;
     }
 
-    /** Full legal name of the individual or company. */
     @JsonProperty(value = "company_name", required = false)
     private String company_name;
 
@@ -1732,27 +1899,14 @@ public final class Billing {
       return company_name;
     }
 
-    public BillingProfileInput withCompanyName(String value) {
+    public BillingProfileUpdateInput withCompanyName(String value) {
       this.company_name = value;
       return this;
     }
 
-    /** ISO 3166-1 alpha-2 country code. */
-    @JsonProperty(value = "country", required = false)
-    private String country;
-
-    @JsonProperty("country")
-    public String getCountry() {
-      return country;
-    }
-
-    public BillingProfileInput withCountry(String value) {
-      this.country = value;
-      return this;
-    }
-
     /**
-     * CPF for a Brazilian individual or CNPJ for a Brazilian company. Check digits are validated.
+     * Separators and case are ignored; the identifier is checked against the country's rules,
+     * including check digits where one is named.
      */
     @JsonProperty(value = "tax_id", required = false)
     private String tax_id;
@@ -1762,26 +1916,28 @@ public final class Billing {
       return tax_id;
     }
 
-    public BillingProfileInput withTaxId(String value) {
+    public BillingProfileUpdateInput withTaxId(String value) {
       this.tax_id = value;
       return this;
     }
 
-    /** Foreign identifier; not validated as a Brazilian document. */
-    @JsonProperty(value = "foreign_tax_id", required = false)
-    private String foreign_tax_id;
+    /**
+     * Needed only when a customer type accepts more than one kind; otherwise the matching kind is
+     * chosen.
+     */
+    @JsonProperty(value = "tax_id_kind", required = false)
+    private String tax_id_kind;
 
-    @JsonProperty("foreign_tax_id")
-    public String getForeignTaxId() {
-      return foreign_tax_id;
+    @JsonProperty("tax_id_kind")
+    public String getTaxIdKind() {
+      return tax_id_kind;
     }
 
-    public BillingProfileInput withForeignTaxId(String value) {
-      this.foreign_tax_id = value;
+    public BillingProfileUpdateInput withTaxIdKind(String value) {
+      this.tax_id_kind = value;
       return this;
     }
 
-    /** Required for a foreign recipient without a tax identifier. */
     @JsonProperty(value = "no_tax_id_reason", required = false)
     private String no_tax_id_reason;
 
@@ -1790,15 +1946,11 @@ public final class Billing {
       return no_tax_id_reason;
     }
 
-    public BillingProfileInput withNoTaxIdReason(String value) {
+    public BillingProfileUpdateInput withNoTaxIdReason(String value) {
       this.no_tax_id_reason = value;
       return this;
     }
 
-    /**
-     * Billing email for fiscal invoice delivery. The onboarding form prefills this from the
-     * signed-in user's email.
-     */
     @JsonProperty(value = "email", required = false)
     private String email;
 
@@ -1807,11 +1959,15 @@ public final class Billing {
       return email;
     }
 
-    public BillingProfileInput withEmail(String value) {
+    public BillingProfileUpdateInput withEmail(String value) {
       this.email = value;
       return this;
     }
 
+    /**
+     * Phone with its country calling code. Spaces, dots, dashes and parentheses are ignored; stored
+     * as E.164.
+     */
     @JsonProperty(value = "phone", required = false)
     private String phone;
 
@@ -1820,91 +1976,29 @@ public final class Billing {
       return phone;
     }
 
-    public BillingProfileInput withPhone(String value) {
+    public BillingProfileUpdateInput withPhone(String value) {
       this.phone = value;
       return this;
     }
 
-    @JsonProperty(value = "street_name", required = false)
-    private String street_name;
+    /** Country UUID, CRN, or ISO alpha-2 or alpha-3 code. Defaults to Brazil. */
+    @JsonProperty(value = "country", required = false)
+    private String country;
 
-    @JsonProperty("street_name")
-    public String getStreetName() {
-      return street_name;
+    @JsonProperty("country")
+    public String getCountry() {
+      return country;
     }
 
-    public BillingProfileInput withStreetName(String value) {
-      this.street_name = value;
+    public BillingProfileUpdateInput withCountry(String value) {
+      this.country = value;
       return this;
     }
 
-    @JsonProperty(value = "street_number", required = false)
-    private String street_number;
-
-    @JsonProperty("street_number")
-    public String getStreetNumber() {
-      return street_number;
-    }
-
-    public BillingProfileInput withStreetNumber(String value) {
-      this.street_number = value;
-      return this;
-    }
-
-    @JsonProperty(value = "complement", required = false)
-    private String complement;
-
-    @JsonProperty("complement")
-    public String getComplement() {
-      return complement;
-    }
-
-    public BillingProfileInput withComplement(String value) {
-      this.complement = value;
-      return this;
-    }
-
-    @JsonProperty(value = "neighborhood", required = false)
-    private String neighborhood;
-
-    @JsonProperty("neighborhood")
-    public String getNeighborhood() {
-      return neighborhood;
-    }
-
-    public BillingProfileInput withNeighborhood(String value) {
-      this.neighborhood = value;
-      return this;
-    }
-
-    @JsonProperty(value = "city", required = false)
-    private String city;
-
-    @JsonProperty("city")
-    public String getCity() {
-      return city;
-    }
-
-    public BillingProfileInput withCity(String value) {
-      this.city = value;
-      return this;
-    }
-
-    /** Seven-digit IBGE municipality code, required for a Brazilian recipient. */
-    @JsonProperty(value = "municipality_code", required = false)
-    private String municipality_code;
-
-    @JsonProperty("municipality_code")
-    public String getMunicipalityCode() {
-      return municipality_code;
-    }
-
-    public BillingProfileInput withMunicipalityCode(String value) {
-      this.municipality_code = value;
-      return this;
-    }
-
-    /** Two-letter UF for Brazil; free-form state/province abroad. */
+    /**
+     * State UUID, CRN, or code, where the country lists states. Omit when a city is given; the city
+     * implies it.
+     */
     @JsonProperty(value = "state", required = false)
     private String state;
 
@@ -1913,31 +2007,44 @@ public final class Billing {
       return state;
     }
 
-    public BillingProfileInput withState(String value) {
+    public BillingProfileUpdateInput withState(String value) {
       this.state = value;
       return this;
     }
 
-    /** Eight-digit CEP for Brazil; optional international postal code abroad. */
-    @JsonProperty(value = "postal_code", required = false)
-    private String postal_code;
+    /** City UUID or CRN, where the country lists cities. */
+    @JsonProperty(value = "city", required = false)
+    private String city;
 
-    @JsonProperty("postal_code")
-    public String getPostalCode() {
-      return postal_code;
+    @JsonProperty("city")
+    public String getCity() {
+      return city;
     }
 
-    public BillingProfileInput withPostalCode(String value) {
-      this.postal_code = value;
+    public BillingProfileUpdateInput withCity(String value) {
+      this.city = value;
+      return this;
+    }
+
+    @JsonProperty(value = "address", required = false)
+    private BillingAddressInput address;
+
+    @JsonProperty("address")
+    public BillingAddressInput getAddress() {
+      return address;
+    }
+
+    public BillingProfileUpdateInput withAddress(BillingAddressInput value) {
+      this.address = value;
       return this;
     }
   }
 
-  public static final class BillingProfileInputCustomerType {
+  public static final class BillingProfileUpdateInputCustomerType {
     private final String value;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public BillingProfileInputCustomerType(String value) {
+    public BillingProfileUpdateInputCustomerType(String value) {
       this.value = Objects.requireNonNull(value);
     }
 
@@ -1953,7 +2060,7 @@ public final class Billing {
 
     @Override
     public boolean equals(Object other) {
-      return other instanceof BillingProfileInputCustomerType v && value.equals(v.value);
+      return other instanceof BillingProfileUpdateInputCustomerType v && value.equals(v.value);
     }
 
     @Override
@@ -1961,11 +2068,107 @@ public final class Billing {
       return value.hashCode();
     }
 
-    public static final BillingProfileInputCustomerType VALUE =
-        new BillingProfileInputCustomerType("");
-    public static final BillingProfileInputCustomerType INDIVIDUAL =
-        new BillingProfileInputCustomerType("individual");
-    public static final BillingProfileInputCustomerType COMPANY =
-        new BillingProfileInputCustomerType("company");
+    public static final BillingProfileUpdateInputCustomerType VALUE =
+        new BillingProfileUpdateInputCustomerType("");
+    public static final BillingProfileUpdateInputCustomerType INDIVIDUAL =
+        new BillingProfileUpdateInputCustomerType("individual");
+    public static final BillingProfileUpdateInputCustomerType COMPANY =
+        new BillingProfileUpdateInputCustomerType("company");
+  }
+
+  public static final class BillingAddressInput extends Model {
+    public BillingAddressInput() {}
+
+    @JsonProperty(value = "street_name", required = false)
+    private String street_name;
+
+    @JsonProperty("street_name")
+    public String getStreetName() {
+      return street_name;
+    }
+
+    public BillingAddressInput withStreetName(String value) {
+      this.street_name = value;
+      return this;
+    }
+
+    @JsonProperty(value = "street_number", required = false)
+    private String street_number;
+
+    @JsonProperty("street_number")
+    public String getStreetNumber() {
+      return street_number;
+    }
+
+    public BillingAddressInput withStreetNumber(String value) {
+      this.street_number = value;
+      return this;
+    }
+
+    @JsonProperty(value = "complement", required = false)
+    private String complement;
+
+    @JsonProperty("complement")
+    public String getComplement() {
+      return complement;
+    }
+
+    public BillingAddressInput withComplement(String value) {
+      this.complement = value;
+      return this;
+    }
+
+    @JsonProperty(value = "neighborhood", required = false)
+    private String neighborhood;
+
+    @JsonProperty("neighborhood")
+    public String getNeighborhood() {
+      return neighborhood;
+    }
+
+    public BillingAddressInput withNeighborhood(String value) {
+      this.neighborhood = value;
+      return this;
+    }
+
+    @JsonProperty(value = "city", required = false)
+    private String city;
+
+    @JsonProperty("city")
+    public String getCity() {
+      return city;
+    }
+
+    public BillingAddressInput withCity(String value) {
+      this.city = value;
+      return this;
+    }
+
+    @JsonProperty(value = "state", required = false)
+    private String state;
+
+    @JsonProperty("state")
+    public String getState() {
+      return state;
+    }
+
+    public BillingAddressInput withState(String value) {
+      this.state = value;
+      return this;
+    }
+
+    /** Stored without mask literals. */
+    @JsonProperty(value = "postal_code", required = false)
+    private String postal_code;
+
+    @JsonProperty("postal_code")
+    public String getPostalCode() {
+      return postal_code;
+    }
+
+    public BillingAddressInput withPostalCode(String value) {
+      this.postal_code = value;
+      return this;
+    }
   }
 }
