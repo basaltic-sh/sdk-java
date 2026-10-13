@@ -1,8 +1,11 @@
 package sh.basaltic.sdk.models;
 
 import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.*;
 import sh.basaltic.sdk.JsonField;
+import sh.basaltic.sdk.internal.Json;
 import sh.basaltic.sdk.internal.Model;
 
 /** Typed network wire models. Unknown string enum values are retained. */
@@ -41,20 +44,20 @@ public final class Network {
     }
   }
 
-  public static final class AttachFloatingIpResponse extends Model {
-    public AttachFloatingIpResponse() {}
+  public static final class FloatingIpInterfaceResponse extends Model {
+    public FloatingIpInterfaceResponse() {}
 
-    @JsonProperty(value = "floating_ip", required = false)
-    private FloatingIp floating_ip;
+    @JsonProperty(value = "interface", required = true)
+    private FloatingIpInterface interfaceValue;
 
-    @JsonProperty("floating_ip")
-    public FloatingIp getFloatingIp() {
-      return floating_ip;
+    @JsonProperty("interface")
+    public FloatingIpInterface getInterfaceValue() {
+      return interfaceValue;
     }
   }
 
-  public static final class FloatingIp extends Model {
-    public FloatingIp() {}
+  public static final class FloatingIpInterface extends Model {
+    public FloatingIpInterface() {}
 
     @JsonProperty(value = "id", required = true)
     private String id;
@@ -72,6 +75,27 @@ public final class Network {
       return crn;
     }
 
+    /** Subnet containing this interface. */
+    @JsonProperty(value = "subnet", required = true)
+    private ResourceRef subnet;
+
+    @JsonProperty("subnet")
+    public ResourceRef getSubnet() {
+      return subnet;
+    }
+
+    /**
+     * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
+     * braced, or urn:uuid: forms, in either case).
+     */
+    @JsonProperty(value = "name", required = true)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
     @JsonProperty(value = "description", required = false)
     private String description;
 
@@ -80,56 +104,24 @@ public final class Network {
       return description;
     }
 
-    @JsonProperty(value = "family", required = true)
-    private IpFamily family;
+    @JsonProperty(value = "mac", required = true)
+    private String mac;
 
-    @JsonProperty("family")
-    public IpFamily getFamily() {
-      return family;
+    @JsonProperty("mac")
+    public String getMac() {
+      return mac;
     }
 
     /**
-     * Canonical CRN of the bound interface, instance pool, or load balancer; null when unattached.
-     * A pool-owned address names its pool even when the pool has zero members. Only pool-owned
-     * addresses may have multiple NIC members. Manage their bindings through the instance pool
-     * floating IP endpoints; direct attach and detach are refused.
+     * Instance holding this interface, including a stopped instance. Null when unbound. Floating IP
+     * attachments are tracked separately.
      */
     @JsonProperty(value = "attached_to", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> attached_to = JsonField.missing();
+    private FloatingIpInterfaceAttachedTo attached_to;
 
     @JsonProperty("attached_to")
-    public JsonField<String> getAttachedTo() {
+    public FloatingIpInterfaceAttachedTo getAttachedTo() {
       return attached_to;
-    }
-
-    /**
-     * The floating IP's bindings. A floating IP fronts 0 members (allocated, unattached), 1 member
-     * (the everyday case), or N members for an instance pool — an anycast floating IP, where one
-     * public IP is delivered to N VM NICs across hosts (each advertised as a /32 from the host
-     * holding it). Members may share a hypervisor. Two of them on one host used to mean one served
-     * and the other was silently dark; a member's forwarding rule now names the member, and the
-     * host splits connections across the members it holds, so where the members sit is a capacity
-     * decision rather than a correctness one. An instance pool's address takes its members from the
-     * pool's live replicas — every one of them — so a scale-out joins and a scale-in leaves without
-     * a per-replica attach. With more than one member ONE member serves each connection, chosen by
-     * hashing the flow's addresses and ports, and every packet of that connection goes to the same
-     * one. The members are separate instances that share nothing, so this spreads connections and
-     * survives the loss of a host — it is not a load balancer: nothing checks whether the service
-     * inside the instance is up, and connections in progress to a member that goes away are not
-     * moved, they end. A POOL's address is the exception, and only for booting. A replica joins the
-     * address as soon as it is placed, but does not receive traffic until it has reached the
-     * instance metadata service — evidence that the guest booted, rather than that its virtual
-     * machine was started. Until then it is a member with `health` `unhealthy`. A replica whose
-     * image never contacts the metadata service is admitted anyway after a few minutes, so an
-     * unusual image delays traffic rather than never getting it.
-     */
-    @JsonProperty(value = "members", required = true)
-    private List<FloatingIpMember> members;
-
-    @JsonProperty("members")
-    public List<FloatingIpMember> getMembers() {
-      return members;
     }
 
     @JsonProperty(value = "tags", required = true)
@@ -138,18 +130,6 @@ public final class Network {
     @JsonProperty("tags")
     public Map<String, String> getTags() {
       return tags;
-    }
-
-    /**
-     * The readiness check applied to this address's members. Absent when none is configured. See
-     * `FloatingIpHealthCheck`.
-     */
-    @JsonProperty(value = "health_check", required = false)
-    private FloatingIpHealthCheck health_check;
-
-    @JsonProperty("health_check")
-    public FloatingIpHealthCheck getHealthCheck() {
-      return health_check;
     }
 
     @JsonProperty(value = "created_at", required = true)
@@ -168,88 +148,6 @@ public final class Network {
       return updated_at;
     }
 
-    /** Allocated public or private address. */
-    @JsonProperty(value = "address", required = true)
-    private String address;
-
-    @JsonProperty("address")
-    public String getAddress() {
-      return address;
-    }
-
-    @JsonProperty(value = "visibility", required = true)
-    private FloatingIpVisibility visibility;
-
-    @JsonProperty("visibility")
-    public FloatingIpVisibility getVisibility() {
-      return visibility;
-    }
-
-    /** Allocation subnet for private floating IPs. */
-    @JsonProperty(value = "subnet_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> subnet_id = JsonField.missing();
-
-    @JsonProperty("subnet_id")
-    public JsonField<String> getSubnetId() {
-      return subnet_id;
-    }
-
-    /** Allocation VPC for private floating IPs. */
-    @JsonProperty(value = "vpc_id", required = false)
-    private String vpc_id;
-
-    @JsonProperty("vpc_id")
-    public String getVpcId() {
-      return vpc_id;
-    }
-  }
-
-  public static final class IpFamily {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public IpFamily(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof IpFamily v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final IpFamily IPV4 = new IpFamily("ipv4");
-    public static final IpFamily IPV6 = new IpFamily("ipv6");
-  }
-
-  public static final class FloatingIpMember extends Model {
-    public FloatingIpMember() {}
-
-    /** Bound NIC summary; null for a load balancer binding named by attached_to. */
-    @JsonProperty(value = "interface", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<FloatingIpMemberInterface> interfaceValue = JsonField.missing();
-
-    @JsonProperty("interface")
-    public JsonField<FloatingIpMemberInterface> getInterfaceValue() {
-      return interfaceValue;
-    }
-
     /**
      * What the platform knows about this member. `unknown` — nobody is checking. A member you
      * attached yourself with no health check on the address reads this: you chose the moment of
@@ -262,10 +160,10 @@ public final class Network {
      * Configure `health_check` on the floating IP to add readiness on top of that.
      */
     @JsonProperty(value = "health", required = true)
-    private FloatingIpMemberHealth health;
+    private FloatingIpInterfaceHealth health;
 
     @JsonProperty("health")
-    public FloatingIpMemberHealth getHealth() {
+    public FloatingIpInterfaceHealth getHealth() {
       return health;
     }
 
@@ -277,34 +175,25 @@ public final class Network {
      * configured, it passes.
      */
     @JsonProperty(value = "reason", required = true)
-    private FloatingIpMemberReason reason;
+    private FloatingIpInterfaceReason reason;
 
     @JsonProperty("reason")
-    public FloatingIpMemberReason getReason() {
+    public FloatingIpInterfaceReason getReason() {
       return reason;
-    }
-
-    @JsonProperty(value = "created_at", required = true)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
     }
 
     /** Target child address on the member interface. */
     @JsonProperty(value = "address_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> address_id = JsonField.missing();
+    private String address_id;
 
     @JsonProperty("address_id")
-    public JsonField<String> getAddressId() {
+    public String getAddressId() {
       return address_id;
     }
   }
 
-  public static final class FloatingIpMemberInterface extends Model {
-    public FloatingIpMemberInterface() {}
+  public static final class ResourceRef extends Model {
+    public ResourceRef() {}
 
     @JsonProperty(value = "id", required = true)
     private String id;
@@ -322,37 +211,12 @@ public final class Network {
       return crn;
     }
 
-    /** Owning instance; null when the interface has no owning instance. */
-    @JsonProperty(value = "instance", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<FloatingIpMemberInterfaceInstance> instance = JsonField.missing();
-
-    @JsonProperty("instance")
-    public JsonField<FloatingIpMemberInterfaceInstance> getInstance() {
-      return instance;
-    }
-  }
-
-  public static final class FloatingIpMemberInterfaceInstance extends Model {
-    public FloatingIpMemberInterfaceInstance() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    @JsonProperty(value = "name", required = true)
+    /**
+     * Display label at response time — the resource's name where it has one, otherwise its human
+     * label (an invoice number, an account display name). Absent when the target is gone. Not a
+     * lookup key.
+     */
+    @JsonProperty(value = "name", required = false)
     private String name;
 
     @JsonProperty("name")
@@ -361,11 +225,61 @@ public final class Network {
     }
   }
 
-  public static final class FloatingIpMemberHealth {
+  public static final class FloatingIpInterfaceAttachedTo {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public FloatingIpInterfaceAttachedTo(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "FloatingIpInterfaceAttachedTo{[REDACTED]}";
+    }
+
+    public static FloatingIpInterfaceAttachedTo ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new FloatingIpInterfaceAttachedTo(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static FloatingIpInterfaceAttachedTo ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new FloatingIpInterfaceAttachedTo(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class FloatingIpInterfaceHealth {
     private final String value;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FloatingIpMemberHealth(String value) {
+    public FloatingIpInterfaceHealth(String value) {
       this.value = Objects.requireNonNull(value);
     }
 
@@ -381,7 +295,7 @@ public final class Network {
 
     @Override
     public boolean equals(Object other) {
-      return other instanceof FloatingIpMemberHealth v && value.equals(v.value);
+      return other instanceof FloatingIpInterfaceHealth v && value.equals(v.value);
     }
 
     @Override
@@ -389,16 +303,19 @@ public final class Network {
       return value.hashCode();
     }
 
-    public static final FloatingIpMemberHealth UNKNOWN = new FloatingIpMemberHealth("unknown");
-    public static final FloatingIpMemberHealth HEALTHY = new FloatingIpMemberHealth("healthy");
-    public static final FloatingIpMemberHealth UNHEALTHY = new FloatingIpMemberHealth("unhealthy");
+    public static final FloatingIpInterfaceHealth UNKNOWN =
+        new FloatingIpInterfaceHealth("unknown");
+    public static final FloatingIpInterfaceHealth HEALTHY =
+        new FloatingIpInterfaceHealth("healthy");
+    public static final FloatingIpInterfaceHealth UNHEALTHY =
+        new FloatingIpInterfaceHealth("unhealthy");
   }
 
-  public static final class FloatingIpMemberReason {
+  public static final class FloatingIpInterfaceReason {
     private final String value;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FloatingIpMemberReason(String value) {
+    public FloatingIpInterfaceReason(String value) {
       this.value = Objects.requireNonNull(value);
     }
 
@@ -414,7 +331,7 @@ public final class Network {
 
     @Override
     public boolean equals(Object other) {
-      return other instanceof FloatingIpMemberReason v && value.equals(v.value);
+      return other instanceof FloatingIpInterfaceReason v && value.equals(v.value);
     }
 
     @Override
@@ -422,192 +339,48 @@ public final class Network {
       return value.hashCode();
     }
 
-    public static final FloatingIpMemberReason UNPROBED = new FloatingIpMemberReason("unprobed");
-    public static final FloatingIpMemberReason BOOTING = new FloatingIpMemberReason("booting");
-    public static final FloatingIpMemberReason PROBE_FAILED =
-        new FloatingIpMemberReason("probe_failed");
-    public static final FloatingIpMemberReason PASSING = new FloatingIpMemberReason("passing");
+    public static final FloatingIpInterfaceReason UNPROBED =
+        new FloatingIpInterfaceReason("unprobed");
+    public static final FloatingIpInterfaceReason BOOTING =
+        new FloatingIpInterfaceReason("booting");
+    public static final FloatingIpInterfaceReason PROBE_FAILED =
+        new FloatingIpInterfaceReason("probe_failed");
+    public static final FloatingIpInterfaceReason PASSING =
+        new FloatingIpInterfaceReason("passing");
   }
 
-  public static final class FloatingIpHealthCheck extends Model {
-    public FloatingIpHealthCheck() {}
+  public static final class InterfaceSecurityGroupRequestInput extends Model {
+    public InterfaceSecurityGroupRequestInput() {}
 
-    /**
-     * `tcp` opens a connection; `http`/`https` issue a GET and match the status against `matcher`.
-     * There is no `udp`: a readiness probe needs an answer — check a udp service on a tcp health
-     * port instead.
-     */
-    @JsonProperty(value = "protocol", required = true)
-    private FloatingIpHealthCheckProtocol protocol;
+    /** Security group UUID, CRN, or account-scoped name. */
+    @JsonProperty(value = "security_group", required = true)
+    private String security_group;
 
-    @JsonProperty("protocol")
-    public FloatingIpHealthCheckProtocol getProtocol() {
-      return protocol;
+    @JsonProperty("security_group")
+    public String getSecurityGroup() {
+      return security_group;
     }
 
-    /** HTTP path probed; ignored for tcp. */
-    @JsonProperty(value = "path", required = false)
-    private String path;
-
-    @JsonProperty("path")
-    public String getPath() {
-      return path;
-    }
-
-    /** Port probed on the member. */
-    @JsonProperty(value = "port", required = true)
-    private Long port;
-
-    @JsonProperty("port")
-    public Long getPort() {
-      return port;
-    }
-
-    @JsonProperty(value = "interval_sec", required = true)
-    private Long interval_sec;
-
-    @JsonProperty("interval_sec")
-    public Long getIntervalSec() {
-      return interval_sec;
-    }
-
-    /** Per-probe timeout; must be less than interval_sec. */
-    @JsonProperty(value = "timeout_sec", required = true)
-    private Long timeout_sec;
-
-    @JsonProperty("timeout_sec")
-    public Long getTimeoutSec() {
-      return timeout_sec;
-    }
-
-    /** Consecutive passes before a member flips healthy. */
-    @JsonProperty(value = "healthy_threshold", required = true)
-    private Long healthy_threshold;
-
-    @JsonProperty("healthy_threshold")
-    public Long getHealthyThreshold() {
-      return healthy_threshold;
-    }
-
-    /** Consecutive failures before a member flips unhealthy. */
-    @JsonProperty(value = "unhealthy_threshold", required = true)
-    private Long unhealthy_threshold;
-
-    @JsonProperty("unhealthy_threshold")
-    public Long getUnhealthyThreshold() {
-      return unhealthy_threshold;
-    }
-
-    /** HTTP status or range that counts as passing; ignored for tcp. */
-    @JsonProperty(value = "matcher", required = false)
-    private String matcher;
-
-    @JsonProperty("matcher")
-    public String getMatcher() {
-      return matcher;
-    }
-  }
-
-  public static final class FloatingIpHealthCheckProtocol {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FloatingIpHealthCheckProtocol(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof FloatingIpHealthCheckProtocol v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final FloatingIpHealthCheckProtocol TCP =
-        new FloatingIpHealthCheckProtocol("tcp");
-    public static final FloatingIpHealthCheckProtocol HTTP =
-        new FloatingIpHealthCheckProtocol("http");
-    public static final FloatingIpHealthCheckProtocol HTTPS =
-        new FloatingIpHealthCheckProtocol("https");
-  }
-
-  public static final class FloatingIpVisibility {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FloatingIpVisibility(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof FloatingIpVisibility v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final FloatingIpVisibility PUBLIC = new FloatingIpVisibility("public");
-    public static final FloatingIpVisibility PRIVATE = new FloatingIpVisibility("private");
-  }
-
-  public static final class InternetGatewayAttachRequestInput extends Model {
-    public InternetGatewayAttachRequestInput() {}
-
-    /** VPC UUID, CRN or exact name in the caller account. */
-    @JsonProperty(value = "vpc", required = true)
-    private String vpc;
-
-    @JsonProperty("vpc")
-    public String getVpc() {
-      return vpc;
-    }
-
-    public InternetGatewayAttachRequestInput withVpc(String value) {
-      this.vpc = value;
+    public InterfaceSecurityGroupRequestInput withSecurityGroup(String value) {
+      this.security_group = value;
       return this;
     }
   }
 
-  public static final class InternetGatewayResponse extends Model {
-    public InternetGatewayResponse() {}
+  public static final class SecurityGroupResponse extends Model {
+    public SecurityGroupResponse() {}
 
-    @JsonProperty(value = "internet_gateway", required = false)
-    private InternetGateway internet_gateway;
+    @JsonProperty(value = "security_group", required = false)
+    private SecurityGroup security_group;
 
-    @JsonProperty("internet_gateway")
-    public InternetGateway getInternetGateway() {
-      return internet_gateway;
+    @JsonProperty("security_group")
+    public SecurityGroup getSecurityGroup() {
+      return security_group;
     }
   }
 
-  public static final class InternetGateway extends Model {
-    public InternetGateway() {}
+  public static final class SecurityGroup extends Model {
+    public SecurityGroup() {}
 
     @JsonProperty(value = "id", required = true)
     private String id;
@@ -643,16 +416,6 @@ public final class Network {
     @JsonProperty("description")
     public String getDescription() {
       return description;
-    }
-
-    /** VPC the IGW is currently attached to (null when detached). */
-    @JsonProperty(value = "attached_vpc_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> attached_vpc_id = JsonField.missing();
-
-    @JsonProperty("attached_vpc_id")
-    public JsonField<String> getAttachedVpcId() {
-      return attached_vpc_id;
     }
 
     @JsonProperty(value = "tags", required = true)
@@ -793,98 +556,11 @@ public final class Network {
     }
 
     @JsonProperty(value = "vpc", required = true)
-    private Vpc vpc;
+    private ResourceRef vpc;
 
     @JsonProperty("vpc")
-    public Vpc getVpc() {
+    public ResourceRef getVpc() {
       return vpc;
-    }
-
-    @JsonProperty(value = "tags", required = true)
-    private Map<String, String> tags;
-
-    @JsonProperty("tags")
-    public Map<String, String> getTags() {
-      return tags;
-    }
-
-    @JsonProperty(value = "created_at", required = true)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
-    }
-
-    @JsonProperty(value = "updated_at", required = true)
-    private String updated_at;
-
-    @JsonProperty("updated_at")
-    public String getUpdatedAt() {
-      return updated_at;
-    }
-  }
-
-  public static final class Vpc extends Model {
-    public Vpc() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    /** Cloud Resource Name (name-based, region+account-scoped). */
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    /**
-     * 1-63 chars, lowercase alphanumeric + hyphen Resource names must not start with the literal
-     * crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-     */
-    @JsonProperty(value = "name", required = true)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(value = "description", required = false)
-    private String description;
-
-    @JsonProperty("description")
-    public String getDescription() {
-      return description;
-    }
-
-    /**
-     * IPv4 CIDR block carved up by subnets. Must be private (RFC 1918): within 10.0.0.0/8,
-     * 172.16.0.0/12 or 192.168.0.0/16. Immutable after create.
-     */
-    @JsonProperty(value = "cidr_ipv4", required = true)
-    private String cidr_ipv4;
-
-    @JsonProperty("cidr_ipv4")
-    public String getCidrIpv4() {
-      return cidr_ipv4;
-    }
-
-    /** Associated regional GUA or private ULA prefix. */
-    @JsonProperty(value = "cidr_ipv6", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> cidr_ipv6 = JsonField.missing();
-
-    @JsonProperty("cidr_ipv6")
-    public JsonField<String> getCidrIpv6() {
-      return cidr_ipv6;
     }
 
     @JsonProperty(value = "tags", required = true)
@@ -1232,12 +908,460 @@ public final class Network {
   public static final class FloatingIpResponse extends Model {
     public FloatingIpResponse() {}
 
-    @JsonProperty(value = "floating_ip", required = false)
+    @JsonProperty(value = "floating_ip", required = true)
     private FloatingIp floating_ip;
 
     @JsonProperty("floating_ip")
     public FloatingIp getFloatingIp() {
       return floating_ip;
+    }
+  }
+
+  public static final class FloatingIp extends Model {
+    public FloatingIp() {}
+
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    @JsonProperty(value = "description", required = false)
+    private String description;
+
+    @JsonProperty("description")
+    public String getDescription() {
+      return description;
+    }
+
+    @JsonProperty(value = "family", required = true)
+    private IpFamily family;
+
+    @JsonProperty("family")
+    public IpFamily getFamily() {
+      return family;
+    }
+
+    /**
+     * Instance pool or load balancer that owns the address. Null for direct interface attachments
+     * and unattached addresses. An empty pool retains ownership.
+     */
+    @JsonProperty(value = "attached_to", required = true)
+    private FloatingIpAttachedTo attached_to;
+
+    @JsonProperty("attached_to")
+    public FloatingIpAttachedTo getAttachedTo() {
+      return attached_to;
+    }
+
+    @JsonProperty(value = "tags", required = true)
+    private Map<String, String> tags;
+
+    @JsonProperty("tags")
+    public Map<String, String> getTags() {
+      return tags;
+    }
+
+    /**
+     * The readiness check applied to this address's members. Absent when none is configured. See
+     * `FloatingIpHealthCheck`.
+     */
+    @JsonProperty(value = "health_check", required = false)
+    private FloatingIpHealthCheck health_check;
+
+    @JsonProperty("health_check")
+    public FloatingIpHealthCheck getHealthCheck() {
+      return health_check;
+    }
+
+    @JsonProperty(value = "created_at", required = true)
+    private String created_at;
+
+    @JsonProperty("created_at")
+    public String getCreatedAt() {
+      return created_at;
+    }
+
+    @JsonProperty(value = "updated_at", required = true)
+    private String updated_at;
+
+    @JsonProperty("updated_at")
+    public String getUpdatedAt() {
+      return updated_at;
+    }
+
+    /** Allocated public or private address. */
+    @JsonProperty(value = "address", required = true)
+    private String address;
+
+    @JsonProperty("address")
+    public String getAddress() {
+      return address;
+    }
+
+    @JsonProperty(value = "visibility", required = true)
+    private FloatingIpVisibility visibility;
+
+    @JsonProperty("visibility")
+    public FloatingIpVisibility getVisibility() {
+      return visibility;
+    }
+
+    /** Allocation subnet for a private floating IP; null for public addresses. */
+    @JsonProperty(value = "subnet", required = true)
+    private FloatingIpSubnet subnet;
+
+    @JsonProperty("subnet")
+    public FloatingIpSubnet getSubnet() {
+      return subnet;
+    }
+
+    /** Allocation VPC for a private floating IP; null for public addresses. */
+    @JsonProperty(value = "vpc", required = true)
+    private FloatingIpVpc vpc;
+
+    @JsonProperty("vpc")
+    public FloatingIpVpc getVpc() {
+      return vpc;
+    }
+  }
+
+  public static final class IpFamily {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public IpFamily(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof IpFamily v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final IpFamily IPV4 = new IpFamily("ipv4");
+    public static final IpFamily IPV6 = new IpFamily("ipv6");
+  }
+
+  public static final class FloatingIpAttachedTo {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public FloatingIpAttachedTo(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "FloatingIpAttachedTo{[REDACTED]}";
+    }
+
+    public static FloatingIpAttachedTo ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new FloatingIpAttachedTo(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static FloatingIpAttachedTo ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new FloatingIpAttachedTo(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class FloatingIpHealthCheck extends Model {
+    public FloatingIpHealthCheck() {}
+
+    /**
+     * `tcp` opens a connection; `http`/`https` issue a GET and match the status against `matcher`.
+     * There is no `udp`: a readiness probe needs an answer — check a udp service on a tcp health
+     * port instead.
+     */
+    @JsonProperty(value = "protocol", required = true)
+    private FloatingIpHealthCheckProtocol protocol;
+
+    @JsonProperty("protocol")
+    public FloatingIpHealthCheckProtocol getProtocol() {
+      return protocol;
+    }
+
+    /** HTTP path probed; ignored for tcp. */
+    @JsonProperty(value = "path", required = false)
+    private String path;
+
+    @JsonProperty("path")
+    public String getPath() {
+      return path;
+    }
+
+    /** Port probed on the member. */
+    @JsonProperty(value = "port", required = true)
+    private Long port;
+
+    @JsonProperty("port")
+    public Long getPort() {
+      return port;
+    }
+
+    @JsonProperty(value = "interval_sec", required = true)
+    private Long interval_sec;
+
+    @JsonProperty("interval_sec")
+    public Long getIntervalSec() {
+      return interval_sec;
+    }
+
+    /** Per-probe timeout; must be less than interval_sec. */
+    @JsonProperty(value = "timeout_sec", required = true)
+    private Long timeout_sec;
+
+    @JsonProperty("timeout_sec")
+    public Long getTimeoutSec() {
+      return timeout_sec;
+    }
+
+    /** Consecutive passes before a member flips healthy. */
+    @JsonProperty(value = "healthy_threshold", required = true)
+    private Long healthy_threshold;
+
+    @JsonProperty("healthy_threshold")
+    public Long getHealthyThreshold() {
+      return healthy_threshold;
+    }
+
+    /** Consecutive failures before a member flips unhealthy. */
+    @JsonProperty(value = "unhealthy_threshold", required = true)
+    private Long unhealthy_threshold;
+
+    @JsonProperty("unhealthy_threshold")
+    public Long getUnhealthyThreshold() {
+      return unhealthy_threshold;
+    }
+
+    /** HTTP status or range that counts as passing; ignored for tcp. */
+    @JsonProperty(value = "matcher", required = false)
+    private String matcher;
+
+    @JsonProperty("matcher")
+    public String getMatcher() {
+      return matcher;
+    }
+  }
+
+  public static final class FloatingIpHealthCheckProtocol {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public FloatingIpHealthCheckProtocol(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof FloatingIpHealthCheckProtocol v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final FloatingIpHealthCheckProtocol TCP =
+        new FloatingIpHealthCheckProtocol("tcp");
+    public static final FloatingIpHealthCheckProtocol HTTP =
+        new FloatingIpHealthCheckProtocol("http");
+    public static final FloatingIpHealthCheckProtocol HTTPS =
+        new FloatingIpHealthCheckProtocol("https");
+  }
+
+  public static final class FloatingIpVisibility {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public FloatingIpVisibility(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof FloatingIpVisibility v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final FloatingIpVisibility PUBLIC = new FloatingIpVisibility("public");
+    public static final FloatingIpVisibility PRIVATE = new FloatingIpVisibility("private");
+  }
+
+  public static final class FloatingIpSubnet {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public FloatingIpSubnet(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "FloatingIpSubnet{[REDACTED]}";
+    }
+
+    public static FloatingIpSubnet ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new FloatingIpSubnet(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static FloatingIpSubnet ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new FloatingIpSubnet(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class FloatingIpVpc {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public FloatingIpVpc(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "FloatingIpVpc{[REDACTED]}";
+    }
+
+    public static FloatingIpVpc ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new FloatingIpVpc(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static FloatingIpVpc ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new FloatingIpVpc(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
     }
   }
 
@@ -1408,7 +1532,7 @@ public final class Network {
   public static final class InterfaceResponse extends Model {
     public InterfaceResponse() {}
 
-    @JsonProperty(value = "interface", required = false)
+    @JsonProperty(value = "interface", required = true)
     private Interface interfaceValue;
 
     @JsonProperty("interface")
@@ -1436,11 +1560,12 @@ public final class Network {
       return crn;
     }
 
+    /** Subnet containing this interface. */
     @JsonProperty(value = "subnet", required = true)
-    private Subnet subnet;
+    private ResourceRef subnet;
 
     @JsonProperty("subnet")
-    public Subnet getSubnet() {
+    public ResourceRef getSubnet() {
       return subnet;
     }
 
@@ -1473,16 +1598,14 @@ public final class Network {
     }
 
     /**
-     * UUID of the instance holding this interface, including stopped instances. Null when no
-     * instance NIC binding exists. Deletion is refused while bound; floating IP attachment is
-     * tracked separately.
+     * Instance holding this interface, including a stopped instance. Null when unbound. Floating IP
+     * attachments are tracked separately.
      */
-    @JsonProperty(value = "attached_to", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> attached_to = JsonField.missing();
+    @JsonProperty(value = "attached_to", required = true)
+    private InterfaceAttachedTo attached_to;
 
     @JsonProperty("attached_to")
-    public JsonField<String> getAttachedTo() {
+    public InterfaceAttachedTo getAttachedTo() {
       return attached_to;
     }
 
@@ -1509,168 +1632,67 @@ public final class Network {
     public String getUpdatedAt() {
       return updated_at;
     }
+  }
 
-    @JsonProperty(value = "addresses", required = true)
-    private List<InterfaceAddress> addresses;
+  public static final class InterfaceAttachedTo {
+    private final JsonNode value;
 
-    @JsonProperty("addresses")
-    public List<InterfaceAddress> getAddresses() {
-      return addresses;
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public InterfaceAttachedTo(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
     }
 
-    @JsonProperty(value = "routed_prefixes", required = true)
-    private List<RoutedPrefix> routed_prefixes;
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
 
-    @JsonProperty("routed_prefixes")
-    public List<RoutedPrefix> getRoutedPrefixes() {
-      return routed_prefixes;
+    @Override
+    public String toString() {
+      return "InterfaceAttachedTo{[REDACTED]}";
+    }
+
+    public static InterfaceAttachedTo ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new InterfaceAttachedTo(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static InterfaceAttachedTo ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new InterfaceAttachedTo(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
     }
   }
 
-  public static final class Subnet extends Model {
-    public Subnet() {}
+  public static final class CreateInterfaceAddressResponse extends Model {
+    public CreateInterfaceAddressResponse() {}
 
-    @JsonProperty(value = "id", required = true)
-    private String id;
+    @JsonProperty(value = "address", required = false)
+    private InterfaceAddress address;
 
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    @JsonProperty(value = "vpc", required = true)
-    private Vpc vpc;
-
-    @JsonProperty("vpc")
-    public Vpc getVpc() {
-      return vpc;
-    }
-
-    @JsonProperty(value = "route_table", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<RouteTableSummary> route_table = JsonField.missing();
-
-    @JsonProperty("route_table")
-    public JsonField<RouteTableSummary> getRouteTable() {
-      return route_table;
-    }
-
-    /**
-     * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
-     * braced, or urn:uuid: forms, in either case).
-     */
-    @JsonProperty(value = "name", required = true)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(value = "description", required = false)
-    private String description;
-
-    @JsonProperty("description")
-    public String getDescription() {
-      return description;
-    }
-
-    @JsonProperty(value = "cidr_ipv4", required = true)
-    private String cidr_ipv4;
-
-    @JsonProperty("cidr_ipv4")
-    public String getCidrIpv4() {
-      return cidr_ipv4;
-    }
-
-    @JsonProperty(value = "gateway_ipv4", required = true)
-    private String gateway_ipv4;
-
-    @JsonProperty("gateway_ipv4")
-    public String getGatewayIpv4() {
-      return gateway_ipv4;
-    }
-
-    /**
-     * The dual-stack IPv6 /64, if the subnet is v6-enabled. Its presence (vs the v4 cidr_ipv4) is
-     * how a client tells the subnet's families apart.
-     */
-    @JsonProperty(value = "cidr_ipv6", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> cidr_ipv6 = JsonField.missing();
-
-    @JsonProperty("cidr_ipv6")
-    public JsonField<String> getCidrIpv6() {
-      return cidr_ipv6;
-    }
-
-    @JsonProperty(value = "gateway_ipv6", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> gateway_ipv6 = JsonField.missing();
-
-    @JsonProperty("gateway_ipv6")
-    public JsonField<String> getGatewayIpv6() {
-      return gateway_ipv6;
-    }
-
-    @JsonProperty(value = "tags", required = true)
-    private Map<String, String> tags;
-
-    @JsonProperty("tags")
-    public Map<String, String> getTags() {
-      return tags;
-    }
-
-    @JsonProperty(value = "created_at", required = true)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
-    }
-
-    @JsonProperty(value = "updated_at", required = true)
-    private String updated_at;
-
-    @JsonProperty("updated_at")
-    public String getUpdatedAt() {
-      return updated_at;
-    }
-  }
-
-  public static final class RouteTableSummary extends Model {
-    public RouteTableSummary() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    @JsonProperty(value = "name", required = true)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
+    @JsonProperty("address")
+    public InterfaceAddress getAddress() {
+      return address;
     }
   }
 
@@ -1722,10 +1744,10 @@ public final class Network {
     }
 
     @JsonProperty(value = "floating_ips", required = true)
-    private List<AddressFloatingIp> floating_ips;
+    private List<FloatingIPRef> floating_ips;
 
     @JsonProperty("floating_ips")
-    public List<AddressFloatingIp> getFloatingIps() {
+    public List<FloatingIPRef> getFloatingIps() {
       return floating_ips;
     }
   }
@@ -1762,8 +1784,8 @@ public final class Network {
     public static final InterfaceAddressFamily IPV6 = new InterfaceAddressFamily("ipv6");
   }
 
-  public static final class AddressFloatingIp extends Model {
-    public AddressFloatingIp() {}
+  public static final class FloatingIPRef extends Model {
+    public FloatingIPRef() {}
 
     @JsonProperty(value = "id", required = true)
     private String id;
@@ -1782,10 +1804,10 @@ public final class Network {
     }
 
     @JsonProperty(value = "visibility", required = true)
-    private AddressFloatingIpVisibility visibility;
+    private FloatingIPRefVisibility visibility;
 
     @JsonProperty("visibility")
-    public AddressFloatingIpVisibility getVisibility() {
+    public FloatingIPRefVisibility getVisibility() {
       return visibility;
     }
 
@@ -1798,11 +1820,11 @@ public final class Network {
     }
   }
 
-  public static final class AddressFloatingIpVisibility {
+  public static final class FloatingIPRefVisibility {
     private final String value;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public AddressFloatingIpVisibility(String value) {
+    public FloatingIPRefVisibility(String value) {
       this.value = Objects.requireNonNull(value);
     }
 
@@ -1818,7 +1840,7 @@ public final class Network {
 
     @Override
     public boolean equals(Object other) {
-      return other instanceof AddressFloatingIpVisibility v && value.equals(v.value);
+      return other instanceof FloatingIPRefVisibility v && value.equals(v.value);
     }
 
     @Override
@@ -1826,10 +1848,38 @@ public final class Network {
       return value.hashCode();
     }
 
-    public static final AddressFloatingIpVisibility PUBLIC =
-        new AddressFloatingIpVisibility("public");
-    public static final AddressFloatingIpVisibility PRIVATE =
-        new AddressFloatingIpVisibility("private");
+    public static final FloatingIPRefVisibility PUBLIC = new FloatingIPRefVisibility("public");
+    public static final FloatingIPRefVisibility PRIVATE = new FloatingIPRefVisibility("private");
+  }
+
+  public static final class CreateInterfacePrefixBody extends Model {
+    public CreateInterfacePrefixBody() {}
+
+    /** Pool UUID or CRN in the interface VPC. */
+    @JsonProperty(value = "pool", required = true)
+    private String pool;
+
+    @JsonProperty("pool")
+    public String getPool() {
+      return pool;
+    }
+
+    public CreateInterfacePrefixBody withPool(String value) {
+      this.pool = value;
+      return this;
+    }
+  }
+
+  public static final class CreateInterfacePrefixResponse extends Model {
+    public CreateInterfacePrefixResponse() {}
+
+    @JsonProperty(value = "prefix", required = true)
+    private RoutedPrefix prefix;
+
+    @JsonProperty("prefix")
+    public RoutedPrefix getPrefix() {
+      return prefix;
+    }
   }
 
   public static final class RoutedPrefix extends Model {
@@ -1843,12 +1893,12 @@ public final class Network {
       return id;
     }
 
-    @JsonProperty(value = "pool_id", required = true)
-    private String pool_id;
+    @JsonProperty(value = "pool", required = true)
+    private ResourceRef pool;
 
-    @JsonProperty("pool_id")
-    public String getPoolId() {
-      return pool_id;
+    @JsonProperty("pool")
+    public ResourceRef getPool() {
+      return pool;
     }
 
     @JsonProperty(value = "family", required = true)
@@ -1900,49 +1950,22 @@ public final class Network {
     public static final RoutedPrefixFamily IPV4 = new RoutedPrefixFamily("ipv4");
   }
 
-  public static final class CreateInterfaceAddressResponse extends Model {
-    public CreateInterfaceAddressResponse() {}
-
-    @JsonProperty(value = "address", required = false)
-    private InterfaceAddress address;
-
-    @JsonProperty("address")
-    public InterfaceAddress getAddress() {
-      return address;
-    }
-  }
-
-  public static final class CreateInterfacePrefixBody extends Model {
-    public CreateInterfacePrefixBody() {}
-
-    @JsonProperty(value = "pool_id", required = true)
-    private String pool_id;
-
-    @JsonProperty("pool_id")
-    public String getPoolId() {
-      return pool_id;
-    }
-
-    public CreateInterfacePrefixBody withPoolId(String value) {
-      this.pool_id = value;
-      return this;
-    }
-  }
-
-  public static final class CreateInterfacePrefixResponse extends Model {
-    public CreateInterfacePrefixResponse() {}
-
-    @JsonProperty(value = "routed_prefixes", required = false)
-    private List<RoutedPrefix> routed_prefixes;
-
-    @JsonProperty("routed_prefixes")
-    public List<RoutedPrefix> getRoutedPrefixes() {
-      return routed_prefixes;
-    }
-  }
-
   public static final class InternetGatewayCreateRequestInput extends Model {
     public InternetGatewayCreateRequestInput() {}
+
+    /** VPC UUID, CRN or exact name in the caller account. The binding is permanent. */
+    @JsonProperty(value = "vpc", required = true)
+    private String vpc;
+
+    @JsonProperty("vpc")
+    public String getVpc() {
+      return vpc;
+    }
+
+    public InternetGatewayCreateRequestInput withVpc(String value) {
+      this.vpc = value;
+      return this;
+    }
 
     /**
      * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
@@ -1985,6 +2008,141 @@ public final class Network {
     public InternetGatewayCreateRequestInput withTags(Map<String, String> value) {
       this.tags = value;
       return this;
+    }
+  }
+
+  public static final class InternetGatewayResponse extends Model {
+    public InternetGatewayResponse() {}
+
+    @JsonProperty(value = "internet_gateway", required = true)
+    private InternetGateway internet_gateway;
+
+    @JsonProperty("internet_gateway")
+    public InternetGateway getInternetGateway() {
+      return internet_gateway;
+    }
+  }
+
+  public static final class InternetGateway extends Model {
+    public InternetGateway() {}
+
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    /**
+     * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
+     * braced, or urn:uuid: forms, in either case).
+     */
+    @JsonProperty(value = "name", required = true)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    @JsonProperty(value = "description", required = false)
+    private String description;
+
+    @JsonProperty("description")
+    public String getDescription() {
+      return description;
+    }
+
+    /** VPC the internet gateway is attached to. */
+    @JsonProperty(value = "attached_vpc", required = false)
+    private InternetGatewayAttachedVpc attached_vpc;
+
+    @JsonProperty("attached_vpc")
+    public InternetGatewayAttachedVpc getAttachedVpc() {
+      return attached_vpc;
+    }
+
+    @JsonProperty(value = "tags", required = true)
+    private Map<String, String> tags;
+
+    @JsonProperty("tags")
+    public Map<String, String> getTags() {
+      return tags;
+    }
+
+    @JsonProperty(value = "created_at", required = true)
+    private String created_at;
+
+    @JsonProperty("created_at")
+    public String getCreatedAt() {
+      return created_at;
+    }
+
+    @JsonProperty(value = "updated_at", required = true)
+    private String updated_at;
+
+    @JsonProperty("updated_at")
+    public String getUpdatedAt() {
+      return updated_at;
+    }
+  }
+
+  public static final class InternetGatewayAttachedVpc {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public InternetGatewayAttachedVpc(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "InternetGatewayAttachedVpc{[REDACTED]}";
+    }
+
+    public static InternetGatewayAttachedVpc ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new InternetGatewayAttachedVpc(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static InternetGatewayAttachedVpc ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new InternetGatewayAttachedVpc(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
     }
   }
 
@@ -2104,10 +2262,10 @@ public final class Network {
     }
 
     @JsonProperty(value = "subnet", required = true)
-    private Subnet subnet;
+    private ResourceRef subnet;
 
     @JsonProperty("subnet")
-    public Subnet getSubnet() {
+    public ResourceRef getSubnet() {
       return subnet;
     }
 
@@ -2179,17 +2337,25 @@ public final class Network {
   public static final class CreatePrefixPoolResponse extends Model {
     public CreatePrefixPoolResponse() {}
 
-    @JsonProperty(value = "prefix_pools", required = false)
-    private List<PrefixPool> prefix_pools;
+    @JsonProperty(value = "prefix_pool", required = true)
+    private PrefixPool prefix_pool;
 
-    @JsonProperty("prefix_pools")
-    public List<PrefixPool> getPrefixPools() {
-      return prefix_pools;
+    @JsonProperty("prefix_pool")
+    public PrefixPool getPrefixPool() {
+      return prefix_pool;
     }
   }
 
   public static final class PrefixPool extends Model {
     public PrefixPool() {}
+
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
 
     @JsonProperty(value = "id", required = true)
     private String id;
@@ -2352,14 +2518,6 @@ public final class Network {
       return crn;
     }
 
-    @JsonProperty(value = "route_table_id", required = true)
-    private String route_table_id;
-
-    @JsonProperty("route_table_id")
-    public String getRouteTableId() {
-      return route_table_id;
-    }
-
     @JsonProperty(value = "description", required = false)
     private String description;
 
@@ -2385,9 +2543,9 @@ public final class Network {
     }
 
     /**
-     * Set when target_type=ip. Mutex with the target_*_id fields. Must be a unicast address inside
+     * Set when target_type=ip. Mutex with the target_* fields. Must be a unicast address inside
      * this VPC's CIDR (same IP family as destination_cidr); internet egress uses
-     * target_internet_gateway_id / target_nat_gateway_id.
+     * target_internet_gateway / target_nat_gateway.
      */
     @JsonProperty(value = "next_hop_ip", required = false)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -2399,39 +2557,36 @@ public final class Network {
     }
 
     /** Set when target_type=internet_gateway. */
-    @JsonProperty(value = "target_internet_gateway_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> target_internet_gateway_id = JsonField.missing();
+    @JsonProperty(value = "target_internet_gateway", required = false)
+    private ResourceRef target_internet_gateway;
 
-    @JsonProperty("target_internet_gateway_id")
-    public JsonField<String> getTargetInternetGatewayId() {
-      return target_internet_gateway_id;
+    @JsonProperty("target_internet_gateway")
+    public ResourceRef getTargetInternetGateway() {
+      return target_internet_gateway;
     }
 
     /**
      * Set when target_type=nat_gateway. Supports IPv4 and IPv6; IPv6 requires an IPv6-enabled
      * hosting subnet.
      */
-    @JsonProperty(value = "target_nat_gateway_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> target_nat_gateway_id = JsonField.missing();
+    @JsonProperty(value = "target_nat_gateway", required = false)
+    private ResourceRef target_nat_gateway;
 
-    @JsonProperty("target_nat_gateway_id")
-    public JsonField<String> getTargetNatGatewayId() {
-      return target_nat_gateway_id;
+    @JsonProperty("target_nat_gateway")
+    public ResourceRef getTargetNatGateway() {
+      return target_nat_gateway;
     }
 
     /**
-     * Set when target_type=egress_only_gateway (IPv6 only). Gives the subnet outbound v6 with the
-     * internet unable to initiate inbound.
+     * Set when target_type=egress_only_gateway (IPv6 only). Gives the subnet outbound IPv6 and
+     * replies only.
      */
-    @JsonProperty(value = "target_egress_only_gateway_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> target_egress_only_gateway_id = JsonField.missing();
+    @JsonProperty(value = "target_egress_only_gateway", required = false)
+    private ResourceRef target_egress_only_gateway;
 
-    @JsonProperty("target_egress_only_gateway_id")
-    public JsonField<String> getTargetEgressOnlyGatewayId() {
-      return target_egress_only_gateway_id;
+    @JsonProperty("target_egress_only_gateway")
+    public ResourceRef getTargetEgressOnlyGateway() {
+      return target_egress_only_gateway;
     }
 
     @JsonProperty(value = "tags", required = true)
@@ -2588,10 +2743,10 @@ public final class Network {
     }
 
     @JsonProperty(value = "vpc", required = true)
-    private Vpc vpc;
+    private ResourceRef vpc;
 
     @JsonProperty("vpc")
-    public Vpc getVpc() {
+    public ResourceRef getVpc() {
       return vpc;
     }
 
@@ -2697,82 +2852,6 @@ public final class Network {
     public SecurityGroupCreateRequestInput withTags(Map<String, String> value) {
       this.tags = value;
       return this;
-    }
-  }
-
-  public static final class SecurityGroupResponse extends Model {
-    public SecurityGroupResponse() {}
-
-    @JsonProperty(value = "security_group", required = false)
-    private SecurityGroup security_group;
-
-    @JsonProperty("security_group")
-    public SecurityGroup getSecurityGroup() {
-      return security_group;
-    }
-  }
-
-  public static final class SecurityGroup extends Model {
-    public SecurityGroup() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    /**
-     * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
-     * braced, or urn:uuid: forms, in either case).
-     */
-    @JsonProperty(value = "name", required = true)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(value = "description", required = false)
-    private String description;
-
-    @JsonProperty("description")
-    public String getDescription() {
-      return description;
-    }
-
-    @JsonProperty(value = "tags", required = true)
-    private Map<String, String> tags;
-
-    @JsonProperty("tags")
-    public Map<String, String> getTags() {
-      return tags;
-    }
-
-    @JsonProperty(value = "created_at", required = true)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
-    }
-
-    @JsonProperty(value = "updated_at", required = true)
-    private String updated_at;
-
-    @JsonProperty("updated_at")
-    public String getUpdatedAt() {
-      return updated_at;
     }
   }
 
@@ -3021,14 +3100,6 @@ public final class Network {
       return id;
     }
 
-    @JsonProperty(value = "security_group_id", required = true)
-    private String security_group_id;
-
-    @JsonProperty("security_group_id")
-    public String getSecurityGroupId() {
-      return security_group_id;
-    }
-
     @JsonProperty(value = "description", required = false)
     private String description;
 
@@ -3082,7 +3153,7 @@ public final class Network {
 
     /**
      * Source (ingress) or destination_cidr (egress) CIDR. Must match the rule's ethertype. Mutually
-     * exclusive with source_security_group_id.
+     * exclusive with source_security_group.
      */
     @JsonProperty(value = "remote_cidr", required = false)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -3094,16 +3165,15 @@ public final class Network {
     }
 
     /**
-     * Source (ingress) or destination_cidr (egress) is "any workload in this SG". Traffic is
-     * matched by membership in the named security group. Mutually exclusive with remote_cidr.
+     * Security group supplying the source or destination members. Mutually exclusive with
+     * remote_cidr.
      */
-    @JsonProperty(value = "source_security_group_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> source_security_group_id = JsonField.missing();
+    @JsonProperty(value = "source_security_group", required = false)
+    private ResourceRef source_security_group;
 
-    @JsonProperty("source_security_group_id")
-    public JsonField<String> getSourceSecurityGroupId() {
-      return source_security_group_id;
+    @JsonProperty("source_security_group")
+    public ResourceRef getSourceSecurityGroup() {
+      return source_security_group;
     }
 
     @JsonProperty(value = "created_at", required = true)
@@ -3362,12 +3432,181 @@ public final class Network {
   public static final class SubnetResponse extends Model {
     public SubnetResponse() {}
 
-    @JsonProperty(value = "subnet", required = false)
+    @JsonProperty(value = "subnet", required = true)
     private Subnet subnet;
 
     @JsonProperty("subnet")
     public Subnet getSubnet() {
       return subnet;
+    }
+  }
+
+  public static final class Subnet extends Model {
+    public Subnet() {}
+
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    @JsonProperty(value = "vpc", required = true)
+    private ResourceRef vpc;
+
+    @JsonProperty("vpc")
+    public ResourceRef getVpc() {
+      return vpc;
+    }
+
+    /** Route table associated with this subnet; null when the table is unavailable. */
+    @JsonProperty(value = "route_table", required = true)
+    private SubnetRouteTable route_table;
+
+    @JsonProperty("route_table")
+    public SubnetRouteTable getRouteTable() {
+      return route_table;
+    }
+
+    /**
+     * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
+     * braced, or urn:uuid: forms, in either case).
+     */
+    @JsonProperty(value = "name", required = true)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    @JsonProperty(value = "description", required = false)
+    private String description;
+
+    @JsonProperty("description")
+    public String getDescription() {
+      return description;
+    }
+
+    @JsonProperty(value = "cidr_ipv4", required = true)
+    private String cidr_ipv4;
+
+    @JsonProperty("cidr_ipv4")
+    public String getCidrIpv4() {
+      return cidr_ipv4;
+    }
+
+    @JsonProperty(value = "gateway_ipv4", required = true)
+    private String gateway_ipv4;
+
+    @JsonProperty("gateway_ipv4")
+    public String getGatewayIpv4() {
+      return gateway_ipv4;
+    }
+
+    /**
+     * The dual-stack IPv6 /64, if the subnet is v6-enabled. Its presence (vs the v4 cidr_ipv4) is
+     * how a client tells the subnet's families apart.
+     */
+    @JsonProperty(value = "cidr_ipv6", required = false)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> cidr_ipv6 = JsonField.missing();
+
+    @JsonProperty("cidr_ipv6")
+    public JsonField<String> getCidrIpv6() {
+      return cidr_ipv6;
+    }
+
+    @JsonProperty(value = "gateway_ipv6", required = false)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> gateway_ipv6 = JsonField.missing();
+
+    @JsonProperty("gateway_ipv6")
+    public JsonField<String> getGatewayIpv6() {
+      return gateway_ipv6;
+    }
+
+    @JsonProperty(value = "tags", required = true)
+    private Map<String, String> tags;
+
+    @JsonProperty("tags")
+    public Map<String, String> getTags() {
+      return tags;
+    }
+
+    @JsonProperty(value = "created_at", required = true)
+    private String created_at;
+
+    @JsonProperty("created_at")
+    public String getCreatedAt() {
+      return created_at;
+    }
+
+    @JsonProperty(value = "updated_at", required = true)
+    private String updated_at;
+
+    @JsonProperty("updated_at")
+    public String getUpdatedAt() {
+      return updated_at;
+    }
+  }
+
+  public static final class SubnetRouteTable {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public SubnetRouteTable(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "SubnetRouteTable{[REDACTED]}";
+    }
+
+    public static SubnetRouteTable ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new SubnetRouteTable(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static SubnetRouteTable ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new SubnetRouteTable(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
     }
   }
 
@@ -3469,7 +3708,7 @@ public final class Network {
   public static final class VpcResponse extends Model {
     public VpcResponse() {}
 
-    @JsonProperty(value = "vpc", required = false)
+    @JsonProperty(value = "vpc", required = true)
     private Vpc vpc;
 
     @JsonProperty("vpc")
@@ -3478,36 +3717,520 @@ public final class Network {
     }
   }
 
-  public static final class DetachFloatingIpBody extends Model {
-    public DetachFloatingIpBody() {}
+  public static final class Vpc extends Model {
+    public Vpc() {}
 
-    /**
-     * Interface UUID or nested CRN; bare names, null and empty references are rejected. Omitting
-     * the field clears the binding. Naming a NIC that is not a member is a no-op.
-     */
-    @JsonProperty(value = "interface", required = false)
-    private String interfaceValue;
+    @JsonProperty(value = "id", required = true)
+    private String id;
 
-    @JsonProperty("interface")
-    public String getInterfaceValue() {
-      return interfaceValue;
+    @JsonProperty("id")
+    public String getId() {
+      return id;
     }
 
-    public DetachFloatingIpBody withInterfaceValue(String value) {
-      this.interfaceValue = value;
+    /** Cloud Resource Name (name-based, region+account-scoped). */
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    /**
+     * 1-63 chars, lowercase alphanumeric + hyphen Resource names must not start with the literal
+     * crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
+     */
+    @JsonProperty(value = "name", required = true)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    @JsonProperty(value = "description", required = false)
+    private String description;
+
+    @JsonProperty("description")
+    public String getDescription() {
+      return description;
+    }
+
+    /**
+     * IPv4 CIDR block carved up by subnets. Must be private (RFC 1918): within 10.0.0.0/8,
+     * 172.16.0.0/12 or 192.168.0.0/16. Immutable after create.
+     */
+    @JsonProperty(value = "cidr_ipv4", required = true)
+    private String cidr_ipv4;
+
+    @JsonProperty("cidr_ipv4")
+    public String getCidrIpv4() {
+      return cidr_ipv4;
+    }
+
+    /** Associated regional GUA or private ULA prefix. */
+    @JsonProperty(value = "cidr_ipv6", required = false)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> cidr_ipv6 = JsonField.missing();
+
+    @JsonProperty("cidr_ipv6")
+    public JsonField<String> getCidrIpv6() {
+      return cidr_ipv6;
+    }
+
+    @JsonProperty(value = "tags", required = true)
+    private Map<String, String> tags;
+
+    @JsonProperty("tags")
+    public Map<String, String> getTags() {
+      return tags;
+    }
+
+    @JsonProperty(value = "created_at", required = true)
+    private String created_at;
+
+    @JsonProperty("created_at")
+    public String getCreatedAt() {
+      return created_at;
+    }
+
+    @JsonProperty(value = "updated_at", required = true)
+    private String updated_at;
+
+    @JsonProperty("updated_at")
+    public String getUpdatedAt() {
+      return updated_at;
+    }
+  }
+
+  public static final class SubnetIPv6RequestInput {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public SubnetIPv6RequestInput(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "SubnetIPv6RequestInput{[REDACTED]}";
+    }
+
+    public static SubnetIPv6RequestInput ofVariant1(SubnetIPv6RequestInputVariant1 value) {
+      Model.validate(value);
+      return new SubnetIPv6RequestInput(Json.tree(value));
+    }
+
+    public Optional<SubnetIPv6RequestInputVariant1> asVariant1() {
+      try {
+        SubnetIPv6RequestInputVariant1 result =
+            Json.convert(value, new TypeReference<SubnetIPv6RequestInputVariant1>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static SubnetIPv6RequestInput ofVariant2(SubnetIPv6RequestInputVariant2 value) {
+      Model.validate(value);
+      return new SubnetIPv6RequestInput(Json.tree(value));
+    }
+
+    public Optional<SubnetIPv6RequestInputVariant2> asVariant2() {
+      try {
+        SubnetIPv6RequestInputVariant2 result =
+            Json.convert(value, new TypeReference<SubnetIPv6RequestInputVariant2>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class SubnetIPv6RequestInputVariant1 extends Model {
+    public SubnetIPv6RequestInputVariant1() {}
+
+    /**
+     * Allocate a free /64 from the VPC IPv6 range. Can be enabled after creation. Every existing
+     * and new interface receives an IPv6 /96 and its first /128 automatically. NAT gateways hosted
+     * here also receive a public IPv6 address from the regional pool. Updating hosted gateways
+     * requires UpdateNATGateway permission and public IPv6 quota.
+     */
+    @JsonProperty(value = "allocate_cidr_ipv6", required = true)
+    private Boolean allocate_cidr_ipv6;
+
+    @JsonProperty("allocate_cidr_ipv6")
+    public Boolean getAllocateCidrIpv6() {
+      return allocate_cidr_ipv6;
+    }
+
+    public SubnetIPv6RequestInputVariant1 withAllocateCidrIpv6(Boolean value) {
+      this.allocate_cidr_ipv6 = value;
+      return this;
+    }
+
+    /**
+     * An aligned /64 inside the VPC IPv6 range. Can be added later; cannot replace an existing
+     * range. Mutually exclusive with allocate_cidr_ipv6.
+     */
+    @JsonProperty(value = "cidr_ipv6", required = false)
+    private String cidr_ipv6;
+
+    @JsonProperty("cidr_ipv6")
+    public String getCidrIpv6() {
+      return cidr_ipv6;
+    }
+
+    public SubnetIPv6RequestInputVariant1 withCidrIpv6(String value) {
+      this.cidr_ipv6 = value;
+      return this;
+    }
+
+    /**
+     * When enabling IPv6, copy equivalent rules in security groups used by this subnet's
+     * interfaces. Copies 0.0.0.0/0 to ::/0 and security-group references, preserving protocol,
+     * ports and direction. Restricted IPv4 CIDRs are not widened. Existing IPv6 equivalents are not
+     * duplicated. Changes affect every interface sharing these groups. Requires
+     * CreateSecurityGroupRule permission and available rule quota. Only accepted with
+     * allocate_cidr_ipv6 or cidr_ipv6.
+     */
+    @JsonProperty(value = "copy_ipv4_security_rules", required = false)
+    private Boolean copy_ipv4_security_rules;
+
+    @JsonProperty("copy_ipv4_security_rules")
+    public Boolean getCopyIpv4SecurityRules() {
+      return copy_ipv4_security_rules;
+    }
+
+    public SubnetIPv6RequestInputVariant1 withCopyIpv4SecurityRules(Boolean value) {
+      this.copy_ipv4_security_rules = value;
+      return this;
+    }
+
+    /**
+     * When enabling IPv6, optionally add ::/0 to the subnet's route table. match_ipv4 follows an
+     * IPv4 internet-gateway or NAT-gateway default route, using the same target. A NAT gateway must
+     * already have IPv6 enabled on its hosting subnet, or be hosted in the subnet being enabled. No
+     * IPv4 default route leaves IPv6 routing unchanged. Existing IPv6 default routes are always
+     * preserved. Egress-only gateways cannot provide ULA internet access; use a NAT gateway, or a
+     * public IPv6 floating IP with an internet-gateway route. Changes affect every subnet sharing
+     * the route table and require CreateRoute permission; creating an egress-only gateway also
+     * requires CreateEgressOnlyGateway permission. Only accepted with allocate_cidr_ipv6 or
+     * cidr_ipv6.
+     */
+    @JsonProperty(value = "ipv6_routing", required = false)
+    private SubnetIPv6RequestInputVariant1Ipv6Routing ipv6_routing;
+
+    @JsonProperty("ipv6_routing")
+    public SubnetIPv6RequestInputVariant1Ipv6Routing getIpv6Routing() {
+      return ipv6_routing;
+    }
+
+    public SubnetIPv6RequestInputVariant1 withIpv6Routing(
+        SubnetIPv6RequestInputVariant1Ipv6Routing value) {
+      this.ipv6_routing = value;
       return this;
     }
   }
 
-  public static final class DetachFloatingIpResponse extends Model {
-    public DetachFloatingIpResponse() {}
+  public static final class SubnetIPv6RequestInputVariant1Ipv6Routing {
+    private final String value;
 
-    @JsonProperty(value = "floating_ip", required = false)
-    private FloatingIp floating_ip;
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public SubnetIPv6RequestInputVariant1Ipv6Routing(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
 
-    @JsonProperty("floating_ip")
-    public FloatingIp getFloatingIp() {
-      return floating_ip;
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof SubnetIPv6RequestInputVariant1Ipv6Routing v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final SubnetIPv6RequestInputVariant1Ipv6Routing MATCH_IPV4 =
+        new SubnetIPv6RequestInputVariant1Ipv6Routing("match_ipv4");
+    public static final SubnetIPv6RequestInputVariant1Ipv6Routing UNCHANGED =
+        new SubnetIPv6RequestInputVariant1Ipv6Routing("unchanged");
+    public static final SubnetIPv6RequestInputVariant1Ipv6Routing INTERNET_GATEWAY =
+        new SubnetIPv6RequestInputVariant1Ipv6Routing("internet_gateway");
+    public static final SubnetIPv6RequestInputVariant1Ipv6Routing NAT_GATEWAY =
+        new SubnetIPv6RequestInputVariant1Ipv6Routing("nat_gateway");
+    public static final SubnetIPv6RequestInputVariant1Ipv6Routing EGRESS_ONLY_GATEWAY =
+        new SubnetIPv6RequestInputVariant1Ipv6Routing("egress_only_gateway");
+  }
+
+  public static final class SubnetIPv6RequestInputVariant2 extends Model {
+    public SubnetIPv6RequestInputVariant2() {}
+
+    /**
+     * Allocate a free /64 from the VPC IPv6 range. Can be enabled after creation. Every existing
+     * and new interface receives an IPv6 /96 and its first /128 automatically. NAT gateways hosted
+     * here also receive a public IPv6 address from the regional pool. Updating hosted gateways
+     * requires UpdateNATGateway permission and public IPv6 quota.
+     */
+    @JsonProperty(value = "allocate_cidr_ipv6", required = false)
+    private Boolean allocate_cidr_ipv6;
+
+    @JsonProperty("allocate_cidr_ipv6")
+    public Boolean getAllocateCidrIpv6() {
+      return allocate_cidr_ipv6;
+    }
+
+    public SubnetIPv6RequestInputVariant2 withAllocateCidrIpv6(Boolean value) {
+      this.allocate_cidr_ipv6 = value;
+      return this;
+    }
+
+    /**
+     * An aligned /64 inside the VPC IPv6 range. Can be added later; cannot replace an existing
+     * range. Mutually exclusive with allocate_cidr_ipv6.
+     */
+    @JsonProperty(value = "cidr_ipv6", required = true)
+    private String cidr_ipv6;
+
+    @JsonProperty("cidr_ipv6")
+    public String getCidrIpv6() {
+      return cidr_ipv6;
+    }
+
+    public SubnetIPv6RequestInputVariant2 withCidrIpv6(String value) {
+      this.cidr_ipv6 = value;
+      return this;
+    }
+
+    /**
+     * When enabling IPv6, copy equivalent rules in security groups used by this subnet's
+     * interfaces. Copies 0.0.0.0/0 to ::/0 and security-group references, preserving protocol,
+     * ports and direction. Restricted IPv4 CIDRs are not widened. Existing IPv6 equivalents are not
+     * duplicated. Changes affect every interface sharing these groups. Requires
+     * CreateSecurityGroupRule permission and available rule quota. Only accepted with
+     * allocate_cidr_ipv6 or cidr_ipv6.
+     */
+    @JsonProperty(value = "copy_ipv4_security_rules", required = false)
+    private Boolean copy_ipv4_security_rules;
+
+    @JsonProperty("copy_ipv4_security_rules")
+    public Boolean getCopyIpv4SecurityRules() {
+      return copy_ipv4_security_rules;
+    }
+
+    public SubnetIPv6RequestInputVariant2 withCopyIpv4SecurityRules(Boolean value) {
+      this.copy_ipv4_security_rules = value;
+      return this;
+    }
+
+    /**
+     * When enabling IPv6, optionally add ::/0 to the subnet's route table. match_ipv4 follows an
+     * IPv4 internet-gateway or NAT-gateway default route, using the same target. A NAT gateway must
+     * already have IPv6 enabled on its hosting subnet, or be hosted in the subnet being enabled. No
+     * IPv4 default route leaves IPv6 routing unchanged. Existing IPv6 default routes are always
+     * preserved. Egress-only gateways cannot provide ULA internet access; use a NAT gateway, or a
+     * public IPv6 floating IP with an internet-gateway route. Changes affect every subnet sharing
+     * the route table and require CreateRoute permission; creating an egress-only gateway also
+     * requires CreateEgressOnlyGateway permission. Only accepted with allocate_cidr_ipv6 or
+     * cidr_ipv6.
+     */
+    @JsonProperty(value = "ipv6_routing", required = false)
+    private SubnetIPv6RequestInputVariant2Ipv6Routing ipv6_routing;
+
+    @JsonProperty("ipv6_routing")
+    public SubnetIPv6RequestInputVariant2Ipv6Routing getIpv6Routing() {
+      return ipv6_routing;
+    }
+
+    public SubnetIPv6RequestInputVariant2 withIpv6Routing(
+        SubnetIPv6RequestInputVariant2Ipv6Routing value) {
+      this.ipv6_routing = value;
+      return this;
+    }
+  }
+
+  public static final class SubnetIPv6RequestInputVariant2Ipv6Routing {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public SubnetIPv6RequestInputVariant2Ipv6Routing(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof SubnetIPv6RequestInputVariant2Ipv6Routing v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final SubnetIPv6RequestInputVariant2Ipv6Routing MATCH_IPV4 =
+        new SubnetIPv6RequestInputVariant2Ipv6Routing("match_ipv4");
+    public static final SubnetIPv6RequestInputVariant2Ipv6Routing UNCHANGED =
+        new SubnetIPv6RequestInputVariant2Ipv6Routing("unchanged");
+    public static final SubnetIPv6RequestInputVariant2Ipv6Routing INTERNET_GATEWAY =
+        new SubnetIPv6RequestInputVariant2Ipv6Routing("internet_gateway");
+    public static final SubnetIPv6RequestInputVariant2Ipv6Routing NAT_GATEWAY =
+        new SubnetIPv6RequestInputVariant2Ipv6Routing("nat_gateway");
+    public static final SubnetIPv6RequestInputVariant2Ipv6Routing EGRESS_ONLY_GATEWAY =
+        new SubnetIPv6RequestInputVariant2Ipv6Routing("egress_only_gateway");
+  }
+
+  public static final class VpcIPv6RequestInput {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public VpcIPv6RequestInput(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "VpcIPv6RequestInput{[REDACTED]}";
+    }
+
+    public static VpcIPv6RequestInput ofVariant1(VpcIPv6RequestInputVariant1 value) {
+      Model.validate(value);
+      return new VpcIPv6RequestInput(Json.tree(value));
+    }
+
+    public Optional<VpcIPv6RequestInputVariant1> asVariant1() {
+      try {
+        VpcIPv6RequestInputVariant1 result =
+            Json.convert(value, new TypeReference<VpcIPv6RequestInputVariant1>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static VpcIPv6RequestInput ofVariant2(VpcIPv6RequestInputVariant2 value) {
+      Model.validate(value);
+      return new VpcIPv6RequestInput(Json.tree(value));
+    }
+
+    public Optional<VpcIPv6RequestInputVariant2> asVariant2() {
+      try {
+        VpcIPv6RequestInputVariant2 result =
+            Json.convert(value, new TypeReference<VpcIPv6RequestInputVariant2>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class VpcIPv6RequestInputVariant1 extends Model {
+    public VpcIPv6RequestInputVariant1() {}
+
+    /**
+     * Allocate a regional GUA /60. Mutually exclusive with cidr_ipv6. Existing IPv6 ranges cannot
+     * be replaced.
+     */
+    @JsonProperty(value = "allocate_cidr_ipv6", required = true)
+    private Boolean allocate_cidr_ipv6;
+
+    @JsonProperty("allocate_cidr_ipv6")
+    public Boolean getAllocateCidrIpv6() {
+      return allocate_cidr_ipv6;
+    }
+
+    public VpcIPv6RequestInputVariant1 withAllocateCidrIpv6(Boolean value) {
+      this.allocate_cidr_ipv6 = value;
+      return this;
+    }
+
+    /**
+     * Optional aligned locally assigned ULA (fd00::/8), /48 through /60. May be added after VPC
+     * creation.
+     */
+    @JsonProperty(value = "cidr_ipv6", required = false)
+    private String cidr_ipv6;
+
+    @JsonProperty("cidr_ipv6")
+    public String getCidrIpv6() {
+      return cidr_ipv6;
+    }
+
+    public VpcIPv6RequestInputVariant1 withCidrIpv6(String value) {
+      this.cidr_ipv6 = value;
+      return this;
+    }
+  }
+
+  public static final class VpcIPv6RequestInputVariant2 extends Model {
+    public VpcIPv6RequestInputVariant2() {}
+
+    /**
+     * Allocate a regional GUA /60. Mutually exclusive with cidr_ipv6. Existing IPv6 ranges cannot
+     * be replaced.
+     */
+    @JsonProperty(value = "allocate_cidr_ipv6", required = false)
+    private Boolean allocate_cidr_ipv6;
+
+    @JsonProperty("allocate_cidr_ipv6")
+    public Boolean getAllocateCidrIpv6() {
+      return allocate_cidr_ipv6;
+    }
+
+    public VpcIPv6RequestInputVariant2 withAllocateCidrIpv6(Boolean value) {
+      this.allocate_cidr_ipv6 = value;
+      return this;
+    }
+
+    /**
+     * Optional aligned locally assigned ULA (fd00::/8), /48 through /60. May be added after VPC
+     * creation.
+     */
+    @JsonProperty(value = "cidr_ipv6", required = true)
+    private String cidr_ipv6;
+
+    @JsonProperty("cidr_ipv6")
+    public String getCidrIpv6() {
+      return cidr_ipv6;
+    }
+
+    public VpcIPv6RequestInputVariant2 withCidrIpv6(String value) {
+      this.cidr_ipv6 = value;
+      return this;
     }
   }
 
@@ -3896,14 +4619,6 @@ public final class Network {
       return crn;
     }
 
-    @JsonProperty(value = "route_table_id", required = true)
-    private String route_table_id;
-
-    @JsonProperty("route_table_id")
-    public String getRouteTableId() {
-      return route_table_id;
-    }
-
     @JsonProperty(value = "description", required = false)
     private String description;
 
@@ -3929,9 +4644,9 @@ public final class Network {
     }
 
     /**
-     * Set when target_type=ip. Mutex with the target_*_id fields. Must be a unicast address inside
+     * Set when target_type=ip. Mutex with the target_* fields. Must be a unicast address inside
      * this VPC's CIDR (same IP family as destination_cidr); internet egress uses
-     * target_internet_gateway_id / target_nat_gateway_id.
+     * target_internet_gateway / target_nat_gateway.
      */
     @JsonProperty(value = "next_hop_ip", required = false)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -3943,39 +4658,36 @@ public final class Network {
     }
 
     /** Set when target_type=internet_gateway. */
-    @JsonProperty(value = "target_internet_gateway_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> target_internet_gateway_id = JsonField.missing();
+    @JsonProperty(value = "target_internet_gateway", required = false)
+    private ResourceRef target_internet_gateway;
 
-    @JsonProperty("target_internet_gateway_id")
-    public JsonField<String> getTargetInternetGatewayId() {
-      return target_internet_gateway_id;
+    @JsonProperty("target_internet_gateway")
+    public ResourceRef getTargetInternetGateway() {
+      return target_internet_gateway;
     }
 
     /**
      * Set when target_type=nat_gateway. Supports IPv4 and IPv6; IPv6 requires an IPv6-enabled
      * hosting subnet.
      */
-    @JsonProperty(value = "target_nat_gateway_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> target_nat_gateway_id = JsonField.missing();
+    @JsonProperty(value = "target_nat_gateway", required = false)
+    private ResourceRef target_nat_gateway;
 
-    @JsonProperty("target_nat_gateway_id")
-    public JsonField<String> getTargetNatGatewayId() {
-      return target_nat_gateway_id;
+    @JsonProperty("target_nat_gateway")
+    public ResourceRef getTargetNatGateway() {
+      return target_nat_gateway;
     }
 
     /**
-     * Set when target_type=egress_only_gateway (IPv6 only). Gives the subnet outbound v6 with the
-     * internet unable to initiate inbound.
+     * Set when target_type=egress_only_gateway (IPv6 only). Gives the subnet outbound IPv6 and
+     * replies only.
      */
-    @JsonProperty(value = "target_egress_only_gateway_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> target_egress_only_gateway_id = JsonField.missing();
+    @JsonProperty(value = "target_egress_only_gateway", required = false)
+    private ResourceRef target_egress_only_gateway;
 
-    @JsonProperty("target_egress_only_gateway_id")
-    public JsonField<String> getTargetEgressOnlyGatewayId() {
-      return target_egress_only_gateway_id;
+    @JsonProperty("target_egress_only_gateway")
+    public ResourceRef getTargetEgressOnlyGateway() {
+      return target_egress_only_gateway;
     }
 
     @JsonProperty(value = "tags", required = true)
@@ -4003,11 +4715,10 @@ public final class Network {
     }
 
     @JsonProperty(value = "route_table", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<RouteTableSummary> route_table = JsonField.missing();
+    private ResourceRef route_table;
 
     @JsonProperty("route_table")
-    public JsonField<RouteTableSummary> getRouteTable() {
+    public ResourceRef getRouteTable() {
       return route_table;
     }
   }
@@ -4131,6 +4842,82 @@ public final class Network {
     }
   }
 
+  public static final class ListFloatingIpInterfacesQuery extends Model {
+    public ListFloatingIpInterfacesQuery() {}
+
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
+
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
+    }
+
+    public ListFloatingIpInterfacesQuery withLimit(Long value) {
+      this.limit = value;
+      return this;
+    }
+
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    public ListFloatingIpInterfacesQuery withMarker(String value) {
+      this.marker = value;
+      return this;
+    }
+
+    @JsonProperty(value = "crn", required = false)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    public ListFloatingIpInterfacesQuery withCrn(String value) {
+      this.crn = value;
+      return this;
+    }
+
+    @JsonProperty(value = "name", required = false)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    public ListFloatingIpInterfacesQuery withName(String value) {
+      this.name = value;
+      return this;
+    }
+  }
+
+  public static final class FloatingIpInterfaceListResponse extends Model {
+    public FloatingIpInterfaceListResponse() {}
+
+    @JsonProperty(value = "interfaces", required = true)
+    private List<FloatingIpInterface> interfaces;
+
+    @JsonProperty("interfaces")
+    public List<FloatingIpInterface> getInterfaces() {
+      return interfaces;
+    }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
+    }
+  }
+
   public static final class ListFloatingIpsQuery extends Model {
     public ListFloatingIpsQuery() {}
 
@@ -4235,12 +5022,20 @@ public final class Network {
   public static final class ListInterfacePrefixesResponse extends Model {
     public ListInterfacePrefixesResponse() {}
 
-    @JsonProperty(value = "routed_prefixes", required = false)
-    private List<RoutedPrefix> routed_prefixes;
+    @JsonProperty(value = "prefixes", required = true)
+    private List<RoutedPrefix> prefixes;
 
-    @JsonProperty("routed_prefixes")
-    public List<RoutedPrefix> getRoutedPrefixes() {
-      return routed_prefixes;
+    @JsonProperty("prefixes")
+    public List<RoutedPrefix> getPrefixes() {
+      return prefixes;
+    }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
     }
   }
 
@@ -4272,17 +5067,51 @@ public final class Network {
       this.crn = value;
       return this;
     }
+
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    public ListInterfaceSecurityGroupsQuery withMarker(String value) {
+      this.marker = value;
+      return this;
+    }
+
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
+
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
+    }
+
+    public ListInterfaceSecurityGroupsQuery withLimit(Long value) {
+      this.limit = value;
+      return this;
+    }
   }
 
-  public static final class InterfaceSecurityGroupsResponse extends Model {
-    public InterfaceSecurityGroupsResponse() {}
+  public static final class SecurityGroupListResponse extends Model {
+    public SecurityGroupListResponse() {}
 
-    @JsonProperty(value = "security_group_ids", required = true)
-    private List<String> security_group_ids;
+    @JsonProperty(value = "security_groups", required = true)
+    private List<SecurityGroup> security_groups;
 
-    @JsonProperty("security_group_ids")
-    public List<String> getSecurityGroupIds() {
-      return security_group_ids;
+    @JsonProperty("security_groups")
+    public List<SecurityGroup> getSecurityGroups() {
+      return security_groups;
+    }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
     }
   }
 
@@ -4681,12 +5510,20 @@ public final class Network {
   public static final class ListPrefixPoolsResponse extends Model {
     public ListPrefixPoolsResponse() {}
 
-    @JsonProperty(value = "prefix_pools", required = false)
+    @JsonProperty(value = "prefix_pools", required = true)
     private List<PrefixPool> prefix_pools;
 
     @JsonProperty("prefix_pools")
     public List<PrefixPool> getPrefixPools() {
       return prefix_pools;
+    }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
     }
   }
 
@@ -4987,26 +5824,6 @@ public final class Network {
     }
   }
 
-  public static final class SecurityGroupListResponse extends Model {
-    public SecurityGroupListResponse() {}
-
-    @JsonProperty(value = "security_groups", required = true)
-    private List<SecurityGroup> security_groups;
-
-    @JsonProperty("security_groups")
-    public List<SecurityGroup> getSecurityGroups() {
-      return security_groups;
-    }
-
-    @JsonProperty(value = "meta", required = true)
-    private PaginationMeta meta;
-
-    @JsonProperty("meta")
-    public PaginationMeta getMeta() {
-      return meta;
-    }
-  }
-
   public static final class ListSubnetsQuery extends Model {
     public ListSubnetsQuery() {}
 
@@ -5172,27 +5989,6 @@ public final class Network {
     }
   }
 
-  public static final class InterfaceSecurityGroupsRequestInput extends Model {
-    public InterfaceSecurityGroupsRequestInput() {}
-
-    /**
-     * Security-group UUIDs, CRNs or account-scoped names. All entries resolve before replacement;
-     * duplicate canonical IDs collapse to one membership. An empty array removes all groups.
-     */
-    @JsonProperty(value = "security_groups", required = true)
-    private List<String> security_groups;
-
-    @JsonProperty("security_groups")
-    public List<String> getSecurityGroups() {
-      return security_groups;
-    }
-
-    public InterfaceSecurityGroupsRequestInput withSecurityGroups(List<String> value) {
-      this.security_groups = value;
-      return this;
-    }
-  }
-
   public static final class EgressOnlyGatewayUpdateRequestInput extends Model {
     public EgressOnlyGatewayUpdateRequestInput() {}
 
@@ -5259,18 +6055,69 @@ public final class Network {
      * unchanged.
      */
     @JsonProperty(value = "health_check", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<FloatingIpHealthCheckInput> health_check = JsonField.missing();
+    private FloatingIpUpdateRequestInputHealthCheck health_check;
 
     @JsonProperty("health_check")
-    public JsonField<FloatingIpHealthCheckInput> getHealthCheck() {
+    public FloatingIpUpdateRequestInputHealthCheck getHealthCheck() {
       return health_check;
     }
 
     public FloatingIpUpdateRequestInput withHealthCheck(
-        JsonField<FloatingIpHealthCheckInput> value) {
+        FloatingIpUpdateRequestInputHealthCheck value) {
       this.health_check = value;
       return this;
+    }
+  }
+
+  public static final class FloatingIpUpdateRequestInputHealthCheck {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public FloatingIpUpdateRequestInputHealthCheck(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "FloatingIpUpdateRequestInputHealthCheck{[REDACTED]}";
+    }
+
+    public static FloatingIpUpdateRequestInputHealthCheck ofVariant1(
+        FloatingIpHealthCheckInput value) {
+      Model.validate(value);
+      return new FloatingIpUpdateRequestInputHealthCheck(Json.tree(value));
+    }
+
+    public Optional<FloatingIpHealthCheckInput> asVariant1() {
+      try {
+        FloatingIpHealthCheckInput result =
+            Json.convert(value, new TypeReference<FloatingIpHealthCheckInput>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static FloatingIpUpdateRequestInputHealthCheck ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new FloatingIpUpdateRequestInputHealthCheck(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
     }
   }
 
@@ -5507,128 +6354,6 @@ public final class Network {
       this.tags = value;
       return this;
     }
-
-    /**
-     * Allocate a free /64 from the VPC IPv6 range. Can be enabled after creation. Every existing
-     * and new interface receives an IPv6 /96 and its first /128 automatically. NAT gateways hosted
-     * here also receive a public IPv6 address from the regional pool. Updating hosted gateways
-     * requires UpdateNATGateway permission and public IPv6 quota.
-     */
-    @JsonProperty(value = "allocate_cidr_ipv6", required = false)
-    private Boolean allocate_cidr_ipv6;
-
-    @JsonProperty("allocate_cidr_ipv6")
-    public Boolean getAllocateCidrIpv6() {
-      return allocate_cidr_ipv6;
-    }
-
-    public SubnetUpdateRequestInput withAllocateCidrIpv6(Boolean value) {
-      this.allocate_cidr_ipv6 = value;
-      return this;
-    }
-
-    /**
-     * An aligned /64 inside the VPC IPv6 range. Can be added later; cannot replace an existing
-     * range. Mutually exclusive with allocate_cidr_ipv6.
-     */
-    @JsonProperty(value = "cidr_ipv6", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> cidr_ipv6 = JsonField.missing();
-
-    @JsonProperty("cidr_ipv6")
-    public JsonField<String> getCidrIpv6() {
-      return cidr_ipv6;
-    }
-
-    public SubnetUpdateRequestInput withCidrIpv6(JsonField<String> value) {
-      this.cidr_ipv6 = value;
-      return this;
-    }
-
-    /**
-     * When enabling IPv6, copy equivalent rules in security groups used by this subnet's
-     * interfaces. Copies 0.0.0.0/0 to ::/0 and security-group references, preserving protocol,
-     * ports and direction. Restricted IPv4 CIDRs are not widened. Existing IPv6 equivalents are not
-     * duplicated. Changes affect every interface sharing these groups. Requires
-     * CreateSecurityGroupRule permission and available rule quota. Only accepted with
-     * allocate_cidr_ipv6 or cidr_ipv6.
-     */
-    @JsonProperty(value = "copy_ipv4_security_rules", required = false)
-    private Boolean copy_ipv4_security_rules;
-
-    @JsonProperty("copy_ipv4_security_rules")
-    public Boolean getCopyIpv4SecurityRules() {
-      return copy_ipv4_security_rules;
-    }
-
-    public SubnetUpdateRequestInput withCopyIpv4SecurityRules(Boolean value) {
-      this.copy_ipv4_security_rules = value;
-      return this;
-    }
-
-    /**
-     * When enabling IPv6, optionally add ::/0 to the subnet's route table. match_ipv4 follows an
-     * IPv4 internet-gateway or NAT-gateway default route, using the same target. A NAT gateway must
-     * already have IPv6 enabled on its hosting subnet, or be hosted in the subnet being enabled. No
-     * IPv4 default route leaves IPv6 routing unchanged. Existing IPv6 default routes are always
-     * preserved. Egress-only gateways cannot provide ULA internet access; use a NAT gateway, or a
-     * public IPv6 floating IP with an internet-gateway route. Changes affect every subnet sharing
-     * the route table and require CreateRoute permission; creating an egress-only gateway also
-     * requires CreateEgressOnlyGateway permission. Only accepted with allocate_cidr_ipv6 or
-     * cidr_ipv6.
-     */
-    @JsonProperty(value = "ipv6_routing", required = false)
-    private SubnetUpdateRequestInputIpv6Routing ipv6_routing;
-
-    @JsonProperty("ipv6_routing")
-    public SubnetUpdateRequestInputIpv6Routing getIpv6Routing() {
-      return ipv6_routing;
-    }
-
-    public SubnetUpdateRequestInput withIpv6Routing(SubnetUpdateRequestInputIpv6Routing value) {
-      this.ipv6_routing = value;
-      return this;
-    }
-  }
-
-  public static final class SubnetUpdateRequestInputIpv6Routing {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public SubnetUpdateRequestInputIpv6Routing(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof SubnetUpdateRequestInputIpv6Routing v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final SubnetUpdateRequestInputIpv6Routing MATCH_IPV4 =
-        new SubnetUpdateRequestInputIpv6Routing("match_ipv4");
-    public static final SubnetUpdateRequestInputIpv6Routing UNCHANGED =
-        new SubnetUpdateRequestInputIpv6Routing("unchanged");
-    public static final SubnetUpdateRequestInputIpv6Routing INTERNET_GATEWAY =
-        new SubnetUpdateRequestInputIpv6Routing("internet_gateway");
-    public static final SubnetUpdateRequestInputIpv6Routing NAT_GATEWAY =
-        new SubnetUpdateRequestInputIpv6Routing("nat_gateway");
-    public static final SubnetUpdateRequestInputIpv6Routing EGRESS_ONLY_GATEWAY =
-        new SubnetUpdateRequestInputIpv6Routing("egress_only_gateway");
   }
 
   public static final class VpcUpdateRequestInput extends Model {
@@ -5658,40 +6383,6 @@ public final class Network {
 
     public VpcUpdateRequestInput withTags(Map<String, String> value) {
       this.tags = value;
-      return this;
-    }
-
-    /**
-     * Allocate a regional GUA /60. Mutually exclusive with cidr_ipv6. Existing IPv6 ranges cannot
-     * be replaced.
-     */
-    @JsonProperty(value = "allocate_cidr_ipv6", required = false)
-    private Boolean allocate_cidr_ipv6;
-
-    @JsonProperty("allocate_cidr_ipv6")
-    public Boolean getAllocateCidrIpv6() {
-      return allocate_cidr_ipv6;
-    }
-
-    public VpcUpdateRequestInput withAllocateCidrIpv6(Boolean value) {
-      this.allocate_cidr_ipv6 = value;
-      return this;
-    }
-
-    /**
-     * Optional aligned locally assigned ULA (fd00::/8), /48 through /60. May be added after VPC
-     * creation.
-     */
-    @JsonProperty(value = "cidr_ipv6", required = false)
-    private String cidr_ipv6;
-
-    @JsonProperty("cidr_ipv6")
-    public String getCidrIpv6() {
-      return cidr_ipv6;
-    }
-
-    public VpcUpdateRequestInput withCidrIpv6(String value) {
-      this.cidr_ipv6 = value;
       return this;
     }
   }

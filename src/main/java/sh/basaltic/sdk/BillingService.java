@@ -2,18 +2,19 @@ package sh.basaltic.sdk;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.*;
-import sh.basaltic.sdk.models.Billing.BillingProfile;
+import sh.basaltic.sdk.models.Billing.BillingProfileResponse;
 import sh.basaltic.sdk.models.Billing.BillingProfileUpdateInput;
 import sh.basaltic.sdk.models.Billing.Credit;
 import sh.basaltic.sdk.models.Billing.CreditListResponse;
 import sh.basaltic.sdk.models.Billing.CurrentUsage;
 import sh.basaltic.sdk.models.Billing.FiscalInvoice;
+import sh.basaltic.sdk.models.Billing.FiscalInvoiceListResponse;
 import sh.basaltic.sdk.models.Billing.GetInvoiceScope;
 import sh.basaltic.sdk.models.Billing.Invoice;
 import sh.basaltic.sdk.models.Billing.InvoiceListResponse;
+import sh.basaltic.sdk.models.Billing.InvoiceResponse;
 import sh.basaltic.sdk.models.Billing.ListCreditsQuery;
 import sh.basaltic.sdk.models.Billing.ListFiscalInvoicesQuery;
-import sh.basaltic.sdk.models.Billing.ListFiscalInvoicesResponse;
 import sh.basaltic.sdk.models.Billing.ListInvoicesQuery;
 import sh.basaltic.sdk.models.Billing.ListPaymentsQuery;
 import sh.basaltic.sdk.models.Billing.ListPricesQuery;
@@ -116,7 +117,10 @@ public final class BillingService {
           true,
           List.of(),
           List.of(),
-          Map.ofEntries(Map.entry("invoice", new Operation.Encoding("form", true))),
+          Map.ofEntries(
+              Map.entry("invoice", new Operation.Encoding("form", true)),
+              Map.entry("limit", new Operation.Encoding("form", true)),
+              Map.entry("marker", new Operation.Encoding("form", true))),
           false,
           "",
           "application/json");
@@ -196,11 +200,11 @@ public final class BillingService {
           "application/json");
 
   /** Read the organization billing profile */
-  public Request<BillingProfile> getBillingProfile() {
+  public Request<BillingProfileResponse> getBillingProfile() {
     return new Request<>(
         new Core(
             transport, "billing", "https://billing.basaltic.sh", OP_0, Map.ofEntries(), null, null),
-        new TypeReference<BillingProfile>() {});
+        new TypeReference<BillingProfileResponse>() {});
   }
 
   /** Get month-to-date usage total */
@@ -225,7 +229,7 @@ public final class BillingService {
   }
 
   /** Get an invoice with its line items */
-  public Request<Invoice> getInvoice(String invoice_id) {
+  public Request<InvoiceResponse> getInvoice(String invoice_id) {
     return new Request<>(
         new Core(
             transport,
@@ -235,7 +239,7 @@ public final class BillingService {
             Map.ofEntries(Map.entry("invoice_id", invoice_id)),
             null,
             null),
-        new TypeReference<Invoice>() {});
+        new TypeReference<InvoiceResponse>() {});
   }
 
   /** Resolve by UUID, CRN, or an unambiguous name. */
@@ -259,7 +263,7 @@ public final class BillingService {
             scope),
         reference,
         false,
-        null,
+        "invoice",
         "invoices",
         new TypeReference<Invoice>() {});
   }
@@ -302,8 +306,8 @@ public final class BillingService {
     return listCredits(null);
   }
 
-  /** List fiscal invoice issuance and delivery status */
-  public PagedRequest<ListFiscalInvoicesResponse, FiscalInvoice> listFiscalInvoices(
+  /** List issued fiscal invoices */
+  public PagedRequest<FiscalInvoiceListResponse, FiscalInvoice> listFiscalInvoices(
       ListFiscalInvoicesQuery query) {
     return new PagedRequest<>(
         new Core(
@@ -314,13 +318,13 @@ public final class BillingService {
             Map.ofEntries(),
             null,
             query),
-        new TypeReference<ListFiscalInvoicesResponse>() {},
+        new TypeReference<FiscalInvoiceListResponse>() {},
         new TypeReference<FiscalInvoice>() {},
-        "fiscal_documents");
+        "fiscal_invoices");
   }
 
   /** Execute with optional inputs omitted. */
-  public PagedRequest<ListFiscalInvoicesResponse, FiscalInvoice> listFiscalInvoices() {
+  public PagedRequest<FiscalInvoiceListResponse, FiscalInvoice> listFiscalInvoices() {
     return listFiscalInvoices(null);
   }
 
@@ -410,7 +414,7 @@ public final class BillingService {
   }
 
   /** Save organization billing details */
-  public Request<BillingProfile> updateBillingProfile(BillingProfileUpdateInput body) {
+  public Request<BillingProfileResponse> updateBillingProfile(BillingProfileUpdateInput body) {
     return new Request<>(
         new Core(
             transport,
@@ -420,6 +424,6 @@ public final class BillingService {
             Map.ofEntries(),
             body,
             null),
-        new TypeReference<BillingProfile>() {});
+        new TypeReference<BillingProfileResponse>() {});
   }
 }

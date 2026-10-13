@@ -1785,22 +1785,6 @@ public final class Workspace {
       return id;
     }
 
-    @JsonProperty(value = "principal_id", required = false)
-    private String principal_id;
-
-    @JsonProperty("principal_id")
-    public String getPrincipalId() {
-      return principal_id;
-    }
-
-    @JsonProperty(value = "principal_type", required = false)
-    private InlinePolicyPrincipalType principal_type;
-
-    @JsonProperty("principal_type")
-    public InlinePolicyPrincipalType getPrincipalType() {
-      return principal_type;
-    }
-
     /**
      * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
      * braced, or urn:uuid: forms, in either case).
@@ -1836,38 +1820,6 @@ public final class Workspace {
     public String getUpdatedAt() {
       return updated_at;
     }
-  }
-
-  public static final class InlinePolicyPrincipalType {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public InlinePolicyPrincipalType(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof InlinePolicyPrincipalType v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final InlinePolicyPrincipalType USER = new InlinePolicyPrincipalType("user");
-    public static final InlinePolicyPrincipalType GROUP = new InlinePolicyPrincipalType("group");
   }
 
   public static final class GetGroupInlinePolicyScope extends Model {
@@ -2325,89 +2277,13 @@ public final class Workspace {
   public static final class PermissionBoundaryResponse extends Model {
     public PermissionBoundaryResponse() {}
 
-    @JsonProperty(value = "permission_boundary", required = false)
-    private PermissionBoundary permission_boundary;
+    @JsonProperty(value = "policy", required = true)
+    private Policy policy;
 
-    @JsonProperty("permission_boundary")
-    public PermissionBoundary getPermissionBoundary() {
-      return permission_boundary;
+    @JsonProperty("policy")
+    public Policy getPolicy() {
+      return policy;
     }
-  }
-
-  public static final class PermissionBoundary extends Model {
-    public PermissionBoundary() {}
-
-    @JsonProperty(value = "principal_id", required = false)
-    private String principal_id;
-
-    @JsonProperty("principal_id")
-    public String getPrincipalId() {
-      return principal_id;
-    }
-
-    @JsonProperty(value = "principal_type", required = false)
-    private PermissionBoundaryPrincipalType principal_type;
-
-    @JsonProperty("principal_type")
-    public PermissionBoundaryPrincipalType getPrincipalType() {
-      return principal_type;
-    }
-
-    @JsonProperty(value = "policy_id", required = false)
-    private String policy_id;
-
-    @JsonProperty("policy_id")
-    public String getPolicyId() {
-      return policy_id;
-    }
-
-    @JsonProperty(value = "policy_name", required = false)
-    private String policy_name;
-
-    @JsonProperty("policy_name")
-    public String getPolicyName() {
-      return policy_name;
-    }
-
-    @JsonProperty(value = "created_at", required = false)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
-    }
-  }
-
-  public static final class PermissionBoundaryPrincipalType {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public PermissionBoundaryPrincipalType(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof PermissionBoundaryPrincipalType v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final PermissionBoundaryPrincipalType USER =
-        new PermissionBoundaryPrincipalType("user");
   }
 
   public static final class AccountRoleAssignmentListResponse extends Model {

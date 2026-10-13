@@ -14,6 +14,7 @@ import sh.basaltic.sdk.models.Iam.Credential;
 import sh.basaltic.sdk.models.Iam.CredentialCreateRequestInput;
 import sh.basaltic.sdk.models.Iam.CredentialCreateResponse;
 import sh.basaltic.sdk.models.Iam.CredentialListResponse;
+import sh.basaltic.sdk.models.Iam.GetOIDCProviderScope;
 import sh.basaltic.sdk.models.Iam.GetPersonalLinuxIdentityResponse;
 import sh.basaltic.sdk.models.Iam.GetPolicyResponse;
 import sh.basaltic.sdk.models.Iam.GetPolicyScope;
@@ -28,12 +29,11 @@ import sh.basaltic.sdk.models.Iam.GetServiceAccountScope;
 import sh.basaltic.sdk.models.Iam.InlinePolicy;
 import sh.basaltic.sdk.models.Iam.InlinePolicyListResponse;
 import sh.basaltic.sdk.models.Iam.InlinePolicyResponse;
+import sh.basaltic.sdk.models.Iam.ListOIDCProvidersQuery;
 import sh.basaltic.sdk.models.Iam.ListPersonalSSHKeysResponse;
 import sh.basaltic.sdk.models.Iam.ListPoliciesQuery;
 import sh.basaltic.sdk.models.Iam.ListPolicyRolesQuery;
 import sh.basaltic.sdk.models.Iam.ListPolicyServiceAccountsQuery;
-import sh.basaltic.sdk.models.Iam.ListRegionsQuery;
-import sh.basaltic.sdk.models.Iam.ListRegionsResponse;
 import sh.basaltic.sdk.models.Iam.ListRoleInlinePoliciesQuery;
 import sh.basaltic.sdk.models.Iam.ListRolePoliciesQuery;
 import sh.basaltic.sdk.models.Iam.ListRolesQuery;
@@ -48,6 +48,11 @@ import sh.basaltic.sdk.models.Iam.OAuthAuthorizeResponse;
 import sh.basaltic.sdk.models.Iam.OAuthRevokeRequestInput;
 import sh.basaltic.sdk.models.Iam.OAuthTokenRequestInput;
 import sh.basaltic.sdk.models.Iam.OAuthTokenResponse;
+import sh.basaltic.sdk.models.Iam.OIDCProvider;
+import sh.basaltic.sdk.models.Iam.OIDCProviderCreateRequestInput;
+import sh.basaltic.sdk.models.Iam.OIDCProviderListResponse;
+import sh.basaltic.sdk.models.Iam.OIDCProviderResponse;
+import sh.basaltic.sdk.models.Iam.OIDCProviderUpdateRequestInput;
 import sh.basaltic.sdk.models.Iam.PermissionBoundaryResponse;
 import sh.basaltic.sdk.models.Iam.Policy;
 import sh.basaltic.sdk.models.Iam.PolicyAttachRequestInput;
@@ -58,7 +63,6 @@ import sh.basaltic.sdk.models.Iam.PolicyServiceAccountsListResponse;
 import sh.basaltic.sdk.models.Iam.PolicyUpdateRequestInput;
 import sh.basaltic.sdk.models.Iam.PrincipalPoliciesListResponse;
 import sh.basaltic.sdk.models.Iam.PutInlinePolicyRequestInput;
-import sh.basaltic.sdk.models.Iam.Region;
 import sh.basaltic.sdk.models.Iam.RevokeSTSSessionBody;
 import sh.basaltic.sdk.models.Iam.Role;
 import sh.basaltic.sdk.models.Iam.RoleCreateRequestInput;
@@ -150,6 +154,18 @@ public final class IamService {
           "application/json");
   private static final Operation OP_5 =
       new Operation(
+          "createOIDCProvider",
+          "POST",
+          "/v1/oidc-providers",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          true,
+          "application/json",
+          "application/json");
+  private static final Operation OP_6 =
+      new Operation(
           "createPersonalSSHKey",
           "POST",
           "/v1/auth/ssh-keys",
@@ -160,7 +176,7 @@ public final class IamService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_6 =
+  private static final Operation OP_7 =
       new Operation(
           "createPolicy",
           "POST",
@@ -172,7 +188,7 @@ public final class IamService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_7 =
+  private static final Operation OP_8 =
       new Operation(
           "createRole",
           "POST",
@@ -184,7 +200,7 @@ public final class IamService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_8 =
+  private static final Operation OP_9 =
       new Operation(
           "createServiceAccount",
           "POST",
@@ -196,7 +212,7 @@ public final class IamService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_9 =
+  private static final Operation OP_10 =
       new Operation(
           "createServiceAccountCredential",
           "POST",
@@ -208,7 +224,7 @@ public final class IamService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_10 =
+  private static final Operation OP_11 =
       new Operation(
           "createServiceAccountSSHKey",
           "POST",
@@ -220,7 +236,19 @@ public final class IamService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_11 =
+  private static final Operation OP_12 =
+      new Operation(
+          "deleteOIDCProvider",
+          "DELETE",
+          "/v1/oidc-providers/{provider_id}",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          false,
+          "",
+          "application/json");
+  private static final Operation OP_13 =
       new Operation(
           "deletePersonalSSHKey",
           "DELETE",
@@ -232,7 +260,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_12 =
+  private static final Operation OP_14 =
       new Operation(
           "deletePolicy",
           "DELETE",
@@ -244,7 +272,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_13 =
+  private static final Operation OP_15 =
       new Operation(
           "deleteRole",
           "DELETE",
@@ -256,7 +284,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_14 =
+  private static final Operation OP_16 =
       new Operation(
           "deleteRoleInlinePolicy",
           "DELETE",
@@ -268,7 +296,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_15 =
+  private static final Operation OP_17 =
       new Operation(
           "deleteServiceAccount",
           "DELETE",
@@ -280,7 +308,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_16 =
+  private static final Operation OP_18 =
       new Operation(
           "deleteServiceAccountCredential",
           "DELETE",
@@ -292,7 +320,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_17 =
+  private static final Operation OP_19 =
       new Operation(
           "deleteServiceAccountInlinePolicy",
           "DELETE",
@@ -304,7 +332,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_18 =
+  private static final Operation OP_20 =
       new Operation(
           "deleteServiceAccountSSHKey",
           "DELETE",
@@ -316,7 +344,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_19 =
+  private static final Operation OP_21 =
       new Operation(
           "detachRolePolicy",
           "DELETE",
@@ -328,7 +356,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_20 =
+  private static final Operation OP_22 =
       new Operation(
           "detachServiceAccountPolicy",
           "DELETE",
@@ -340,7 +368,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_21 =
+  private static final Operation OP_23 =
       new Operation(
           "getOAuthToken",
           "POST",
@@ -352,7 +380,19 @@ public final class IamService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_22 =
+  private static final Operation OP_24 =
+      new Operation(
+          "getOIDCProvider",
+          "GET",
+          "/v1/oidc-providers/{provider_id}",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          false,
+          "",
+          "application/json");
+  private static final Operation OP_25 =
       new Operation(
           "getPersonalLinuxIdentity",
           "GET",
@@ -364,7 +404,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_23 =
+  private static final Operation OP_26 =
       new Operation(
           "getPolicy",
           "GET",
@@ -376,7 +416,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_24 =
+  private static final Operation OP_27 =
       new Operation(
           "getRole",
           "GET",
@@ -388,7 +428,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_25 =
+  private static final Operation OP_28 =
       new Operation(
           "getRoleInlinePolicy",
           "GET",
@@ -400,7 +440,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_26 =
+  private static final Operation OP_29 =
       new Operation(
           "getRolePermissionBoundary",
           "GET",
@@ -412,7 +452,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_27 =
+  private static final Operation OP_30 =
       new Operation(
           "getSTSSession",
           "GET",
@@ -424,7 +464,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_28 =
+  private static final Operation OP_31 =
       new Operation(
           "getServiceAccount",
           "GET",
@@ -436,7 +476,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_29 =
+  private static final Operation OP_32 =
       new Operation(
           "getServiceAccountInlinePolicy",
           "GET",
@@ -448,7 +488,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_30 =
+  private static final Operation OP_33 =
       new Operation(
           "getServiceAccountLinuxIdentity",
           "GET",
@@ -460,7 +500,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_31 =
+  private static final Operation OP_34 =
       new Operation(
           "getServiceAccountPermissionBoundary",
           "GET",
@@ -472,7 +512,23 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_32 =
+  private static final Operation OP_35 =
+      new Operation(
+          "listOIDCProviders",
+          "GET",
+          "/v1/oidc-providers",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(
+              Map.entry("name", new Operation.Encoding("form", true)),
+              Map.entry("crn", new Operation.Encoding("form", true)),
+              Map.entry("limit", new Operation.Encoding("form", true)),
+              Map.entry("marker", new Operation.Encoding("form", true))),
+          false,
+          "",
+          "application/json");
+  private static final Operation OP_36 =
       new Operation(
           "listPersonalSSHKeys",
           "GET",
@@ -484,7 +540,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_33 =
+  private static final Operation OP_37 =
       new Operation(
           "listPolicies",
           "GET",
@@ -500,7 +556,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_34 =
+  private static final Operation OP_38 =
       new Operation(
           "listPolicyRoles",
           "GET",
@@ -516,7 +572,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_35 =
+  private static final Operation OP_39 =
       new Operation(
           "listPolicyServiceAccounts",
           "GET",
@@ -532,21 +588,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_36 =
-      new Operation(
-          "listRegions",
-          "GET",
-          "/v1/regions",
-          false,
-          List.of(),
-          List.of(),
-          Map.ofEntries(
-              Map.entry("name", new Operation.Encoding("form", true)),
-              Map.entry("crn", new Operation.Encoding("form", true))),
-          false,
-          "",
-          "application/json");
-  private static final Operation OP_37 =
+  private static final Operation OP_40 =
       new Operation(
           "listRoleInlinePolicies",
           "GET",
@@ -560,7 +602,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_38 =
+  private static final Operation OP_41 =
       new Operation(
           "listRolePolicies",
           "GET",
@@ -574,7 +616,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_39 =
+  private static final Operation OP_42 =
       new Operation(
           "listRoles",
           "GET",
@@ -590,7 +632,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_40 =
+  private static final Operation OP_43 =
       new Operation(
           "listSTSSessions",
           "GET",
@@ -610,7 +652,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_41 =
+  private static final Operation OP_44 =
       new Operation(
           "listServiceAccountCredentials",
           "GET",
@@ -624,7 +666,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_42 =
+  private static final Operation OP_45 =
       new Operation(
           "listServiceAccountInlinePolicies",
           "GET",
@@ -638,7 +680,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_43 =
+  private static final Operation OP_46 =
       new Operation(
           "listServiceAccountPolicies",
           "GET",
@@ -652,7 +694,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_44 =
+  private static final Operation OP_47 =
       new Operation(
           "listServiceAccountSSHKeys",
           "GET",
@@ -664,7 +706,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_45 =
+  private static final Operation OP_48 =
       new Operation(
           "listServiceAccounts",
           "GET",
@@ -680,7 +722,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_46 =
+  private static final Operation OP_49 =
       new Operation(
           "putRoleInlinePolicy",
           "PUT",
@@ -692,7 +734,7 @@ public final class IamService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_47 =
+  private static final Operation OP_50 =
       new Operation(
           "putServiceAccountInlinePolicy",
           "PUT",
@@ -704,7 +746,7 @@ public final class IamService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_48 =
+  private static final Operation OP_51 =
       new Operation(
           "removeRolePermissionBoundary",
           "DELETE",
@@ -716,7 +758,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_49 =
+  private static final Operation OP_52 =
       new Operation(
           "removeServiceAccountPermissionBoundary",
           "DELETE",
@@ -728,7 +770,7 @@ public final class IamService {
           false,
           "",
           "application/json");
-  private static final Operation OP_50 =
+  private static final Operation OP_53 =
       new Operation(
           "revokeOAuthToken",
           "POST",
@@ -740,7 +782,7 @@ public final class IamService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_51 =
+  private static final Operation OP_54 =
       new Operation(
           "revokeSTSSession",
           "DELETE",
@@ -752,7 +794,7 @@ public final class IamService {
           false,
           "application/json",
           "application/json");
-  private static final Operation OP_52 =
+  private static final Operation OP_55 =
       new Operation(
           "setRolePermissionBoundary",
           "PUT",
@@ -764,7 +806,7 @@ public final class IamService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_53 =
+  private static final Operation OP_56 =
       new Operation(
           "setServiceAccountPermissionBoundary",
           "PUT",
@@ -776,7 +818,19 @@ public final class IamService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_54 =
+  private static final Operation OP_57 =
+      new Operation(
+          "updateOIDCProvider",
+          "PATCH",
+          "/v1/oidc-providers/{provider_id}",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          true,
+          "application/json",
+          "application/json");
+  private static final Operation OP_58 =
       new Operation(
           "updatePolicy",
           "PATCH",
@@ -788,7 +842,7 @@ public final class IamService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_55 =
+  private static final Operation OP_59 =
       new Operation(
           "updateRole",
           "PATCH",
@@ -800,7 +854,7 @@ public final class IamService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_56 =
+  private static final Operation OP_60 =
       new Operation(
           "updateServiceAccount",
           "PATCH",
@@ -862,24 +916,31 @@ public final class IamService {
         new TypeReference<OAuthAuthorizeResponse>() {});
   }
 
+  /** Create an OIDC provider */
+  public Request<OIDCProviderResponse> createOIDCProvider(OIDCProviderCreateRequestInput body) {
+    return new Request<>(
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_5, Map.ofEntries(), body, null),
+        new TypeReference<OIDCProviderResponse>() {});
+  }
+
   /** Add personal SSH key */
   public Request<CreatePersonalSSHKeyResponse> createPersonalSSHKey(SSHKeyCreateRequestInput body) {
     return new Request<>(
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_5, Map.ofEntries(), body, null),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_6, Map.ofEntries(), body, null),
         new TypeReference<CreatePersonalSSHKeyResponse>() {});
   }
 
   /** Create policy */
   public Request<CreatePolicyResponse> createPolicy(PolicyCreateRequestInput body) {
     return new Request<>(
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_6, Map.ofEntries(), body, null),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_7, Map.ofEntries(), body, null),
         new TypeReference<CreatePolicyResponse>() {});
   }
 
   /** Create role */
   public Request<CreateRoleResponse> createRole(RoleCreateRequestInput body) {
     return new Request<>(
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_7, Map.ofEntries(), body, null),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_8, Map.ofEntries(), body, null),
         new TypeReference<CreateRoleResponse>() {});
   }
 
@@ -887,7 +948,7 @@ public final class IamService {
   public Request<CreateServiceAccountResponse> createServiceAccount(
       ServiceAccountCreateRequestInput body) {
     return new Request<>(
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_8, Map.ofEntries(), body, null),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_9, Map.ofEntries(), body, null),
         new TypeReference<CreateServiceAccountResponse>() {});
   }
 
@@ -899,7 +960,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_9,
+            OP_10,
             Map.ofEntries(Map.entry("service_account_id", service_account_id)),
             body,
             null),
@@ -914,11 +975,24 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_10,
+            OP_11,
             Map.ofEntries(Map.entry("service_account_id", service_account_id)),
             body,
             null),
         new TypeReference<CreateServiceAccountSSHKeyResponse>() {});
+  }
+
+  /** Delete an OIDC provider */
+  public EmptyRequest deleteOIDCProvider(String provider_id) {
+    return new EmptyRequest(
+        new Core(
+            transport,
+            "iam",
+            "https://iam.basaltic.sh",
+            OP_12,
+            Map.ofEntries(Map.entry("provider_id", provider_id)),
+            null,
+            null));
   }
 
   /** Revoke personal SSH key */
@@ -928,7 +1002,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_11,
+            OP_13,
             Map.ofEntries(Map.entry("ssh_key_id", ssh_key_id)),
             null,
             null));
@@ -941,7 +1015,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_12,
+            OP_14,
             Map.ofEntries(Map.entry("policy_id", policy_id)),
             null,
             null));
@@ -954,7 +1028,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_13,
+            OP_15,
             Map.ofEntries(Map.entry("role_id", role_id)),
             null,
             null));
@@ -967,7 +1041,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_14,
+            OP_16,
             Map.ofEntries(Map.entry("role_id", role_id), Map.entry("policy_name", policy_name)),
             null,
             null));
@@ -980,7 +1054,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_15,
+            OP_17,
             Map.ofEntries(Map.entry("service_account_id", service_account_id)),
             null,
             null));
@@ -994,7 +1068,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_16,
+            OP_18,
             Map.ofEntries(
                 Map.entry("service_account_id", service_account_id),
                 Map.entry("credential_id", credential_id)),
@@ -1010,7 +1084,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_17,
+            OP_19,
             Map.ofEntries(
                 Map.entry("service_account_id", service_account_id),
                 Map.entry("policy_name", policy_name)),
@@ -1025,7 +1099,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_18,
+            OP_20,
             Map.ofEntries(
                 Map.entry("service_account_id", service_account_id),
                 Map.entry("ssh_key_id", ssh_key_id)),
@@ -1040,7 +1114,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_19,
+            OP_21,
             Map.ofEntries(Map.entry("role_id", role_id), Map.entry("policy_id", policy_id)),
             null,
             null));
@@ -1053,7 +1127,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_20,
+            OP_22,
             Map.ofEntries(
                 Map.entry("service_account_id", service_account_id),
                 Map.entry("policy_id", policy_id)),
@@ -1064,14 +1138,52 @@ public final class IamService {
   /** Exchange an access key for a bearer token */
   public Request<OAuthTokenResponse> getOAuthToken(OAuthTokenRequestInput body) {
     return new Request<>(
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_21, Map.ofEntries(), body, null),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_23, Map.ofEntries(), body, null),
         new TypeReference<OAuthTokenResponse>() {});
+  }
+
+  /** Get an OIDC provider */
+  public Request<OIDCProviderResponse> getOIDCProvider(String provider_id) {
+    return new Request<>(
+        new Core(
+            transport,
+            "iam",
+            "https://iam.basaltic.sh",
+            OP_24,
+            Map.ofEntries(Map.entry("provider_id", provider_id)),
+            null,
+            null),
+        new TypeReference<OIDCProviderResponse>() {});
+  }
+
+  /** Resolve by UUID, CRN, or an unambiguous name. */
+  public Request<OIDCProvider> getOIDCProviderByReference(
+      String reference, GetOIDCProviderScope scope) {
+    return Request.reference(
+        new Core(
+            transport,
+            "iam",
+            "https://iam.basaltic.sh",
+            OP_24,
+            Map.ofEntries(Map.entry("provider_id", reference)),
+            null,
+            null),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_35, Map.ofEntries(), null, scope),
+        reference,
+        true,
+        "oidc_provider",
+        "oidc_providers",
+        new TypeReference<OIDCProvider>() {});
+  }
+
+  public Request<OIDCProvider> getOIDCProviderByReference(String reference) {
+    return getOIDCProviderByReference(reference, null);
   }
 
   /** Get personal Linux identity */
   public Request<GetPersonalLinuxIdentityResponse> getPersonalLinuxIdentity() {
     return new Request<>(
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_22, Map.ofEntries(), null, null),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_25, Map.ofEntries(), null, null),
         new TypeReference<GetPersonalLinuxIdentityResponse>() {});
   }
 
@@ -1082,7 +1194,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_23,
+            OP_26,
             Map.ofEntries(Map.entry("policy_id", policy_id)),
             null,
             null),
@@ -1096,11 +1208,11 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_23,
+            OP_26,
             Map.ofEntries(Map.entry("policy_id", reference)),
             null,
             null),
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_33, Map.ofEntries(), null, scope),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_37, Map.ofEntries(), null, scope),
         reference,
         true,
         "policy",
@@ -1119,7 +1231,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_24,
+            OP_27,
             Map.ofEntries(Map.entry("role_id", role_id)),
             null,
             null),
@@ -1133,11 +1245,11 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_24,
+            OP_27,
             Map.ofEntries(Map.entry("role_id", reference)),
             null,
             null),
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_39, Map.ofEntries(), null, scope),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_42, Map.ofEntries(), null, scope),
         reference,
         true,
         "role",
@@ -1156,7 +1268,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_25,
+            OP_28,
             Map.ofEntries(Map.entry("role_id", role_id), Map.entry("policy_name", policy_name)),
             null,
             null),
@@ -1171,7 +1283,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_25,
+            OP_28,
             Map.ofEntries(Map.entry("role_id", role_id), Map.entry("policy_name", reference)),
             null,
             null),
@@ -1179,7 +1291,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_37,
+            OP_40,
             Map.ofEntries(Map.entry("role_id", role_id)),
             null,
             scope),
@@ -1201,7 +1313,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_26,
+            OP_29,
             Map.ofEntries(Map.entry("role_id", role_id)),
             null,
             null),
@@ -1215,7 +1327,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_27,
+            OP_30,
             Map.ofEntries(Map.entry("session_id", session_id)),
             null,
             null),
@@ -1229,11 +1341,11 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_27,
+            OP_30,
             Map.ofEntries(Map.entry("session_id", reference)),
             null,
             null),
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_40, Map.ofEntries(), null, scope),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_43, Map.ofEntries(), null, scope),
         reference,
         true,
         "sts_session",
@@ -1252,7 +1364,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_28,
+            OP_31,
             Map.ofEntries(Map.entry("service_account_id", service_account_id)),
             null,
             null),
@@ -1267,11 +1379,11 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_28,
+            OP_31,
             Map.ofEntries(Map.entry("service_account_id", reference)),
             null,
             null),
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_45, Map.ofEntries(), null, scope),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_48, Map.ofEntries(), null, scope),
         reference,
         true,
         "service_account",
@@ -1291,7 +1403,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_29,
+            OP_32,
             Map.ofEntries(
                 Map.entry("service_account_id", service_account_id),
                 Map.entry("policy_name", policy_name)),
@@ -1308,7 +1420,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_29,
+            OP_32,
             Map.ofEntries(
                 Map.entry("service_account_id", service_account_id),
                 Map.entry("policy_name", reference)),
@@ -1318,7 +1430,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_42,
+            OP_45,
             Map.ofEntries(Map.entry("service_account_id", service_account_id)),
             null,
             scope),
@@ -1342,7 +1454,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_30,
+            OP_33,
             Map.ofEntries(Map.entry("service_account_id", service_account_id)),
             null,
             null),
@@ -1357,17 +1469,32 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_31,
+            OP_34,
             Map.ofEntries(Map.entry("service_account_id", service_account_id)),
             null,
             null),
         new TypeReference<PermissionBoundaryResponse>() {});
   }
 
+  /** List OIDC providers */
+  public PagedRequest<OIDCProviderListResponse, OIDCProvider> listOIDCProviders(
+      ListOIDCProvidersQuery query) {
+    return new PagedRequest<>(
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_35, Map.ofEntries(), null, query),
+        new TypeReference<OIDCProviderListResponse>() {},
+        new TypeReference<OIDCProvider>() {},
+        "oidc_providers");
+  }
+
+  /** Execute with optional inputs omitted. */
+  public PagedRequest<OIDCProviderListResponse, OIDCProvider> listOIDCProviders() {
+    return listOIDCProviders(null);
+  }
+
   /** List personal SSH keys */
   public PagedRequest<ListPersonalSSHKeysResponse, SSHKey> listPersonalSSHKeys() {
     return new PagedRequest<>(
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_32, Map.ofEntries(), null, null),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_36, Map.ofEntries(), null, null),
         new TypeReference<ListPersonalSSHKeysResponse>() {},
         new TypeReference<SSHKey>() {},
         "ssh_keys");
@@ -1376,7 +1503,7 @@ public final class IamService {
   /** List policies */
   public PagedRequest<PolicyListResponse, Policy> listPolicies(ListPoliciesQuery query) {
     return new PagedRequest<>(
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_33, Map.ofEntries(), null, query),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_37, Map.ofEntries(), null, query),
         new TypeReference<PolicyListResponse>() {},
         new TypeReference<Policy>() {},
         "policies");
@@ -1395,7 +1522,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_34,
+            OP_38,
             Map.ofEntries(Map.entry("policy_id", policy_id)),
             null,
             query),
@@ -1417,7 +1544,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_35,
+            OP_39,
             Map.ofEntries(Map.entry("policy_id", policy_id)),
             null,
             query),
@@ -1432,20 +1559,6 @@ public final class IamService {
     return listPolicyServiceAccounts(policy_id, null);
   }
 
-  /** List regions (legacy IAM) */
-  public PagedRequest<ListRegionsResponse, Region> listRegions(ListRegionsQuery query) {
-    return new PagedRequest<>(
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_36, Map.ofEntries(), null, query),
-        new TypeReference<ListRegionsResponse>() {},
-        new TypeReference<Region>() {},
-        "regions");
-  }
-
-  /** Execute with optional inputs omitted. */
-  public PagedRequest<ListRegionsResponse, Region> listRegions() {
-    return listRegions(null);
-  }
-
   /** List a role's inline policies */
   public PagedRequest<InlinePolicyListResponse, InlinePolicy> listRoleInlinePolicies(
       String role_id, ListRoleInlinePoliciesQuery query) {
@@ -1454,7 +1567,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_37,
+            OP_40,
             Map.ofEntries(Map.entry("role_id", role_id)),
             null,
             query),
@@ -1477,7 +1590,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_38,
+            OP_41,
             Map.ofEntries(Map.entry("role_id", role_id)),
             null,
             query),
@@ -1494,7 +1607,7 @@ public final class IamService {
   /** List roles */
   public PagedRequest<RoleListResponse, Role> listRoles(ListRolesQuery query) {
     return new PagedRequest<>(
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_39, Map.ofEntries(), null, query),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_42, Map.ofEntries(), null, query),
         new TypeReference<RoleListResponse>() {},
         new TypeReference<Role>() {},
         "roles");
@@ -1509,7 +1622,7 @@ public final class IamService {
   public PagedRequest<STSSessionListResponse, STSSession> listSTSSessions(
       ListSTSSessionsQuery query) {
     return new PagedRequest<>(
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_40, Map.ofEntries(), null, query),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_43, Map.ofEntries(), null, query),
         new TypeReference<STSSessionListResponse>() {},
         new TypeReference<STSSession>() {},
         "sts_sessions");
@@ -1528,7 +1641,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_41,
+            OP_44,
             Map.ofEntries(Map.entry("service_account_id", service_account_id)),
             null,
             query),
@@ -1551,7 +1664,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_42,
+            OP_45,
             Map.ofEntries(Map.entry("service_account_id", service_account_id)),
             null,
             query),
@@ -1574,7 +1687,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_43,
+            OP_46,
             Map.ofEntries(Map.entry("service_account_id", service_account_id)),
             null,
             query),
@@ -1597,7 +1710,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_44,
+            OP_47,
             Map.ofEntries(Map.entry("service_account_id", service_account_id)),
             null,
             null),
@@ -1610,7 +1723,7 @@ public final class IamService {
   public PagedRequest<ServiceAccountListResponse, ServiceAccount> listServiceAccounts(
       ListServiceAccountsQuery query) {
     return new PagedRequest<>(
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_45, Map.ofEntries(), null, query),
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_48, Map.ofEntries(), null, query),
         new TypeReference<ServiceAccountListResponse>() {},
         new TypeReference<ServiceAccount>() {},
         "service_accounts");
@@ -1629,7 +1742,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_46,
+            OP_49,
             Map.ofEntries(Map.entry("role_id", role_id), Map.entry("policy_name", policy_name)),
             body,
             null),
@@ -1644,7 +1757,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_47,
+            OP_50,
             Map.ofEntries(
                 Map.entry("service_account_id", service_account_id),
                 Map.entry("policy_name", policy_name)),
@@ -1660,7 +1773,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_48,
+            OP_51,
             Map.ofEntries(Map.entry("role_id", role_id)),
             null,
             null));
@@ -1673,7 +1786,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_49,
+            OP_52,
             Map.ofEntries(Map.entry("service_account_id", service_account_id)),
             null,
             null));
@@ -1682,7 +1795,7 @@ public final class IamService {
   /** Revoke a bearer token */
   public EmptyRequest revokeOAuthToken(OAuthRevokeRequestInput body) {
     return new EmptyRequest(
-        new Core(transport, "iam", "https://iam.basaltic.sh", OP_50, Map.ofEntries(), body, null));
+        new Core(transport, "iam", "https://iam.basaltic.sh", OP_53, Map.ofEntries(), body, null));
   }
 
   /** Revoke STS session */
@@ -1693,7 +1806,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_51,
+            OP_54,
             Map.ofEntries(Map.entry("session_id", session_id)),
             body,
             null),
@@ -1712,7 +1825,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_52,
+            OP_55,
             Map.ofEntries(Map.entry("role_id", role_id)),
             body,
             null));
@@ -1726,10 +1839,25 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_53,
+            OP_56,
             Map.ofEntries(Map.entry("service_account_id", service_account_id)),
             body,
             null));
+  }
+
+  /** Update an OIDC provider */
+  public Request<OIDCProviderResponse> updateOIDCProvider(
+      String provider_id, OIDCProviderUpdateRequestInput body) {
+    return new Request<>(
+        new Core(
+            transport,
+            "iam",
+            "https://iam.basaltic.sh",
+            OP_57,
+            Map.ofEntries(Map.entry("provider_id", provider_id)),
+            body,
+            null),
+        new TypeReference<OIDCProviderResponse>() {});
   }
 
   /** Update policy */
@@ -1740,7 +1868,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_54,
+            OP_58,
             Map.ofEntries(Map.entry("policy_id", policy_id)),
             body,
             null),
@@ -1754,7 +1882,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_55,
+            OP_59,
             Map.ofEntries(Map.entry("role_id", role_id)),
             body,
             null),
@@ -1769,7 +1897,7 @@ public final class IamService {
             transport,
             "iam",
             "https://iam.basaltic.sh",
-            OP_56,
+            OP_60,
             Map.ofEntries(Map.entry("service_account_id", service_account_id)),
             body,
             null),

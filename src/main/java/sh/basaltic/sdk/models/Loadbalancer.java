@@ -52,22 +52,29 @@ public final class Loadbalancer {
     }
   }
 
-  public static final class ListenerResponse extends Model {
-    public ListenerResponse() {}
+  public static final class ListenerCertificateResponse extends Model {
+    public ListenerCertificateResponse() {}
 
-    @JsonProperty(value = "listener", required = false)
-    private Listener listener;
+    @JsonProperty(value = "certificate", required = true)
+    private ResourceRef certificate;
 
-    @JsonProperty("listener")
-    public Listener getListener() {
-      return listener;
+    @JsonProperty("certificate")
+    public ResourceRef getCertificate() {
+      return certificate;
     }
   }
 
-  public static final class Listener extends Model {
-    public Listener() {}
+  public static final class ResourceRef extends Model {
+    public ResourceRef() {}
 
-    /** Parent-scoped CRN with immutable load balancer name and child UUID components. */
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
     @JsonProperty(value = "crn", required = true)
     private String crn;
 
@@ -76,207 +83,18 @@ public final class Loadbalancer {
       return crn;
     }
 
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "load_balancer_id", required = true)
-    private String load_balancer_id;
-
-    @JsonProperty("load_balancer_id")
-    public String getLoadBalancerId() {
-      return load_balancer_id;
-    }
-
-    @JsonProperty(value = "protocol", required = true)
-    private ListenerProtocol protocol;
-
-    @JsonProperty("protocol")
-    public ListenerProtocol getProtocol() {
-      return protocol;
-    }
-
-    @JsonProperty(value = "port", required = true)
-    private Long port;
-
-    @JsonProperty("port")
-    public Long getPort() {
-      return port;
-    }
-
     /**
-     * HTTPS listeners only. One entry per attached certificate; the right cert is picked
-     * per-connection by matching the client's SNI against each cert's SAN. The entry flagged
-     * is_default serves traffic that doesn't match any other SNI (or clients that omit SNI). PEM
-     * material is NOT echoed — the listener stores its own copy fetched at attach time.
+     * Display label at response time — the resource's name where it has one, otherwise its human
+     * label (an invoice number, an account display name). Absent when the target is gone. Not a
+     * lookup key.
      */
-    @JsonProperty(value = "certificates", required = false)
-    private List<ListenerCertificate> certificates;
+    @JsonProperty(value = "name", required = false)
+    private String name;
 
-    @JsonProperty("certificates")
-    public List<ListenerCertificate> getCertificates() {
-      return certificates;
+    @JsonProperty("name")
+    public String getName() {
+      return name;
     }
-
-    @JsonProperty(value = "default_target_group_id", required = false)
-    private String default_target_group_id;
-
-    @JsonProperty("default_target_group_id")
-    public String getDefaultTargetGroupId() {
-      return default_target_group_id;
-    }
-
-    /**
-     * Which LB addresses this listener binds. 'public_only' and 'both' require the LB to carry a
-     * floating IP; if the FIP is detached later, the listener is dropped until a FIP is re-attached
-     * or exposure is flipped to private_only.
-     */
-    @JsonProperty(value = "exposure", required = true)
-    private ListenerExposure exposure;
-
-    @JsonProperty("exposure")
-    public ListenerExposure getExposure() {
-      return exposure;
-    }
-
-    @JsonProperty(value = "tags", required = true)
-    private Map<String, String> tags;
-
-    @JsonProperty("tags")
-    public Map<String, String> getTags() {
-      return tags;
-    }
-
-    @JsonProperty(value = "created_at", required = true)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
-    }
-
-    @JsonProperty(value = "updated_at", required = true)
-    private String updated_at;
-
-    @JsonProperty("updated_at")
-    public String getUpdatedAt() {
-      return updated_at;
-    }
-  }
-
-  public static final class ListenerProtocol {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public ListenerProtocol(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof ListenerProtocol v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final ListenerProtocol HTTP = new ListenerProtocol("http");
-    public static final ListenerProtocol HTTPS = new ListenerProtocol("https");
-    public static final ListenerProtocol TCP = new ListenerProtocol("tcp");
-    public static final ListenerProtocol UDP = new ListenerProtocol("udp");
-  }
-
-  public static final class ListenerCertificate extends Model {
-    public ListenerCertificate() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "certificate_crn", required = true)
-    private String certificate_crn;
-
-    @JsonProperty("certificate_crn")
-    public String getCertificateCrn() {
-      return certificate_crn;
-    }
-
-    @JsonProperty(value = "is_default", required = true)
-    private Boolean is_default;
-
-    @JsonProperty("is_default")
-    public Boolean getIsDefault() {
-      return is_default;
-    }
-
-    @JsonProperty(value = "created_at", required = true)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
-    }
-
-    @JsonProperty(value = "updated_at", required = true)
-    private String updated_at;
-
-    @JsonProperty("updated_at")
-    public String getUpdatedAt() {
-      return updated_at;
-    }
-  }
-
-  public static final class ListenerExposure {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public ListenerExposure(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof ListenerExposure v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final ListenerExposure PUBLIC_ONLY = new ListenerExposure("public_only");
-    public static final ListenerExposure PRIVATE_ONLY = new ListenerExposure("private_only");
-    public static final ListenerExposure BOTH = new ListenerExposure("both");
   }
 
   public static final class AttachTargetRequestInput extends Model {
@@ -301,6 +119,10 @@ public final class Loadbalancer {
       return this;
     }
 
+    /**
+     * Per-target backend port override. When omitted, the target inherits the target group port.
+     * Pool-derived targets always inherit the group port.
+     */
     @JsonProperty(value = "port", required = false)
     private Long port;
 
@@ -318,7 +140,7 @@ public final class Loadbalancer {
   public static final class TargetResponse extends Model {
     public TargetResponse() {}
 
-    @JsonProperty(value = "target", required = false)
+    @JsonProperty(value = "target", required = true)
     private Target target;
 
     @JsonProperty("target")
@@ -327,8 +149,57 @@ public final class Loadbalancer {
     }
   }
 
-  public static final class Target extends Model {
-    public Target() {}
+  public static final class Target {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public Target(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "Target{[REDACTED]}";
+    }
+
+    public static Target ofVariant1(TargetVariant1 value) {
+      Model.validate(value);
+      return new Target(Json.tree(value));
+    }
+
+    public Optional<TargetVariant1> asVariant1() {
+      try {
+        TargetVariant1 result = Json.convert(value, new TypeReference<TargetVariant1>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static Target ofVariant2(TargetVariant2 value) {
+      Model.validate(value);
+      return new Target(Json.tree(value));
+    }
+
+    public Optional<TargetVariant2> asVariant2() {
+      try {
+        TargetVariant2 result = Json.convert(value, new TypeReference<TargetVariant2>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class TargetVariant1 extends Model {
+    public TargetVariant1() {}
 
     @JsonProperty(value = "id", required = true)
     private String id;
@@ -338,26 +209,30 @@ public final class Loadbalancer {
       return id;
     }
 
-    @JsonProperty(value = "target_group_id", required = true)
-    private String target_group_id;
+    /**
+     * Compute instance backing an instance target or a pool-derived target. Omitted for IP targets.
+     */
+    @JsonProperty(value = "instance", required = true)
+    private ResourceRef instance;
 
-    @JsonProperty("target_group_id")
-    public String getTargetGroupId() {
-      return target_group_id;
+    @JsonProperty("instance")
+    public ResourceRef getInstance() {
+      return instance;
+    }
+
+    /** Canonical IPv4 or IPv6 address for an IP target. Omitted for instance targets. */
+    @JsonProperty(value = "address", required = false)
+    private String address;
+
+    @JsonProperty("address")
+    public String getAddress() {
+      return address;
     }
 
     /**
-     * IP address (target_type=ip) or compute instance id (target_type=instance). Stored in
-     * canonical form, so the spelling here may differ from the one you sent.
+     * Per-target backend port override. When omitted, the target inherits the target group port.
+     * Pool-derived targets always inherit the group port.
      */
-    @JsonProperty(value = "target_ref", required = true)
-    private String target_ref;
-
-    @JsonProperty("target_ref")
-    public String getTargetRef() {
-      return target_ref;
-    }
-
     @JsonProperty(value = "port", required = false)
     private Long port;
 
@@ -367,10 +242,10 @@ public final class Loadbalancer {
     }
 
     @JsonProperty(value = "health", required = true)
-    private TargetHealth health;
+    private TargetVariant1Health health;
 
     @JsonProperty("health")
-    public TargetHealth getHealth() {
+    public TargetVariant1Health getHealth() {
       return health;
     }
 
@@ -399,11 +274,11 @@ public final class Loadbalancer {
     }
   }
 
-  public static final class TargetHealth {
+  public static final class TargetVariant1Health {
     private final String value;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public TargetHealth(String value) {
+    public TargetVariant1Health(String value) {
       this.value = Objects.requireNonNull(value);
     }
 
@@ -419,7 +294,7 @@ public final class Loadbalancer {
 
     @Override
     public boolean equals(Object other) {
-      return other instanceof TargetHealth v && value.equals(v.value);
+      return other instanceof TargetVariant1Health v && value.equals(v.value);
     }
 
     @Override
@@ -427,10 +302,120 @@ public final class Loadbalancer {
       return value.hashCode();
     }
 
-    public static final TargetHealth INITIAL = new TargetHealth("initial");
-    public static final TargetHealth HEALTHY = new TargetHealth("healthy");
-    public static final TargetHealth UNHEALTHY = new TargetHealth("unhealthy");
-    public static final TargetHealth DRAINING = new TargetHealth("draining");
+    public static final TargetVariant1Health INITIAL = new TargetVariant1Health("initial");
+    public static final TargetVariant1Health HEALTHY = new TargetVariant1Health("healthy");
+    public static final TargetVariant1Health UNHEALTHY = new TargetVariant1Health("unhealthy");
+    public static final TargetVariant1Health DRAINING = new TargetVariant1Health("draining");
+  }
+
+  public static final class TargetVariant2 extends Model {
+    public TargetVariant2() {}
+
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
+    /**
+     * Compute instance backing an instance target or a pool-derived target. Omitted for IP targets.
+     */
+    @JsonProperty(value = "instance", required = false)
+    private ResourceRef instance;
+
+    @JsonProperty("instance")
+    public ResourceRef getInstance() {
+      return instance;
+    }
+
+    /** Canonical IPv4 or IPv6 address for an IP target. Omitted for instance targets. */
+    @JsonProperty(value = "address", required = true)
+    private String address;
+
+    @JsonProperty("address")
+    public String getAddress() {
+      return address;
+    }
+
+    /**
+     * Per-target backend port override. When omitted, the target inherits the target group port.
+     * Pool-derived targets always inherit the group port.
+     */
+    @JsonProperty(value = "port", required = false)
+    private Long port;
+
+    @JsonProperty("port")
+    public Long getPort() {
+      return port;
+    }
+
+    @JsonProperty(value = "health", required = true)
+    private TargetVariant2Health health;
+
+    @JsonProperty("health")
+    public TargetVariant2Health getHealth() {
+      return health;
+    }
+
+    @JsonProperty(value = "last_seen_at", required = false)
+    private String last_seen_at;
+
+    @JsonProperty("last_seen_at")
+    public String getLastSeenAt() {
+      return last_seen_at;
+    }
+
+    @JsonProperty(value = "created_at", required = true)
+    private String created_at;
+
+    @JsonProperty("created_at")
+    public String getCreatedAt() {
+      return created_at;
+    }
+
+    @JsonProperty(value = "updated_at", required = true)
+    private String updated_at;
+
+    @JsonProperty("updated_at")
+    public String getUpdatedAt() {
+      return updated_at;
+    }
+  }
+
+  public static final class TargetVariant2Health {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public TargetVariant2Health(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof TargetVariant2Health v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final TargetVariant2Health INITIAL = new TargetVariant2Health("initial");
+    public static final TargetVariant2Health HEALTHY = new TargetVariant2Health("healthy");
+    public static final TargetVariant2Health UNHEALTHY = new TargetVariant2Health("unhealthy");
+    public static final TargetVariant2Health DRAINING = new TargetVariant2Health("draining");
   }
 
   public static final class CreateListenerRequestInput extends Model {
@@ -463,14 +448,14 @@ public final class Loadbalancer {
     }
 
     @JsonProperty(value = "certificates", required = false)
-    private List<CreateListenerCertificateInput> certificates;
+    private List<String> certificates;
 
     @JsonProperty("certificates")
-    public List<CreateListenerCertificateInput> getCertificates() {
+    public List<String> getCertificates() {
       return certificates;
     }
 
-    public CreateListenerRequestInput withCertificates(List<CreateListenerCertificateInput> value) {
+    public CreateListenerRequestInput withCertificates(List<String> value) {
       this.certificates = value;
       return this;
     }
@@ -557,27 +542,6 @@ public final class Loadbalancer {
         new CreateListenerRequestInputProtocol("udp");
   }
 
-  public static final class CreateListenerCertificateInput extends Model {
-    public CreateListenerCertificateInput() {}
-
-    /**
-     * Certificate CRN, UUID or exact name in the caller's account. Certificate CRNs require an
-     * empty region. No key material is accepted.
-     */
-    @JsonProperty(value = "certificate", required = true)
-    private String certificate;
-
-    @JsonProperty("certificate")
-    public String getCertificate() {
-      return certificate;
-    }
-
-    public CreateListenerCertificateInput withCertificate(String value) {
-      this.certificate = value;
-      return this;
-    }
-  }
-
   public static final class CreateListenerRequestInputExposure {
     private final String value;
 
@@ -612,6 +576,280 @@ public final class Loadbalancer {
         new CreateListenerRequestInputExposure("private_only");
     public static final CreateListenerRequestInputExposure BOTH =
         new CreateListenerRequestInputExposure("both");
+  }
+
+  public static final class ListenerResponse extends Model {
+    public ListenerResponse() {}
+
+    @JsonProperty(value = "listener", required = true)
+    private Listener listener;
+
+    @JsonProperty("listener")
+    public Listener getListener() {
+      return listener;
+    }
+  }
+
+  public static final class Listener extends Model {
+    public Listener() {}
+
+    /** Parent-scoped CRN with immutable load balancer name and child UUID components. */
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
+    @JsonProperty(value = "protocol", required = true)
+    private ListenerProtocol protocol;
+
+    @JsonProperty("protocol")
+    public ListenerProtocol getProtocol() {
+      return protocol;
+    }
+
+    @JsonProperty(value = "port", required = true)
+    private Long port;
+
+    @JsonProperty("port")
+    public Long getPort() {
+      return port;
+    }
+
+    /**
+     * Which LB addresses this listener binds. 'public_only' and 'both' require the LB to carry a
+     * floating IP; if the FIP is detached later, the listener is dropped until a FIP is re-attached
+     * or exposure is flipped to private_only.
+     */
+    @JsonProperty(value = "exposure", required = true)
+    private ListenerExposure exposure;
+
+    @JsonProperty("exposure")
+    public ListenerExposure getExposure() {
+      return exposure;
+    }
+
+    @JsonProperty(value = "tags", required = true)
+    private Map<String, String> tags;
+
+    @JsonProperty("tags")
+    public Map<String, String> getTags() {
+      return tags;
+    }
+
+    @JsonProperty(value = "created_at", required = true)
+    private String created_at;
+
+    @JsonProperty("created_at")
+    public String getCreatedAt() {
+      return created_at;
+    }
+
+    @JsonProperty(value = "updated_at", required = true)
+    private String updated_at;
+
+    @JsonProperty("updated_at")
+    public String getUpdatedAt() {
+      return updated_at;
+    }
+
+    /**
+     * Default certificate for an HTTPS listener, used when no SNI matches or the client sends none.
+     * Null when absent. List all attached certificates through the listener certificates endpoint.
+     */
+    @JsonProperty(value = "default_certificate", required = true)
+    private ListenerDefaultCertificate default_certificate;
+
+    @JsonProperty("default_certificate")
+    public ListenerDefaultCertificate getDefaultCertificate() {
+      return default_certificate;
+    }
+
+    /** Target group used when no routing rule matches, or null when none is configured. */
+    @JsonProperty(value = "default_target_group", required = true)
+    private ListenerDefaultTargetGroup default_target_group;
+
+    @JsonProperty("default_target_group")
+    public ListenerDefaultTargetGroup getDefaultTargetGroup() {
+      return default_target_group;
+    }
+  }
+
+  public static final class ListenerProtocol {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public ListenerProtocol(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof ListenerProtocol v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final ListenerProtocol HTTP = new ListenerProtocol("http");
+    public static final ListenerProtocol HTTPS = new ListenerProtocol("https");
+    public static final ListenerProtocol TCP = new ListenerProtocol("tcp");
+    public static final ListenerProtocol UDP = new ListenerProtocol("udp");
+  }
+
+  public static final class ListenerExposure {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public ListenerExposure(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof ListenerExposure v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final ListenerExposure PUBLIC_ONLY = new ListenerExposure("public_only");
+    public static final ListenerExposure PRIVATE_ONLY = new ListenerExposure("private_only");
+    public static final ListenerExposure BOTH = new ListenerExposure("both");
+  }
+
+  public static final class ListenerDefaultCertificate {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public ListenerDefaultCertificate(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "ListenerDefaultCertificate{[REDACTED]}";
+    }
+
+    public static ListenerDefaultCertificate ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new ListenerDefaultCertificate(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static ListenerDefaultCertificate ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new ListenerDefaultCertificate(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class ListenerDefaultTargetGroup {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public ListenerDefaultTargetGroup(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "ListenerDefaultTargetGroup{[REDACTED]}";
+    }
+
+    public static ListenerDefaultTargetGroup ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new ListenerDefaultTargetGroup(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static ListenerDefaultTargetGroup ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new ListenerDefaultTargetGroup(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
   }
 
   public static final class CreateLoadBalancerRequestInput extends Model {
@@ -702,7 +940,7 @@ public final class Loadbalancer {
       return this;
     }
 
-    /** VPC the LB will live in. Must match subnet's VPC. */
+    /** VPC the LB will live in. Every selected subnet must belong to this VPC. */
     @JsonProperty(value = "vpc", required = true)
     private String vpc;
 
@@ -716,17 +954,21 @@ public final class Loadbalancer {
       return this;
     }
 
-    /** Subnet the LB instances attach to. The virtual IP is allocated from this subnet. */
-    @JsonProperty(value = "subnet", required = true)
-    private String subnet;
+    /**
+     * One or more subnet selectors in the same VPC, account and region. Each instance has one
+     * interface; new instances are placed in the least-populated eligible subnet. The first subnet
+     * supplies automatic private floating IP allocations. Placement is fixed at creation.
+     */
+    @JsonProperty(value = "subnets", required = true)
+    private List<String> subnets;
 
-    @JsonProperty("subnet")
-    public String getSubnet() {
-      return subnet;
+    @JsonProperty("subnets")
+    public List<String> getSubnets() {
+      return subnets;
     }
 
-    public CreateLoadBalancerRequestInput withSubnet(String value) {
-      this.subnet = value;
+    public CreateLoadBalancerRequestInput withSubnets(List<String> value) {
+      this.subnets = value;
       return this;
     }
 
@@ -762,30 +1004,14 @@ public final class Loadbalancer {
     }
 
     /**
-     * Public IPv4 shorthand. Cannot be combined with floating_ips. Does not allocate public IPv6.
-     */
-    @JsonProperty(value = "floating_ip", required = false)
-    private String floating_ip;
-
-    @JsonProperty("floating_ip")
-    public String getFloatingIp() {
-      return floating_ip;
-    }
-
-    public CreateLoadBalancerRequestInput withFloatingIp(String value) {
-      this.floating_ip = value;
-      return this;
-    }
-
-    /**
      * Existing free floating IPs from this account and region, at most one per family and
-     * visibility (private/public, IPv4/IPv6). Private addresses must belong to the selected subnet.
-     * Missing private families are allocated automatically for each family enabled on that subnet.
-     * Public addresses are optional and require a matching-family default route to an internet
-     * gateway; NAT and egress-only gateways do not qualify. IPv6 requires an IPv6-enabled subnet.
-     * Pool-owned or attached addresses are unavailable. On deletion, supplied addresses are
-     * detached and retained; automatic private allocations are released. Cannot be combined with
-     * floating_ip.
+     * visibility (private/public, IPv4/IPv6). Private addresses must belong to any selected subnet.
+     * Missing private families are allocated automatically from the first selected subnet for each
+     * family enabled there. Public addresses are optional and require a matching-family default
+     * route to an internet gateway in every selected subnet; NAT and egress-only gateways do not
+     * qualify. Public IPv6 requires every selected subnet to support IPv6. Pool-owned or attached
+     * addresses are unavailable. On deletion, supplied addresses are detached and retained;
+     * automatic private allocations are released.
      */
     @JsonProperty(value = "floating_ips", required = false)
     private List<String> floating_ips;
@@ -1267,7 +1493,7 @@ public final class Loadbalancer {
   public static final class LoadBalancerResponse extends Model {
     public LoadBalancerResponse() {}
 
-    @JsonProperty(value = "load_balancer", required = false)
+    @JsonProperty(value = "load_balancer", required = true)
     private LoadBalancer load_balancer;
 
     @JsonProperty("load_balancer")
@@ -1348,14 +1574,6 @@ public final class Loadbalancer {
       return crn;
     }
 
-    @JsonProperty(value = "account_id", required = true)
-    private String account_id;
-
-    @JsonProperty("account_id")
-    public String getAccountId() {
-      return account_id;
-    }
-
     /**
      * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
      * braced, or urn:uuid: forms, in either case).
@@ -1394,22 +1612,16 @@ public final class Loadbalancer {
       return faults;
     }
 
-    /** Subnet placement; null when the referenced subnet no longer exists. */
-    @JsonProperty(value = "subnet", required = true)
-    private LoadBalancerSubnet subnet;
+    /**
+     * Eligible subnets for member placement. Each instance has one interface, and new instances use
+     * the least-populated eligible subnet.
+     */
+    @JsonProperty(value = "subnets", required = true)
+    private List<ResourceRef> subnets;
 
-    @JsonProperty("subnet")
-    public LoadBalancerSubnet getSubnet() {
-      return subnet;
-    }
-
-    /** Compute flavor each LB instance runs on. Must be a loadbalancer-family flavor. */
-    @JsonProperty(value = "flavor_id", required = true)
-    private String flavor_id;
-
-    @JsonProperty("flavor_id")
-    public String getFlavorId() {
-      return flavor_id;
+    @JsonProperty("subnets")
+    public List<ResourceRef> getSubnets() {
+      return subnets;
     }
 
     /** Deprecated alias of desired_count. */
@@ -1421,51 +1633,15 @@ public final class Loadbalancer {
       return replica_count;
     }
 
-    /** Virtual IP for the load balancer; traffic is distributed to backends per connection. */
-    @JsonProperty(value = "internal_ipv4", required = false)
-    private String internal_ipv4;
-
-    @JsonProperty("internal_ipv4")
-    public String getInternalIpv4() {
-      return internal_ipv4;
-    }
-
-    /** Internal IPv6 VIP (set when the subnet is dual-stack). */
-    @JsonProperty(value = "internal_ipv6", required = false)
-    private String internal_ipv6;
-
-    @JsonProperty("internal_ipv6")
-    public String getInternalIpv6() {
-      return internal_ipv6;
-    }
-
     /**
-     * Explicitly selected public IPv6 floating IP, translated to replica IPv6 addresses in a GUA or
-     * ULA subnet.
+     * Public and private floating IP references, including automatic private allocations. Each
+     * includes id, crn, visibility, and address. Infer IPv4 or IPv6 from the address.
      */
-    @JsonProperty(value = "public_ipv6", required = false)
-    private String public_ipv6;
-
-    @JsonProperty("public_ipv6")
-    public String getPublicIpv6() {
-      return public_ipv6;
-    }
-
-    /** Optional public IPv4 floating IP. Public IPv6 is independent. */
-    @JsonProperty(value = "floating_ip_id", required = false)
-    private String floating_ip_id;
-
-    @JsonProperty("floating_ip_id")
-    public String getFloatingIpId() {
-      return floating_ip_id;
-    }
-
-    /** All attached public and private floating IPs, including automatic private allocations. */
     @JsonProperty(value = "floating_ips", required = true)
-    private List<FloatingIp> floating_ips;
+    private List<FloatingIPRef> floating_ips;
 
     @JsonProperty("floating_ips")
-    public List<FloatingIp> getFloatingIps() {
+    public List<FloatingIPRef> getFloatingIps() {
       return floating_ips;
     }
 
@@ -1505,6 +1681,15 @@ public final class Loadbalancer {
     @JsonProperty("updated_at")
     public String getUpdatedAt() {
       return updated_at;
+    }
+
+    /** Regional loadbalancer-family compute flavor assigned to replicas. */
+    @JsonProperty(value = "flavor", required = true)
+    private ResourceRef flavor;
+
+    @JsonProperty("flavor")
+    public ResourceRef getFlavor() {
+      return flavor;
     }
   }
 
@@ -2100,58 +2285,8 @@ public final class Loadbalancer {
     public static final FaultSeverity WARNING = new FaultSeverity("warning");
   }
 
-  public static final class LoadBalancerSubnet {
-    private final JsonNode value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public LoadBalancerSubnet(JsonNode value) {
-      this.value = Objects.requireNonNull(value).deepCopy();
-    }
-
-    @JsonValue
-    public JsonNode json() {
-      return value.deepCopy();
-    }
-
-    @Override
-    public String toString() {
-      return "LoadBalancerSubnet{[REDACTED]}";
-    }
-
-    public static LoadBalancerSubnet ofVariant1(Subnet value) {
-      Model.validate(value);
-      return new LoadBalancerSubnet(Json.tree(value));
-    }
-
-    public Optional<Subnet> asVariant1() {
-      try {
-        Subnet result = Json.convert(value, new TypeReference<Subnet>() {});
-        Model.validate(result);
-        return Optional.ofNullable(result);
-      } catch (sh.basaltic.sdk.SdkException e) {
-        return Optional.empty();
-      }
-    }
-
-    public static LoadBalancerSubnet ofVariant2(Map<String, JsonNode> value) {
-      Model.validate(value);
-      return new LoadBalancerSubnet(Json.tree(value));
-    }
-
-    public Optional<Map<String, JsonNode>> asVariant2() {
-      try {
-        Map<String, JsonNode> result =
-            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
-        Model.validate(result);
-        return Optional.ofNullable(result);
-      } catch (sh.basaltic.sdk.SdkException e) {
-        return Optional.empty();
-      }
-    }
-  }
-
-  public static final class Subnet extends Model {
-    public Subnet() {}
+  public static final class FloatingIPRef extends Model {
+    public FloatingIPRef() {}
 
     @JsonProperty(value = "id", required = true)
     private String id;
@@ -2169,337 +2304,14 @@ public final class Loadbalancer {
       return crn;
     }
 
-    @JsonProperty(value = "vpc", required = true)
-    private Vpc vpc;
+    @JsonProperty(value = "visibility", required = true)
+    private FloatingIPRefVisibility visibility;
 
-    @JsonProperty("vpc")
-    public Vpc getVpc() {
-      return vpc;
+    @JsonProperty("visibility")
+    public FloatingIPRefVisibility getVisibility() {
+      return visibility;
     }
 
-    @JsonProperty(value = "route_table", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<RouteTableSummary> route_table = JsonField.missing();
-
-    @JsonProperty("route_table")
-    public JsonField<RouteTableSummary> getRouteTable() {
-      return route_table;
-    }
-
-    /**
-     * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
-     * braced, or urn:uuid: forms, in either case).
-     */
-    @JsonProperty(value = "name", required = true)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(value = "description", required = false)
-    private String description;
-
-    @JsonProperty("description")
-    public String getDescription() {
-      return description;
-    }
-
-    @JsonProperty(value = "cidr_ipv4", required = true)
-    private String cidr_ipv4;
-
-    @JsonProperty("cidr_ipv4")
-    public String getCidrIpv4() {
-      return cidr_ipv4;
-    }
-
-    @JsonProperty(value = "gateway_ipv4", required = true)
-    private String gateway_ipv4;
-
-    @JsonProperty("gateway_ipv4")
-    public String getGatewayIpv4() {
-      return gateway_ipv4;
-    }
-
-    /**
-     * The dual-stack IPv6 /64, if the subnet is v6-enabled. Its presence (vs the v4 cidr_ipv4) is
-     * how a client tells the subnet's families apart.
-     */
-    @JsonProperty(value = "cidr_ipv6", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> cidr_ipv6 = JsonField.missing();
-
-    @JsonProperty("cidr_ipv6")
-    public JsonField<String> getCidrIpv6() {
-      return cidr_ipv6;
-    }
-
-    @JsonProperty(value = "gateway_ipv6", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> gateway_ipv6 = JsonField.missing();
-
-    @JsonProperty("gateway_ipv6")
-    public JsonField<String> getGatewayIpv6() {
-      return gateway_ipv6;
-    }
-
-    @JsonProperty(value = "tags", required = true)
-    private Map<String, String> tags;
-
-    @JsonProperty("tags")
-    public Map<String, String> getTags() {
-      return tags;
-    }
-
-    @JsonProperty(value = "created_at", required = true)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
-    }
-
-    @JsonProperty(value = "updated_at", required = true)
-    private String updated_at;
-
-    @JsonProperty("updated_at")
-    public String getUpdatedAt() {
-      return updated_at;
-    }
-  }
-
-  public static final class Vpc extends Model {
-    public Vpc() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    /** Cloud Resource Name (name-based, region+account-scoped). */
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    /**
-     * 1-63 chars, lowercase alphanumeric + hyphen Resource names must not start with the literal
-     * crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-     */
-    @JsonProperty(value = "name", required = true)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(value = "description", required = false)
-    private String description;
-
-    @JsonProperty("description")
-    public String getDescription() {
-      return description;
-    }
-
-    /**
-     * IPv4 CIDR block carved up by subnets. Must be private (RFC 1918): within 10.0.0.0/8,
-     * 172.16.0.0/12 or 192.168.0.0/16. Immutable after create.
-     */
-    @JsonProperty(value = "cidr_ipv4", required = true)
-    private String cidr_ipv4;
-
-    @JsonProperty("cidr_ipv4")
-    public String getCidrIpv4() {
-      return cidr_ipv4;
-    }
-
-    /** Associated regional GUA or private ULA prefix. */
-    @JsonProperty(value = "cidr_ipv6", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> cidr_ipv6 = JsonField.missing();
-
-    @JsonProperty("cidr_ipv6")
-    public JsonField<String> getCidrIpv6() {
-      return cidr_ipv6;
-    }
-
-    @JsonProperty(value = "tags", required = true)
-    private Map<String, String> tags;
-
-    @JsonProperty("tags")
-    public Map<String, String> getTags() {
-      return tags;
-    }
-
-    @JsonProperty(value = "created_at", required = true)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
-    }
-
-    @JsonProperty(value = "updated_at", required = true)
-    private String updated_at;
-
-    @JsonProperty("updated_at")
-    public String getUpdatedAt() {
-      return updated_at;
-    }
-  }
-
-  public static final class RouteTableSummary extends Model {
-    public RouteTableSummary() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    @JsonProperty(value = "name", required = true)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-  }
-
-  public static final class FloatingIp extends Model {
-    public FloatingIp() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    @JsonProperty(value = "description", required = false)
-    private String description;
-
-    @JsonProperty("description")
-    public String getDescription() {
-      return description;
-    }
-
-    @JsonProperty(value = "family", required = true)
-    private IpFamily family;
-
-    @JsonProperty("family")
-    public IpFamily getFamily() {
-      return family;
-    }
-
-    /**
-     * Canonical CRN of the bound interface, instance pool, or load balancer; null when unattached.
-     * A pool-owned address names its pool even when the pool has zero members. Only pool-owned
-     * addresses may have multiple NIC members. Manage their bindings through the instance pool
-     * floating IP endpoints; direct attach and detach are refused.
-     */
-    @JsonProperty(value = "attached_to", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> attached_to = JsonField.missing();
-
-    @JsonProperty("attached_to")
-    public JsonField<String> getAttachedTo() {
-      return attached_to;
-    }
-
-    /**
-     * The floating IP's bindings. A floating IP fronts 0 members (allocated, unattached), 1 member
-     * (the everyday case), or N members for an instance pool — an anycast floating IP, where one
-     * public IP is delivered to N VM NICs across hosts (each advertised as a /32 from the host
-     * holding it). Members may share a hypervisor. Two of them on one host used to mean one served
-     * and the other was silently dark; a member's forwarding rule now names the member, and the
-     * host splits connections across the members it holds, so where the members sit is a capacity
-     * decision rather than a correctness one. An instance pool's address takes its members from the
-     * pool's live replicas — every one of them — so a scale-out joins and a scale-in leaves without
-     * a per-replica attach. With more than one member ONE member serves each connection, chosen by
-     * hashing the flow's addresses and ports, and every packet of that connection goes to the same
-     * one. The members are separate instances that share nothing, so this spreads connections and
-     * survives the loss of a host — it is not a load balancer: nothing checks whether the service
-     * inside the instance is up, and connections in progress to a member that goes away are not
-     * moved, they end. A POOL's address is the exception, and only for booting. A replica joins the
-     * address as soon as it is placed, but does not receive traffic until it has reached the
-     * instance metadata service — evidence that the guest booted, rather than that its virtual
-     * machine was started. Until then it is a member with `health` `unhealthy`. A replica whose
-     * image never contacts the metadata service is admitted anyway after a few minutes, so an
-     * unusual image delays traffic rather than never getting it.
-     */
-    @JsonProperty(value = "members", required = true)
-    private List<FloatingIpMember> members;
-
-    @JsonProperty("members")
-    public List<FloatingIpMember> getMembers() {
-      return members;
-    }
-
-    @JsonProperty(value = "tags", required = true)
-    private Map<String, String> tags;
-
-    @JsonProperty("tags")
-    public Map<String, String> getTags() {
-      return tags;
-    }
-
-    /**
-     * The readiness check applied to this address's members. Absent when none is configured. See
-     * `FloatingIpHealthCheck`.
-     */
-    @JsonProperty(value = "health_check", required = false)
-    private FloatingIpHealthCheck health_check;
-
-    @JsonProperty("health_check")
-    public FloatingIpHealthCheck getHealthCheck() {
-      return health_check;
-    }
-
-    @JsonProperty(value = "created_at", required = true)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
-    }
-
-    @JsonProperty(value = "updated_at", required = true)
-    private String updated_at;
-
-    @JsonProperty("updated_at")
-    public String getUpdatedAt() {
-      return updated_at;
-    }
-
-    /** Allocated public or private address. */
     @JsonProperty(value = "address", required = true)
     private String address;
 
@@ -2507,40 +2319,13 @@ public final class Loadbalancer {
     public String getAddress() {
       return address;
     }
-
-    @JsonProperty(value = "visibility", required = true)
-    private FloatingIpVisibility visibility;
-
-    @JsonProperty("visibility")
-    public FloatingIpVisibility getVisibility() {
-      return visibility;
-    }
-
-    /** Allocation subnet for private floating IPs. */
-    @JsonProperty(value = "subnet_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> subnet_id = JsonField.missing();
-
-    @JsonProperty("subnet_id")
-    public JsonField<String> getSubnetId() {
-      return subnet_id;
-    }
-
-    /** Allocation VPC for private floating IPs. */
-    @JsonProperty(value = "vpc_id", required = false)
-    private String vpc_id;
-
-    @JsonProperty("vpc_id")
-    public String getVpcId() {
-      return vpc_id;
-    }
   }
 
-  public static final class IpFamily {
+  public static final class FloatingIPRefVisibility {
     private final String value;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public IpFamily(String value) {
+    public FloatingIPRefVisibility(String value) {
       this.value = Objects.requireNonNull(value);
     }
 
@@ -2556,7 +2341,7 @@ public final class Loadbalancer {
 
     @Override
     public boolean equals(Object other) {
-      return other instanceof IpFamily v && value.equals(v.value);
+      return other instanceof FloatingIPRefVisibility v && value.equals(v.value);
     }
 
     @Override
@@ -2564,347 +2349,8 @@ public final class Loadbalancer {
       return value.hashCode();
     }
 
-    public static final IpFamily IPV4 = new IpFamily("ipv4");
-    public static final IpFamily IPV6 = new IpFamily("ipv6");
-  }
-
-  public static final class FloatingIpMember extends Model {
-    public FloatingIpMember() {}
-
-    /** Bound NIC summary; null for a load balancer binding named by attached_to. */
-    @JsonProperty(value = "interface", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<FloatingIpMemberInterface> interfaceValue = JsonField.missing();
-
-    @JsonProperty("interface")
-    public JsonField<FloatingIpMemberInterface> getInterfaceValue() {
-      return interfaceValue;
-    }
-
-    /**
-     * What the platform knows about this member. `unknown` — nobody is checking. A member you
-     * attached yourself with no health check on the address reads this: you chose the moment of
-     * attach, and the platform has no signal about what runs inside the instance. It is advertised.
-     * `healthy` — the platform has evidence this member is up (and, if a health check is configured
-     * on the address, that the check is passing). `unhealthy` — the platform is waiting for that
-     * evidence and has not seen it, or a configured check is failing. The member keeps its place on
-     * the address and receives no traffic until it recovers. Without a health check this is
-     * liveness only — `healthy` means the guest came up, not that your service is listening.
-     * Configure `health_check` on the floating IP to add readiness on top of that.
-     */
-    @JsonProperty(value = "health", required = true)
-    private FloatingIpMemberHealth health;
-
-    @JsonProperty("health")
-    public FloatingIpMemberHealth getHealth() {
-      return health;
-    }
-
-    /**
-     * Why the member reads the `health` it does — so you can tell "your service is not answering"
-     * from "the guest has not booted yet". `unprobed` — nobody is checking (no health check,
-     * hand-attached). `booting` — the platform has not yet seen the guest come up. `probe_failed` —
-     * the configured health check is failing. `passing` — the guest is up and, if a check is
-     * configured, it passes.
-     */
-    @JsonProperty(value = "reason", required = true)
-    private FloatingIpMemberReason reason;
-
-    @JsonProperty("reason")
-    public FloatingIpMemberReason getReason() {
-      return reason;
-    }
-
-    @JsonProperty(value = "created_at", required = true)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
-    }
-
-    /** Target child address on the member interface. */
-    @JsonProperty(value = "address_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> address_id = JsonField.missing();
-
-    @JsonProperty("address_id")
-    public JsonField<String> getAddressId() {
-      return address_id;
-    }
-  }
-
-  public static final class FloatingIpMemberInterface extends Model {
-    public FloatingIpMemberInterface() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    /** Owning instance; null when the interface has no owning instance. */
-    @JsonProperty(value = "instance", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<FloatingIpMemberInterfaceInstance> instance = JsonField.missing();
-
-    @JsonProperty("instance")
-    public JsonField<FloatingIpMemberInterfaceInstance> getInstance() {
-      return instance;
-    }
-  }
-
-  public static final class FloatingIpMemberInterfaceInstance extends Model {
-    public FloatingIpMemberInterfaceInstance() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    @JsonProperty(value = "name", required = true)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-  }
-
-  public static final class FloatingIpMemberHealth {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FloatingIpMemberHealth(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof FloatingIpMemberHealth v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final FloatingIpMemberHealth UNKNOWN = new FloatingIpMemberHealth("unknown");
-    public static final FloatingIpMemberHealth HEALTHY = new FloatingIpMemberHealth("healthy");
-    public static final FloatingIpMemberHealth UNHEALTHY = new FloatingIpMemberHealth("unhealthy");
-  }
-
-  public static final class FloatingIpMemberReason {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FloatingIpMemberReason(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof FloatingIpMemberReason v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final FloatingIpMemberReason UNPROBED = new FloatingIpMemberReason("unprobed");
-    public static final FloatingIpMemberReason BOOTING = new FloatingIpMemberReason("booting");
-    public static final FloatingIpMemberReason PROBE_FAILED =
-        new FloatingIpMemberReason("probe_failed");
-    public static final FloatingIpMemberReason PASSING = new FloatingIpMemberReason("passing");
-  }
-
-  public static final class FloatingIpHealthCheck extends Model {
-    public FloatingIpHealthCheck() {}
-
-    /**
-     * `tcp` opens a connection; `http`/`https` issue a GET and match the status against `matcher`.
-     * There is no `udp`: a readiness probe needs an answer — check a udp service on a tcp health
-     * port instead.
-     */
-    @JsonProperty(value = "protocol", required = true)
-    private FloatingIpHealthCheckProtocol protocol;
-
-    @JsonProperty("protocol")
-    public FloatingIpHealthCheckProtocol getProtocol() {
-      return protocol;
-    }
-
-    /** HTTP path probed; ignored for tcp. */
-    @JsonProperty(value = "path", required = false)
-    private String path;
-
-    @JsonProperty("path")
-    public String getPath() {
-      return path;
-    }
-
-    /** Port probed on the member. */
-    @JsonProperty(value = "port", required = true)
-    private Long port;
-
-    @JsonProperty("port")
-    public Long getPort() {
-      return port;
-    }
-
-    @JsonProperty(value = "interval_sec", required = true)
-    private Long interval_sec;
-
-    @JsonProperty("interval_sec")
-    public Long getIntervalSec() {
-      return interval_sec;
-    }
-
-    /** Per-probe timeout; must be less than interval_sec. */
-    @JsonProperty(value = "timeout_sec", required = true)
-    private Long timeout_sec;
-
-    @JsonProperty("timeout_sec")
-    public Long getTimeoutSec() {
-      return timeout_sec;
-    }
-
-    /** Consecutive passes before a member flips healthy. */
-    @JsonProperty(value = "healthy_threshold", required = true)
-    private Long healthy_threshold;
-
-    @JsonProperty("healthy_threshold")
-    public Long getHealthyThreshold() {
-      return healthy_threshold;
-    }
-
-    /** Consecutive failures before a member flips unhealthy. */
-    @JsonProperty(value = "unhealthy_threshold", required = true)
-    private Long unhealthy_threshold;
-
-    @JsonProperty("unhealthy_threshold")
-    public Long getUnhealthyThreshold() {
-      return unhealthy_threshold;
-    }
-
-    /** HTTP status or range that counts as passing; ignored for tcp. */
-    @JsonProperty(value = "matcher", required = false)
-    private String matcher;
-
-    @JsonProperty("matcher")
-    public String getMatcher() {
-      return matcher;
-    }
-  }
-
-  public static final class FloatingIpHealthCheckProtocol {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FloatingIpHealthCheckProtocol(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof FloatingIpHealthCheckProtocol v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final FloatingIpHealthCheckProtocol TCP =
-        new FloatingIpHealthCheckProtocol("tcp");
-    public static final FloatingIpHealthCheckProtocol HTTP =
-        new FloatingIpHealthCheckProtocol("http");
-    public static final FloatingIpHealthCheckProtocol HTTPS =
-        new FloatingIpHealthCheckProtocol("https");
-  }
-
-  public static final class FloatingIpVisibility {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FloatingIpVisibility(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof FloatingIpVisibility v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final FloatingIpVisibility PUBLIC = new FloatingIpVisibility("public");
-    public static final FloatingIpVisibility PRIVATE = new FloatingIpVisibility("private");
+    public static final FloatingIPRefVisibility PUBLIC = new FloatingIPRefVisibility("public");
+    public static final FloatingIPRefVisibility PRIVATE = new FloatingIPRefVisibility("private");
   }
 
   public static final class CreateRuleRequestInput extends Model {
@@ -3079,7 +2525,7 @@ public final class Loadbalancer {
   public static final class RuleResponse extends Model {
     public RuleResponse() {}
 
-    @JsonProperty(value = "rule", required = false)
+    @JsonProperty(value = "rule", required = true)
     private Rule rule;
 
     @JsonProperty("rule")
@@ -3108,14 +2554,6 @@ public final class Loadbalancer {
       return id;
     }
 
-    @JsonProperty(value = "listener_id", required = true)
-    private String listener_id;
-
-    @JsonProperty("listener_id")
-    public String getListenerId() {
-      return listener_id;
-    }
-
     @JsonProperty(value = "priority", required = true)
     private Long priority;
 
@@ -3132,12 +2570,12 @@ public final class Loadbalancer {
       return conditions;
     }
 
-    @JsonProperty(value = "target_group_id", required = true)
-    private String target_group_id;
+    @JsonProperty(value = "target_group", required = true)
+    private ResourceRef target_group;
 
-    @JsonProperty("target_group_id")
-    public String getTargetGroupId() {
-      return target_group_id;
+    @JsonProperty("target_group")
+    public ResourceRef getTargetGroup() {
+      return target_group;
     }
 
     @JsonProperty(value = "created_at", required = true)
@@ -3778,7 +3216,7 @@ public final class Loadbalancer {
   public static final class TargetGroupResponse extends Model {
     public TargetGroupResponse() {}
 
-    @JsonProperty(value = "target_group", required = false)
+    @JsonProperty(value = "target_group", required = true)
     private TargetGroup target_group;
 
     @JsonProperty("target_group")
@@ -3804,14 +3242,6 @@ public final class Loadbalancer {
     @JsonProperty("crn")
     public String getCrn() {
       return crn;
-    }
-
-    @JsonProperty(value = "account_id", required = true)
-    private String account_id;
-
-    @JsonProperty("account_id")
-    public String getAccountId() {
-      return account_id;
     }
 
     /**
@@ -3882,7 +3312,7 @@ public final class Loadbalancer {
     /**
      * Where the backend set comes from. `static` routes to the targets attached via POST
      * /v1/target-groups/{id}/targets; `pool` resolves live instance addresses from the compute
-     * instance pool named by instance_pool_id, so scaling the pool moves the backends with it.
+     * instance pool named by instance_pool, so scaling the pool moves the backends with it.
      */
     @JsonProperty(value = "target_mode", required = true)
     private TargetGroupTargetMode target_mode;
@@ -3892,13 +3322,13 @@ public final class Loadbalancer {
       return target_mode;
     }
 
-    /** Compute instance pool backing the group. Set iff target_mode=pool. */
-    @JsonProperty(value = "instance_pool_id", required = false)
-    private String instance_pool_id;
+    /** Compute instance pool backing the group. Omitted for static target groups. */
+    @JsonProperty(value = "instance_pool", required = false)
+    private ResourceRef instance_pool;
 
-    @JsonProperty("instance_pool_id")
-    public String getInstancePoolId() {
-      return instance_pool_id;
+    @JsonProperty("instance_pool")
+    public ResourceRef getInstancePool() {
+      return instance_pool;
     }
 
     @JsonProperty(value = "tags", required = true)
@@ -4363,6 +3793,413 @@ public final class Loadbalancer {
     public static final GetTargetGroupScopeProtocol UDP = new GetTargetGroupScopeProtocol("udp");
   }
 
+  public static final class ListenerCertificateListResponse extends Model {
+    public ListenerCertificateListResponse() {}
+
+    @JsonProperty(value = "certificates", required = true)
+    private List<Certificate> certificates;
+
+    @JsonProperty("certificates")
+    public List<Certificate> getCertificates() {
+      return certificates;
+    }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
+    }
+  }
+
+  public static final class Certificate extends Model {
+    public Certificate() {}
+
+    @JsonProperty(value = "id", required = false)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
+    /**
+     * Name-based, so an IAM policy can wildcard a naming convention
+     * (`crn:certificate::my-account:certificate/prod-*`). The region slot is empty for
+     * compatibility; certificate storage and KMS material are regional.
+     */
+    @JsonProperty(value = "crn", required = false)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    /**
+     * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
+     * braced, or urn:uuid: forms, in either case).
+     */
+    @JsonProperty(value = "name", required = false)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    @JsonProperty(value = "domains", required = false)
+    private List<String> domains;
+
+    @JsonProperty("domains")
+    public List<String> getDomains() {
+      return domains;
+    }
+
+    @JsonProperty(value = "status", required = false)
+    private CertificateStatus status;
+
+    @JsonProperty("status")
+    public CertificateStatus getStatus() {
+      return status;
+    }
+
+    @JsonProperty(value = "source", required = false)
+    private CertificateSource source;
+
+    @JsonProperty("source")
+    public CertificateSource getSource() {
+      return source;
+    }
+
+    @JsonProperty(value = "key_algorithm", required = false)
+    private CertificateKeyAlgorithm key_algorithm;
+
+    @JsonProperty("key_algorithm")
+    public CertificateKeyAlgorithm getKeyAlgorithm() {
+      return key_algorithm;
+    }
+
+    /**
+     * Per-domain CNAME delegation state — one entry per domain on the cert. While
+     * status=pending_dns issuance waits for every challenge's `verified` to flip true; use
+     * `expected_cname` and `our_dns` to tell which records need to be added at the registrar.
+     */
+    @JsonProperty(value = "challenges", required = false)
+    private List<CertificateChallenge> challenges;
+
+    @JsonProperty("challenges")
+    public List<CertificateChallenge> getChallenges() {
+      return challenges;
+    }
+
+    /** PEM-encoded leaf certificate. Empty until active. */
+    @JsonProperty(value = "certificate_pem", required = false)
+    private String certificate_pem;
+
+    @JsonProperty("certificate_pem")
+    public String getCertificatePem() {
+      return certificate_pem;
+    }
+
+    /** PEM-encoded intermediate chain. */
+    @JsonProperty(value = "chain_pem", required = false)
+    private String chain_pem;
+
+    @JsonProperty("chain_pem")
+    public String getChainPem() {
+      return chain_pem;
+    }
+
+    /**
+     * Hex SHA-256 of the leaf's DER — the certificate's material version. Changes on every
+     * rotation; consumers use it to know when to re-fetch material and to verify they fetched the
+     * intended generation. Empty until the cert has a leaf.
+     */
+    @JsonProperty(value = "fingerprint", required = false)
+    private String fingerprint;
+
+    @JsonProperty("fingerprint")
+    public String getFingerprint() {
+      return fingerprint;
+    }
+
+    @JsonProperty(value = "issued_at", required = false)
+    private String issued_at;
+
+    @JsonProperty("issued_at")
+    public String getIssuedAt() {
+      return issued_at;
+    }
+
+    @JsonProperty(value = "expires_at", required = false)
+    private String expires_at;
+
+    @JsonProperty("expires_at")
+    public String getExpiresAt() {
+      return expires_at;
+    }
+
+    /**
+     * Active faults, ordered newest first. Empty when healthy. Renewal failures are warnings while
+     * valid certificate material still serves. Codes: CERTIFICATE_ISSUANCE_START_FAILED (issuance
+     * could not be scheduled), CERTIFICATE_ISSUANCE_FAILED (the signing request failed),
+     * CERTIFICATE_RENEWAL_FAILED (renewal did not complete; a warning while valid material is still
+     * serving, an error once it has expired), CERTIFICATE_REVOCATION_FAILED (revocation did not
+     * complete).
+     */
+    @JsonProperty(value = "faults", required = true)
+    private List<Fault> faults;
+
+    @JsonProperty("faults")
+    public List<Fault> getFaults() {
+      return faults;
+    }
+
+    @JsonProperty(value = "tags", required = false)
+    private Map<String, String> tags;
+
+    @JsonProperty("tags")
+    public Map<String, String> getTags() {
+      return tags;
+    }
+  }
+
+  public static final class CertificateStatus {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public CertificateStatus(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof CertificateStatus v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final CertificateStatus PENDING_DNS = new CertificateStatus("pending_dns");
+    public static final CertificateStatus PENDING = new CertificateStatus("pending");
+    public static final CertificateStatus ACTIVE = new CertificateStatus("active");
+    public static final CertificateStatus ERROR = new CertificateStatus("error");
+    public static final CertificateStatus EXPIRED = new CertificateStatus("expired");
+    public static final CertificateStatus REVOKED = new CertificateStatus("revoked");
+  }
+
+  public static final class CertificateSource {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public CertificateSource(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof CertificateSource v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final CertificateSource ACME = new CertificateSource("acme");
+    public static final CertificateSource UPLOADED = new CertificateSource("uploaded");
+  }
+
+  public static final class CertificateKeyAlgorithm {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public CertificateKeyAlgorithm(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof CertificateKeyAlgorithm v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final CertificateKeyAlgorithm ECDSA_P256 =
+        new CertificateKeyAlgorithm("ecdsa-p256");
+    public static final CertificateKeyAlgorithm ECDSA_P384 =
+        new CertificateKeyAlgorithm("ecdsa-p384");
+    public static final CertificateKeyAlgorithm RSA2048 = new CertificateKeyAlgorithm("rsa-2048");
+    public static final CertificateKeyAlgorithm RSA4096 = new CertificateKeyAlgorithm("rsa-4096");
+  }
+
+  public static final class CertificateChallenge extends Model {
+    public CertificateChallenge() {}
+
+    /** The cert SAN this challenge belongs to (as the customer wrote it). */
+    @JsonProperty(value = "domain", required = false)
+    private String domain;
+
+    @JsonProperty("domain")
+    public String getDomain() {
+      return domain;
+    }
+
+    /**
+     * Full LHS of the CNAME record the customer needs to add. For wildcard SANs this is the parent
+     * name (`_acme-challenge.example.com.`), not the literal SAN — wildcards validate at their
+     * parent under RFC 8555 §8.4.
+     */
+    @JsonProperty(value = "cname_record_name", required = false)
+    private String cname_record_name;
+
+    @JsonProperty("cname_record_name")
+    public String getCnameRecordName() {
+      return cname_record_name;
+    }
+
+    /**
+     * Target FQDN (RHS of the CNAME). Hosted in the platform's validation zone, where the per-order
+     * TXT is published during issuance.
+     */
+    @JsonProperty(value = "expected_cname", required = false)
+    private String expected_cname;
+
+    @JsonProperty("expected_cname")
+    public String getExpectedCname() {
+      return expected_cname;
+    }
+
+    /**
+     * True when the domain is hosted on the platform DNS service and the CNAME was created
+     * automatically. False means the customer owns the zone and must add the CNAME at their
+     * registrar.
+     */
+    @JsonProperty(value = "our_dns", required = false)
+    private Boolean our_dns;
+
+    @JsonProperty("our_dns")
+    public Boolean getOurDns() {
+      return our_dns;
+    }
+
+    /**
+     * True once the CNAME has resolved to expected_cname; cert issuance only proceeds when every
+     * challenge is verified.
+     */
+    @JsonProperty(value = "verified", required = false)
+    private Boolean verified;
+
+    @JsonProperty("verified")
+    public Boolean getVerified() {
+      return verified;
+    }
+
+    @JsonProperty(value = "verified_at", required = false)
+    private String verified_at;
+
+    @JsonProperty("verified_at")
+    public String getVerifiedAt() {
+      return verified_at;
+    }
+
+    /**
+     * Active verification warnings only; empty when healthy. Successful verification resolves
+     * verification faults while retaining history. verified records a successful observation and
+     * remains true if a later renewal observes a DNS failure. A CNAME mismatch records
+     * CERTIFICATE_DNS_VERIFICATION_FAILED as a warning; verified does not move. Internal history
+     * uses the parent CRN followed by /challenge/&lt;stored-uuid&gt;; no separate endpoint is
+     * exposed.
+     */
+    @JsonProperty(value = "faults", required = true)
+    private List<Fault> faults;
+
+    @JsonProperty("faults")
+    public List<Fault> getFaults() {
+      return faults;
+    }
+  }
+
+  public static final class PaginationMeta extends Model {
+    public PaginationMeta() {}
+
+    /** Total number of items */
+    @JsonProperty(value = "total", required = false)
+    private Long total;
+
+    @JsonProperty("total")
+    public Long getTotal() {
+      return total;
+    }
+
+    /** Number of items per page */
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
+
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
+    }
+
+    /**
+     * Opaque cursor for the next page. Pass it back as the `marker` query parameter; treat it as a
+     * token, not a value to parse.
+     */
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    /** Whether there are more items */
+    @JsonProperty(value = "has_more", required = false)
+    private Boolean has_more;
+
+    @JsonProperty("has_more")
+    public Boolean getHasMore() {
+      return has_more;
+    }
+  }
+
   public static final class ListListenersQuery extends Model {
     public ListListenersQuery() {}
 
@@ -4396,30 +4233,25 @@ public final class Loadbalancer {
   public static final class ListenerListResponse extends Model {
     public ListenerListResponse() {}
 
-    @JsonProperty(value = "listeners", required = false)
+    @JsonProperty(value = "listeners", required = true)
     private List<Listener> listeners;
 
     @JsonProperty("listeners")
     public List<Listener> getListeners() {
       return listeners;
     }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
+    }
   }
 
-  public static final class ListLoadBalancerReplicasQuery extends Model {
-    public ListLoadBalancerReplicasQuery() {}
-
-    @JsonProperty(value = "name", required = false)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    public ListLoadBalancerReplicasQuery withName(String value) {
-      this.name = value;
-      return this;
-    }
+  public static final class ListLoadBalancerInstancesQuery extends Model {
+    public ListLoadBalancerInstancesQuery() {}
 
     @JsonProperty(value = "crn", required = false)
     private String crn;
@@ -4429,49 +4261,268 @@ public final class Loadbalancer {
       return crn;
     }
 
-    public ListLoadBalancerReplicasQuery withCrn(String value) {
+    public ListLoadBalancerInstancesQuery withCrn(String value) {
       this.crn = value;
+      return this;
+    }
+
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
+
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
+    }
+
+    public ListLoadBalancerInstancesQuery withLimit(Long value) {
+      this.limit = value;
+      return this;
+    }
+
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    public ListLoadBalancerInstancesQuery withMarker(String value) {
+      this.marker = value;
+      return this;
+    }
+
+    @JsonProperty(value = "name", required = false)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    public ListLoadBalancerInstancesQuery withName(String value) {
+      this.name = value;
+      return this;
+    }
+
+    @JsonProperty(value = "current_state", required = false)
+    private CurrentStateInput current_state;
+
+    @JsonProperty("current_state")
+    public CurrentStateInput getCurrentState() {
+      return current_state;
+    }
+
+    public ListLoadBalancerInstancesQuery withCurrentState(CurrentStateInput value) {
+      this.current_state = value;
+      return this;
+    }
+
+    @JsonProperty(value = "flavor", required = false)
+    private String flavor;
+
+    @JsonProperty("flavor")
+    public String getFlavor() {
+      return flavor;
+    }
+
+    public ListLoadBalancerInstancesQuery withFlavor(String value) {
+      this.flavor = value;
+      return this;
+    }
+
+    @JsonProperty(value = "image", required = false)
+    private String image;
+
+    @JsonProperty("image")
+    public String getImage() {
+      return image;
+    }
+
+    public ListLoadBalancerInstancesQuery withImage(String value) {
+      this.image = value;
       return this;
     }
   }
 
-  public static final class LoadBalancerReplicasResponse extends Model {
-    public LoadBalancerReplicasResponse() {}
+  public static final class CurrentStateInput {
+    private final String value;
 
-    @JsonProperty(value = "replicas", required = false)
-    private List<LoadBalancerReplica> replicas;
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public CurrentStateInput(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
 
-    @JsonProperty("replicas")
-    public List<LoadBalancerReplica> getReplicas() {
-      return replicas;
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof CurrentStateInput v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final CurrentStateInput PENDING = new CurrentStateInput("pending");
+    public static final CurrentStateInput BUILDING = new CurrentStateInput("building");
+    public static final CurrentStateInput RUNNING = new CurrentStateInput("running");
+    public static final CurrentStateInput STOPPING = new CurrentStateInput("stopping");
+    public static final CurrentStateInput STOPPED = new CurrentStateInput("stopped");
+    public static final CurrentStateInput REBOOTING = new CurrentStateInput("rebooting");
+    public static final CurrentStateInput MIGRATING = new CurrentStateInput("migrating");
+    public static final CurrentStateInput DELETING = new CurrentStateInput("deleting");
+    public static final CurrentStateInput DELETED = new CurrentStateInput("deleted");
+    public static final CurrentStateInput ERROR = new CurrentStateInput("error");
+    public static final CurrentStateInput CRASHED = new CurrentStateInput("crashed");
+    public static final CurrentStateInput PAUSED = new CurrentStateInput("paused");
+    public static final CurrentStateInput SUSPENDED = new CurrentStateInput("suspended");
+  }
+
+  public static final class LoadBalancerInstancesResponse extends Model {
+    public LoadBalancerInstancesResponse() {}
+
+    @JsonProperty(value = "instances", required = true)
+    private List<LoadBalancerInstance> instances;
+
+    @JsonProperty("instances")
+    public List<LoadBalancerInstance> getInstances() {
+      return instances;
+    }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
     }
   }
 
-  public static final class LoadBalancerReplica extends Model {
-    public LoadBalancerReplica() {}
+  public static final class LoadBalancerInstance extends Model {
+    public LoadBalancerInstance() {}
 
-    @JsonProperty(value = "retirement", required = false)
-    private Retirement retirement;
+    @JsonProperty(value = "id", required = true)
+    private String id;
 
-    @JsonProperty("retirement")
-    public Retirement getRetirement() {
-      return retirement;
+    @JsonProperty("id")
+    public String getId() {
+      return id;
     }
 
-    @JsonProperty(value = "instance_id", required = true)
-    private String instance_id;
+    /** Cloud Resource Name */
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
 
-    @JsonProperty("instance_id")
-    public String getInstanceId() {
-      return instance_id;
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
     }
 
-    @JsonProperty(value = "replica_index", required = true)
-    private Long replica_index;
+    /**
+     * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
+     * braced, or urn:uuid: forms, in either case).
+     */
+    @JsonProperty(value = "name", required = true)
+    private String name;
 
-    @JsonProperty("replica_index")
-    public Long getReplicaIndex() {
-      return replica_index;
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    @JsonProperty(value = "description", required = false)
+    private String description;
+
+    @JsonProperty("description")
+    public String getDescription() {
+      return description;
+    }
+
+    /** In-flight transition, if any; null when settled. */
+    @JsonProperty(value = "task_state", required = false)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> task_state = JsonField.missing();
+
+    @JsonProperty("task_state")
+    public JsonField<String> getTaskState() {
+      return task_state;
+    }
+
+    /** Flavor identity. Every instance has a flavor; query the flavor resource for CPU and RAM. */
+    @JsonProperty(value = "flavor", required = true)
+    private ResourceRef flavor;
+
+    @JsonProperty("flavor")
+    public ResourceRef getFlavor() {
+      return flavor;
+    }
+
+    /** Pinned source image identity, or null for a volume-only boot. */
+    @JsonProperty(value = "image", required = true)
+    private LoadBalancerInstanceImage image;
+
+    @JsonProperty("image")
+    public LoadBalancerInstanceImage getImage() {
+      return image;
+    }
+
+    /** Base64-encoded cloud-init user-data supplied at launch. */
+    @JsonProperty(value = "user_data", required = false)
+    private String user_data;
+
+    @JsonProperty("user_data")
+    public String getUserData() {
+      return user_data;
+    }
+
+    /**
+     * Attached IAM role identity, or null when no role is attached. Deleted roles retain their
+     * identity without name.
+     */
+    @JsonProperty(value = "iam_role", required = true)
+    private LoadBalancerInstanceIamRole iam_role;
+
+    @JsonProperty("iam_role")
+    public LoadBalancerInstanceIamRole getIamRole() {
+      return iam_role;
+    }
+
+    @JsonProperty(value = "metadata", required = false)
+    private Map<String, String> metadata;
+
+    @JsonProperty("metadata")
+    public Map<String, String> getMetadata() {
+      return metadata;
+    }
+
+    @JsonProperty(value = "tags", required = false)
+    private Map<String, String> tags;
+
+    @JsonProperty("tags")
+    public Map<String, String> getTags() {
+      return tags;
+    }
+
+    /**
+     * Active faults ordered by last_at descending, then internal history id descending for a stable
+     * tie-breaker. Healthy resources return [].
+     */
+    @JsonProperty(value = "faults", required = true)
+    private List<Fault> faults;
+
+    @JsonProperty("faults")
+    public List<Fault> getFaults() {
+      return faults;
     }
 
     @JsonProperty(value = "created_at", required = true)
@@ -4482,28 +4533,75 @@ public final class Loadbalancer {
       return created_at;
     }
 
-    /**
-     * The size this replica actually booted on. Matches the load balancer's flavor_id except
-     * mid-resize, when the replicas not yet replaced still report the old one.
-     */
-    @JsonProperty(value = "flavor_id", required = true)
-    private String flavor_id;
+    @JsonProperty(value = "updated_at", required = true)
+    private String updated_at;
 
-    @JsonProperty("flavor_id")
-    public String getFlavorId() {
-      return flavor_id;
+    @JsonProperty("updated_at")
+    public String getUpdatedAt() {
+      return updated_at;
+    }
+
+    @JsonProperty(value = "launched_at", required = false)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> launched_at = JsonField.missing();
+
+    @JsonProperty("launched_at")
+    public JsonField<String> getLaunchedAt() {
+      return launched_at;
+    }
+
+    @JsonProperty(value = "terminated_at", required = false)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> terminated_at = JsonField.missing();
+
+    @JsonProperty("terminated_at")
+    public JsonField<String> getTerminatedAt() {
+      return terminated_at;
     }
 
     /**
-     * The liveness view folded into one word: 'initializing' (the agent has never reported — boot
-     * still in flight), 'healthy' (heartbeating and the proxy is serving), 'unhealthy'
-     * (heartbeating but the proxy is down).
+     * What was asked for. Only three values, because there are only three things you can ask an
+     * instance to be: Create/Start/Reboot ask for running, Stop for stopped, Delete for deleted.
+     */
+    @JsonProperty(value = "desired_state", required = true)
+    private LoadBalancerInstanceDesiredState desired_state;
+
+    @JsonProperty("desired_state")
+    public LoadBalancerInstanceDesiredState getDesiredState() {
+      return desired_state;
+    }
+
+    /**
+     * Where the instance actually is. Read this one to answer "is it up" — the transitional states
+     * live here, not on desired_state, because nobody asks for `stopping`. desired_state=running
+     * with current_state=stopped is an instance that was asked to start and has not come up yet.
+     */
+    @JsonProperty(value = "current_state", required = true)
+    private CurrentState current_state;
+
+    @JsonProperty("current_state")
+    public CurrentState getCurrentState() {
+      return current_state;
+    }
+
+    @JsonProperty(value = "retirement", required = false)
+    private Retirement retirement;
+
+    @JsonProperty("retirement")
+    public Retirement getRetirement() {
+      return retirement;
+    }
+
+    /**
+     * Proxy health: initializing before the first report, healthy when the last report says the
+     * proxy is serving, unhealthy when it is down, and draining when the instance is retiring. See
+     * last_seen for the age of the last observation.
      */
     @JsonProperty(value = "status", required = true)
-    private LoadBalancerReplicaStatus status;
+    private LoadBalancerInstanceStatus status;
 
     @JsonProperty("status")
-    public LoadBalancerReplicaStatus getStatus() {
+    public LoadBalancerInstanceStatus getStatus() {
       return status;
     }
 
@@ -4524,7 +4622,7 @@ public final class Loadbalancer {
       return agent_version;
     }
 
-    /** Omitted when this replica hasn't reported yet */
+    /** Omitted when this instance has not reported yet */
     @JsonProperty(value = "last_seen", required = false)
     private String last_seen;
 
@@ -4532,6 +4630,185 @@ public final class Loadbalancer {
     public String getLastSeen() {
       return last_seen;
     }
+  }
+
+  public static final class LoadBalancerInstanceImage {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public LoadBalancerInstanceImage(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "LoadBalancerInstanceImage{[REDACTED]}";
+    }
+
+    public static LoadBalancerInstanceImage ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new LoadBalancerInstanceImage(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static LoadBalancerInstanceImage ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new LoadBalancerInstanceImage(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class LoadBalancerInstanceIamRole {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public LoadBalancerInstanceIamRole(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "LoadBalancerInstanceIamRole{[REDACTED]}";
+    }
+
+    public static LoadBalancerInstanceIamRole ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new LoadBalancerInstanceIamRole(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static LoadBalancerInstanceIamRole ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new LoadBalancerInstanceIamRole(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class LoadBalancerInstanceDesiredState {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public LoadBalancerInstanceDesiredState(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof LoadBalancerInstanceDesiredState v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final LoadBalancerInstanceDesiredState RUNNING =
+        new LoadBalancerInstanceDesiredState("running");
+    public static final LoadBalancerInstanceDesiredState STOPPED =
+        new LoadBalancerInstanceDesiredState("stopped");
+    public static final LoadBalancerInstanceDesiredState DELETED =
+        new LoadBalancerInstanceDesiredState("deleted");
+  }
+
+  public static final class CurrentState {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public CurrentState(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof CurrentState v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final CurrentState PENDING = new CurrentState("pending");
+    public static final CurrentState BUILDING = new CurrentState("building");
+    public static final CurrentState RUNNING = new CurrentState("running");
+    public static final CurrentState STOPPING = new CurrentState("stopping");
+    public static final CurrentState STOPPED = new CurrentState("stopped");
+    public static final CurrentState REBOOTING = new CurrentState("rebooting");
+    public static final CurrentState MIGRATING = new CurrentState("migrating");
+    public static final CurrentState DELETING = new CurrentState("deleting");
+    public static final CurrentState DELETED = new CurrentState("deleted");
+    public static final CurrentState ERROR = new CurrentState("error");
+    public static final CurrentState CRASHED = new CurrentState("crashed");
+    public static final CurrentState PAUSED = new CurrentState("paused");
+    public static final CurrentState SUSPENDED = new CurrentState("suspended");
   }
 
   public static final class Retirement extends Model {
@@ -4571,11 +4848,11 @@ public final class Loadbalancer {
     }
   }
 
-  public static final class LoadBalancerReplicaStatus {
+  public static final class LoadBalancerInstanceStatus {
     private final String value;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public LoadBalancerReplicaStatus(String value) {
+    public LoadBalancerInstanceStatus(String value) {
       this.value = Objects.requireNonNull(value);
     }
 
@@ -4591,7 +4868,7 @@ public final class Loadbalancer {
 
     @Override
     public boolean equals(Object other) {
-      return other instanceof LoadBalancerReplicaStatus v && value.equals(v.value);
+      return other instanceof LoadBalancerInstanceStatus v && value.equals(v.value);
     }
 
     @Override
@@ -4599,14 +4876,14 @@ public final class Loadbalancer {
       return value.hashCode();
     }
 
-    public static final LoadBalancerReplicaStatus INITIALIZING =
-        new LoadBalancerReplicaStatus("initializing");
-    public static final LoadBalancerReplicaStatus HEALTHY =
-        new LoadBalancerReplicaStatus("healthy");
-    public static final LoadBalancerReplicaStatus UNHEALTHY =
-        new LoadBalancerReplicaStatus("unhealthy");
-    public static final LoadBalancerReplicaStatus DRAINING =
-        new LoadBalancerReplicaStatus("draining");
+    public static final LoadBalancerInstanceStatus INITIALIZING =
+        new LoadBalancerInstanceStatus("initializing");
+    public static final LoadBalancerInstanceStatus HEALTHY =
+        new LoadBalancerInstanceStatus("healthy");
+    public static final LoadBalancerInstanceStatus UNHEALTHY =
+        new LoadBalancerInstanceStatus("unhealthy");
+    public static final LoadBalancerInstanceStatus DRAINING =
+        new LoadBalancerInstanceStatus("draining");
   }
 
   public static final class ListLoadBalancersQuery extends Model {
@@ -4719,7 +4996,7 @@ public final class Loadbalancer {
   public static final class LoadBalancerListResponse extends Model {
     public LoadBalancerListResponse() {}
 
-    @JsonProperty(value = "load_balancers", required = false)
+    @JsonProperty(value = "load_balancers", required = true)
     private List<LoadBalancer> load_balancers;
 
     @JsonProperty("load_balancers")
@@ -4727,55 +5004,12 @@ public final class Loadbalancer {
       return load_balancers;
     }
 
-    @JsonProperty(value = "meta", required = false)
+    @JsonProperty(value = "meta", required = true)
     private PaginationMeta meta;
 
     @JsonProperty("meta")
     public PaginationMeta getMeta() {
       return meta;
-    }
-  }
-
-  public static final class PaginationMeta extends Model {
-    public PaginationMeta() {}
-
-    /** Total number of items */
-    @JsonProperty(value = "total", required = false)
-    private Long total;
-
-    @JsonProperty("total")
-    public Long getTotal() {
-      return total;
-    }
-
-    /** Number of items per page */
-    @JsonProperty(value = "limit", required = false)
-    private Long limit;
-
-    @JsonProperty("limit")
-    public Long getLimit() {
-      return limit;
-    }
-
-    /**
-     * Opaque cursor for the next page. Pass it back as the `marker` query parameter; treat it as a
-     * token, not a value to parse.
-     */
-    @JsonProperty(value = "marker", required = false)
-    private String marker;
-
-    @JsonProperty("marker")
-    public String getMarker() {
-      return marker;
-    }
-
-    /** Whether there are more items */
-    @JsonProperty(value = "has_more", required = false)
-    private Boolean has_more;
-
-    @JsonProperty("has_more")
-    public Boolean getHasMore() {
-      return has_more;
     }
   }
 
@@ -4812,12 +5046,20 @@ public final class Loadbalancer {
   public static final class RuleListResponse extends Model {
     public RuleListResponse() {}
 
-    @JsonProperty(value = "rules", required = false)
+    @JsonProperty(value = "rules", required = true)
     private List<Rule> rules;
 
     @JsonProperty("rules")
     public List<Rule> getRules() {
       return rules;
+    }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
     }
   }
 
@@ -4931,7 +5173,7 @@ public final class Loadbalancer {
   public static final class TargetGroupListResponse extends Model {
     public TargetGroupListResponse() {}
 
-    @JsonProperty(value = "target_groups", required = false)
+    @JsonProperty(value = "target_groups", required = true)
     private List<TargetGroup> target_groups;
 
     @JsonProperty("target_groups")
@@ -4939,7 +5181,7 @@ public final class Loadbalancer {
       return target_groups;
     }
 
-    @JsonProperty(value = "meta", required = false)
+    @JsonProperty(value = "meta", required = true)
     private PaginationMeta meta;
 
     @JsonProperty("meta")
@@ -4981,54 +5223,41 @@ public final class Loadbalancer {
   public static final class TargetListResponse extends Model {
     public TargetListResponse() {}
 
-    @JsonProperty(value = "targets", required = false)
+    @JsonProperty(value = "targets", required = true)
     private List<Target> targets;
 
     @JsonProperty("targets")
     public List<Target> getTargets() {
       return targets;
     }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
+    }
   }
 
   public static final class UpdateListenerRequestInput extends Model {
     public UpdateListenerRequestInput() {}
 
-    @JsonProperty(value = "certificate", required = false)
-    private String certificate;
-
-    @JsonProperty("certificate")
-    public String getCertificate() {
-      return certificate;
-    }
-
-    public UpdateListenerRequestInput withCertificate(String value) {
-      this.certificate = value;
-      return this;
-    }
-
+    /**
+     * UUID, CRN or exact account-scoped target group name. Null clears the default; omission leaves
+     * it unchanged.
+     */
     @JsonProperty(value = "default_target_group", required = false)
-    private String default_target_group;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> default_target_group = JsonField.missing();
 
     @JsonProperty("default_target_group")
-    public String getDefaultTargetGroup() {
+    public JsonField<String> getDefaultTargetGroup() {
       return default_target_group;
     }
 
-    public UpdateListenerRequestInput withDefaultTargetGroup(String value) {
+    public UpdateListenerRequestInput withDefaultTargetGroup(JsonField<String> value) {
       this.default_target_group = value;
-      return this;
-    }
-
-    @JsonProperty(value = "clear_default_target_group", required = false)
-    private Boolean clear_default_target_group;
-
-    @JsonProperty("clear_default_target_group")
-    public Boolean getClearDefaultTargetGroup() {
-      return clear_default_target_group;
-    }
-
-    public UpdateListenerRequestInput withClearDefaultTargetGroup(Boolean value) {
-      this.clear_default_target_group = value;
       return this;
     }
 
@@ -5056,6 +5285,23 @@ public final class Loadbalancer {
 
     public UpdateListenerRequestInput withTags(Map<String, String> value) {
       this.tags = value;
+      return this;
+    }
+
+    /**
+     * UUID, CRN, or exact name of a certificate already attached to this listener. Makes it the
+     * default and demotes the previous default atomically. Does not attach new certificates.
+     */
+    @JsonProperty(value = "default_certificate", required = false)
+    private String default_certificate;
+
+    @JsonProperty("default_certificate")
+    public String getDefaultCertificate() {
+      return default_certificate;
+    }
+
+    public UpdateListenerRequestInput withDefaultCertificate(String value) {
+      this.default_certificate = value;
       return this;
     }
   }
@@ -5180,11 +5426,12 @@ public final class Loadbalancer {
      * extra replica comes up on the new flavor and starts serving before any replica on the old one
      * is retired, so the number serving never drops below desired_count — a resize does not cost
      * you capacity, at any replica count. Expect it to take several minutes, and poll GET
-     * /v1/load-balancers/{id}/replicas to watch: a replica has been replaced when its instance_id
-     * changes, and the resize is done when every flavor there matches this one. A resize requires
-     * max_count above desired_count for surge headroom. A rollout waits if headroom is removed
-     * while it is in progress. Rejected up front if the account does not have the compute quota for
-     * the replacement replica, so a resize cannot half-apply and leave the load balancer short.
+     * /v1/load-balancers/{id}/instances to watch: a replica has been replaced when its id changes,
+     * and the resize is done when every flavor.id there matches the requested flavor. A resize
+     * requires max_count above desired_count for surge headroom. A rollout waits if headroom is
+     * removed while it is in progress. Rejected up front if the account does not have the compute
+     * quota for the replacement replica, so a resize cannot half-apply and leave the load balancer
+     * short.
      */
     @JsonProperty(value = "flavor", required = false)
     private String flavor;

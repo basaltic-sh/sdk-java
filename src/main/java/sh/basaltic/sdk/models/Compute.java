@@ -14,8 +14,8 @@ public final class Compute {
 
   private Compute() {}
 
-  public static final class AttachInstanceNICBody extends Model {
-    public AttachInstanceNICBody() {}
+  public static final class AttachInstanceInterfaceBody extends Model {
+    public AttachInstanceInterfaceBody() {}
 
     /**
      * Existing standalone interface UUID or complete VPC/subnet/interface CRN. Bare names lack the
@@ -30,36 +30,73 @@ public final class Compute {
       return interfaceValue;
     }
 
-    public AttachInstanceNICBody withInterfaceValue(String value) {
+    public AttachInstanceInterfaceBody withInterfaceValue(String value) {
       this.interfaceValue = value;
       return this;
     }
   }
 
-  public static final class AttachInstanceNICResponse extends Model {
-    public AttachInstanceNICResponse() {}
+  public static final class InstanceInterfaceResponse extends Model {
+    public InstanceInterfaceResponse() {}
 
-    @JsonProperty(value = "attachment", required = false)
-    private AttachInstanceNICResponseAttachment attachment;
+    @JsonProperty(value = "interface", required = true)
+    private AttachedInterface interfaceValue;
 
-    @JsonProperty("attachment")
-    public AttachInstanceNICResponseAttachment getAttachment() {
-      return attachment;
+    @JsonProperty("interface")
+    public AttachedInterface getInterfaceValue() {
+      return interfaceValue;
     }
   }
 
-  public static final class AttachInstanceNICResponseAttachment extends Model {
-    public AttachInstanceNICResponseAttachment() {}
+  public static final class AttachedInterface extends Model {
+    public AttachedInterface() {}
 
-    @JsonProperty(value = "interface_id", required = false)
-    private String interface_id;
+    @JsonProperty(value = "id", required = true)
+    private String id;
 
-    @JsonProperty("interface_id")
-    public String getInterfaceId() {
-      return interface_id;
+    @JsonProperty("id")
+    public String getId() {
+      return id;
     }
 
-    @JsonProperty(value = "mac", required = false)
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    /** Subnet containing this interface. */
+    @JsonProperty(value = "subnet", required = true)
+    private ResourceRef subnet;
+
+    @JsonProperty("subnet")
+    public ResourceRef getSubnet() {
+      return subnet;
+    }
+
+    /**
+     * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
+     * braced, or urn:uuid: forms, in either case).
+     */
+    @JsonProperty(value = "name", required = true)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    @JsonProperty(value = "description", required = false)
+    private String description;
+
+    @JsonProperty("description")
+    public String getDescription() {
+      return description;
+    }
+
+    @JsonProperty(value = "mac", required = true)
     private String mac;
 
     @JsonProperty("mac")
@@ -67,7 +104,43 @@ public final class Compute {
       return mac;
     }
 
-    @JsonProperty(value = "boot_index", required = false)
+    /**
+     * Instance holding this interface, including a stopped instance. Null when unbound. Floating IP
+     * attachments are tracked separately.
+     */
+    @JsonProperty(value = "attached_to", required = true)
+    private AttachedInterfaceAttachedTo attached_to;
+
+    @JsonProperty("attached_to")
+    public AttachedInterfaceAttachedTo getAttachedTo() {
+      return attached_to;
+    }
+
+    @JsonProperty(value = "tags", required = true)
+    private Map<String, String> tags;
+
+    @JsonProperty("tags")
+    public Map<String, String> getTags() {
+      return tags;
+    }
+
+    @JsonProperty(value = "created_at", required = true)
+    private String created_at;
+
+    @JsonProperty("created_at")
+    public String getCreatedAt() {
+      return created_at;
+    }
+
+    @JsonProperty(value = "updated_at", required = true)
+    private String updated_at;
+
+    @JsonProperty("updated_at")
+    public String getUpdatedAt() {
+      return updated_at;
+    }
+
+    @JsonProperty(value = "boot_index", required = true)
     private Long boot_index;
 
     @JsonProperty("boot_index")
@@ -75,11 +148,17 @@ public final class Compute {
       return boot_index;
     }
 
-    /**
-     * The attached interface existed before this call (interface was given). Detach unbinds it and
-     * leaves it standalone rather than destroying it.
-     */
-    @JsonProperty(value = "external", required = false)
+    /** The lowest-boot-index NIC — the one carrying the guest's default and metadata routes. */
+    @JsonProperty(value = "primary", required = true)
+    private Boolean primary;
+
+    @JsonProperty("primary")
+    public Boolean getPrimary() {
+      return primary;
+    }
+
+    /** A customer-attached standalone interface — detach unbinds it instead of destroying it. */
+    @JsonProperty(value = "external", required = true)
     private Boolean external;
 
     @JsonProperty("external")
@@ -102,106 +181,10 @@ public final class Compute {
     public Boolean getRestartRequired() {
       return restart_required;
     }
-
-    @JsonProperty(value = "addresses", required = false)
-    private List<InterfaceAddress> addresses;
-
-    @JsonProperty("addresses")
-    public List<InterfaceAddress> getAddresses() {
-      return addresses;
-    }
   }
 
-  public static final class InterfaceAddress extends Model {
-    public InterfaceAddress() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "family", required = true)
-    private InterfaceAddressFamily family;
-
-    @JsonProperty("family")
-    public InterfaceAddressFamily getFamily() {
-      return family;
-    }
-
-    @JsonProperty(value = "address", required = true)
-    private String address;
-
-    @JsonProperty("address")
-    public String getAddress() {
-      return address;
-    }
-
-    /**
-     * Owned allocation, not the guest netmask: IPv4 /32 or IPv6 /96. DHCPv6 configures the first
-     * /128.
-     */
-    @JsonProperty(value = "prefix", required = true)
-    private String prefix;
-
-    @JsonProperty("prefix")
-    public String getPrefix() {
-      return prefix;
-    }
-
-    @JsonProperty(value = "primary", required = true)
-    private Boolean primary;
-
-    @JsonProperty("primary")
-    public Boolean getPrimary() {
-      return primary;
-    }
-
-    @JsonProperty(value = "floating_ips", required = true)
-    private List<AddressFloatingIp> floating_ips;
-
-    @JsonProperty("floating_ips")
-    public List<AddressFloatingIp> getFloatingIps() {
-      return floating_ips;
-    }
-  }
-
-  public static final class InterfaceAddressFamily {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public InterfaceAddressFamily(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof InterfaceAddressFamily v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final InterfaceAddressFamily IPV4 = new InterfaceAddressFamily("ipv4");
-    public static final InterfaceAddressFamily IPV6 = new InterfaceAddressFamily("ipv6");
-  }
-
-  public static final class AddressFloatingIp extends Model {
-    public AddressFloatingIp() {}
+  public static final class ResourceRef extends Model {
+    public ResourceRef() {}
 
     @JsonProperty(value = "id", required = true)
     private String id;
@@ -219,55 +202,68 @@ public final class Compute {
       return crn;
     }
 
-    @JsonProperty(value = "visibility", required = true)
-    private AddressFloatingIpVisibility visibility;
+    /**
+     * Display label at response time — the resource's name where it has one, otherwise its human
+     * label (an invoice number, an account display name). Absent when the target is gone. Not a
+     * lookup key.
+     */
+    @JsonProperty(value = "name", required = false)
+    private String name;
 
-    @JsonProperty("visibility")
-    public AddressFloatingIpVisibility getVisibility() {
-      return visibility;
-    }
-
-    @JsonProperty(value = "address", required = true)
-    private String address;
-
-    @JsonProperty("address")
-    public String getAddress() {
-      return address;
+    @JsonProperty("name")
+    public String getName() {
+      return name;
     }
   }
 
-  public static final class AddressFloatingIpVisibility {
-    private final String value;
+  public static final class AttachedInterfaceAttachedTo {
+    private final JsonNode value;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public AddressFloatingIpVisibility(String value) {
-      this.value = Objects.requireNonNull(value);
+    public AttachedInterfaceAttachedTo(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
     }
 
     @JsonValue
-    public String value() {
-      return value;
+    public JsonNode json() {
+      return value.deepCopy();
     }
 
     @Override
     public String toString() {
-      return value;
+      return "AttachedInterfaceAttachedTo{[REDACTED]}";
     }
 
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof AddressFloatingIpVisibility v && value.equals(v.value);
+    public static AttachedInterfaceAttachedTo ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new AttachedInterfaceAttachedTo(Json.tree(value));
     }
 
-    @Override
-    public int hashCode() {
-      return value.hashCode();
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
     }
 
-    public static final AddressFloatingIpVisibility PUBLIC =
-        new AddressFloatingIpVisibility("public");
-    public static final AddressFloatingIpVisibility PRIVATE =
-        new AddressFloatingIpVisibility("private");
+    public static AttachedInterfaceAttachedTo ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new AttachedInterfaceAttachedTo(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
   }
 
   public static final class InstancePoolFloatingIpAttachRequestInput extends Model {
@@ -294,7 +290,7 @@ public final class Compute {
   public static final class InstancePoolFloatingIpResponse extends Model {
     public InstancePoolFloatingIpResponse() {}
 
-    @JsonProperty(value = "floating_ip", required = false)
+    @JsonProperty(value = "floating_ip", required = true)
     private FloatingIp floating_ip;
 
     @JsonProperty("floating_ip")
@@ -339,47 +335,15 @@ public final class Compute {
     }
 
     /**
-     * Canonical CRN of the bound interface, instance pool, or load balancer; null when unattached.
-     * A pool-owned address names its pool even when the pool has zero members. Only pool-owned
-     * addresses may have multiple NIC members. Manage their bindings through the instance pool
-     * floating IP endpoints; direct attach and detach are refused.
+     * Instance pool or load balancer that owns the address. Null for direct interface attachments
+     * and unattached addresses. An empty pool retains ownership.
      */
     @JsonProperty(value = "attached_to", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> attached_to = JsonField.missing();
+    private FloatingIpAttachedTo attached_to;
 
     @JsonProperty("attached_to")
-    public JsonField<String> getAttachedTo() {
+    public FloatingIpAttachedTo getAttachedTo() {
       return attached_to;
-    }
-
-    /**
-     * The floating IP's bindings. A floating IP fronts 0 members (allocated, unattached), 1 member
-     * (the everyday case), or N members for an instance pool — an anycast floating IP, where one
-     * public IP is delivered to N VM NICs across hosts (each advertised as a /32 from the host
-     * holding it). Members may share a hypervisor. Two of them on one host used to mean one served
-     * and the other was silently dark; a member's forwarding rule now names the member, and the
-     * host splits connections across the members it holds, so where the members sit is a capacity
-     * decision rather than a correctness one. An instance pool's address takes its members from the
-     * pool's live replicas — every one of them — so a scale-out joins and a scale-in leaves without
-     * a per-replica attach. With more than one member ONE member serves each connection, chosen by
-     * hashing the flow's addresses and ports, and every packet of that connection goes to the same
-     * one. The members are separate instances that share nothing, so this spreads connections and
-     * survives the loss of a host — it is not a load balancer: nothing checks whether the service
-     * inside the instance is up, and connections in progress to a member that goes away are not
-     * moved, they end. A POOL's address is the exception, and only for booting. A replica joins the
-     * address as soon as it is placed, but does not receive traffic until it has reached the
-     * instance metadata service — evidence that the guest booted, rather than that its virtual
-     * machine was started. Until then it is a member with `health` `unhealthy`. A replica whose
-     * image never contacts the metadata service is admitted anyway after a few minutes, so an
-     * unusual image delays traffic rather than never getting it.
-     */
-    @JsonProperty(value = "members", required = true)
-    private List<FloatingIpMember> members;
-
-    @JsonProperty("members")
-    public List<FloatingIpMember> getMembers() {
-      return members;
     }
 
     @JsonProperty(value = "tags", required = true)
@@ -435,23 +399,22 @@ public final class Compute {
       return visibility;
     }
 
-    /** Allocation subnet for private floating IPs. */
-    @JsonProperty(value = "subnet_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> subnet_id = JsonField.missing();
+    /** Allocation subnet for a private floating IP; null for public addresses. */
+    @JsonProperty(value = "subnet", required = true)
+    private FloatingIpSubnet subnet;
 
-    @JsonProperty("subnet_id")
-    public JsonField<String> getSubnetId() {
-      return subnet_id;
+    @JsonProperty("subnet")
+    public FloatingIpSubnet getSubnet() {
+      return subnet;
     }
 
-    /** Allocation VPC for private floating IPs. */
-    @JsonProperty(value = "vpc_id", required = false)
-    private String vpc_id;
+    /** Allocation VPC for a private floating IP; null for public addresses. */
+    @JsonProperty(value = "vpc", required = true)
+    private FloatingIpVpc vpc;
 
-    @JsonProperty("vpc_id")
-    public String getVpcId() {
-      return vpc_id;
+    @JsonProperty("vpc")
+    public FloatingIpVpc getVpc() {
+      return vpc;
     }
   }
 
@@ -487,196 +450,54 @@ public final class Compute {
     public static final IpFamily IPV6 = new IpFamily("ipv6");
   }
 
-  public static final class FloatingIpMember extends Model {
-    public FloatingIpMember() {}
-
-    /** Bound NIC summary; null for a load balancer binding named by attached_to. */
-    @JsonProperty(value = "interface", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<FloatingIpMemberInterface> interfaceValue = JsonField.missing();
-
-    @JsonProperty("interface")
-    public JsonField<FloatingIpMemberInterface> getInterfaceValue() {
-      return interfaceValue;
-    }
-
-    /**
-     * What the platform knows about this member. `unknown` — nobody is checking. A member you
-     * attached yourself with no health check on the address reads this: you chose the moment of
-     * attach, and the platform has no signal about what runs inside the instance. It is advertised.
-     * `healthy` — the platform has evidence this member is up (and, if a health check is configured
-     * on the address, that the check is passing). `unhealthy` — the platform is waiting for that
-     * evidence and has not seen it, or a configured check is failing. The member keeps its place on
-     * the address and receives no traffic until it recovers. Without a health check this is
-     * liveness only — `healthy` means the guest came up, not that your service is listening.
-     * Configure `health_check` on the floating IP to add readiness on top of that.
-     */
-    @JsonProperty(value = "health", required = true)
-    private FloatingIpMemberHealth health;
-
-    @JsonProperty("health")
-    public FloatingIpMemberHealth getHealth() {
-      return health;
-    }
-
-    /**
-     * Why the member reads the `health` it does — so you can tell "your service is not answering"
-     * from "the guest has not booted yet". `unprobed` — nobody is checking (no health check,
-     * hand-attached). `booting` — the platform has not yet seen the guest come up. `probe_failed` —
-     * the configured health check is failing. `passing` — the guest is up and, if a check is
-     * configured, it passes.
-     */
-    @JsonProperty(value = "reason", required = true)
-    private FloatingIpMemberReason reason;
-
-    @JsonProperty("reason")
-    public FloatingIpMemberReason getReason() {
-      return reason;
-    }
-
-    @JsonProperty(value = "created_at", required = true)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
-    }
-
-    /** Target child address on the member interface. */
-    @JsonProperty(value = "address_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> address_id = JsonField.missing();
-
-    @JsonProperty("address_id")
-    public JsonField<String> getAddressId() {
-      return address_id;
-    }
-  }
-
-  public static final class FloatingIpMemberInterface extends Model {
-    public FloatingIpMemberInterface() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    /** Owning instance; null when the interface has no owning instance. */
-    @JsonProperty(value = "instance", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<FloatingIpMemberInterfaceInstance> instance = JsonField.missing();
-
-    @JsonProperty("instance")
-    public JsonField<FloatingIpMemberInterfaceInstance> getInstance() {
-      return instance;
-    }
-  }
-
-  public static final class FloatingIpMemberInterfaceInstance extends Model {
-    public FloatingIpMemberInterfaceInstance() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    @JsonProperty(value = "name", required = true)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-  }
-
-  public static final class FloatingIpMemberHealth {
-    private final String value;
+  public static final class FloatingIpAttachedTo {
+    private final JsonNode value;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FloatingIpMemberHealth(String value) {
-      this.value = Objects.requireNonNull(value);
+    public FloatingIpAttachedTo(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
     }
 
     @JsonValue
-    public String value() {
-      return value;
+    public JsonNode json() {
+      return value.deepCopy();
     }
 
     @Override
     public String toString() {
-      return value;
+      return "FloatingIpAttachedTo{[REDACTED]}";
     }
 
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof FloatingIpMemberHealth v && value.equals(v.value);
+    public static FloatingIpAttachedTo ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new FloatingIpAttachedTo(Json.tree(value));
     }
 
-    @Override
-    public int hashCode() {
-      return value.hashCode();
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
     }
 
-    public static final FloatingIpMemberHealth UNKNOWN = new FloatingIpMemberHealth("unknown");
-    public static final FloatingIpMemberHealth HEALTHY = new FloatingIpMemberHealth("healthy");
-    public static final FloatingIpMemberHealth UNHEALTHY = new FloatingIpMemberHealth("unhealthy");
-  }
-
-  public static final class FloatingIpMemberReason {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FloatingIpMemberReason(String value) {
-      this.value = Objects.requireNonNull(value);
+    public static FloatingIpAttachedTo ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new FloatingIpAttachedTo(Json.tree(value));
     }
 
-    @JsonValue
-    public String value() {
-      return value;
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
     }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof FloatingIpMemberReason v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final FloatingIpMemberReason UNPROBED = new FloatingIpMemberReason("unprobed");
-    public static final FloatingIpMemberReason BOOTING = new FloatingIpMemberReason("booting");
-    public static final FloatingIpMemberReason PROBE_FAILED =
-        new FloatingIpMemberReason("probe_failed");
-    public static final FloatingIpMemberReason PASSING = new FloatingIpMemberReason("passing");
   }
 
   public static final class FloatingIpHealthCheck extends Model {
@@ -826,6 +647,106 @@ public final class Compute {
     public static final FloatingIpVisibility PRIVATE = new FloatingIpVisibility("private");
   }
 
+  public static final class FloatingIpSubnet {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public FloatingIpSubnet(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "FloatingIpSubnet{[REDACTED]}";
+    }
+
+    public static FloatingIpSubnet ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new FloatingIpSubnet(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static FloatingIpSubnet ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new FloatingIpSubnet(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class FloatingIpVpc {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public FloatingIpVpc(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "FloatingIpVpc{[REDACTED]}";
+    }
+
+    public static FloatingIpVpc ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new FloatingIpVpc(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static FloatingIpVpc ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new FloatingIpVpc(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
   public static final class AttachInstanceVolumeBody extends Model {
     public AttachInstanceVolumeBody() {}
 
@@ -926,44 +847,737 @@ public final class Compute {
         new AttachInstanceVolumeBodyFstype("xfs");
   }
 
-  public static final class AttachInstanceVolumeResponse extends Model {
-    public AttachInstanceVolumeResponse() {}
+  public static final class InstanceVolumeResponse extends Model {
+    public InstanceVolumeResponse() {}
 
-    @JsonProperty(value = "attachment", required = false)
-    private AttachInstanceVolumeResponseAttachment attachment;
+    @JsonProperty(value = "volume", required = true)
+    private AttachedVolume volume;
 
-    @JsonProperty("attachment")
-    public AttachInstanceVolumeResponseAttachment getAttachment() {
-      return attachment;
+    @JsonProperty("volume")
+    public AttachedVolume getVolume() {
+      return volume;
     }
   }
 
-  public static final class AttachInstanceVolumeResponseAttachment extends Model {
-    public AttachInstanceVolumeResponseAttachment() {}
+  public static final class AttachedVolume extends Model {
+    public AttachedVolume() {}
 
-    @JsonProperty(value = "instance_id", required = false)
-    private String instance_id;
+    @JsonProperty(value = "id", required = true)
+    private String id;
 
-    @JsonProperty("instance_id")
-    public String getInstanceId() {
-      return instance_id;
+    @JsonProperty("id")
+    public String getId() {
+      return id;
     }
 
-    @JsonProperty(value = "volume_id", required = false)
-    private String volume_id;
+    /** Cloud Resource Name (name-based, region-scoped). */
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
 
-    @JsonProperty("volume_id")
-    public String getVolumeId() {
-      return volume_id;
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
     }
 
-    @JsonProperty(value = "device", required = false)
+    /**
+     * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
+     * braced, or urn:uuid: forms, in either case).
+     */
+    @JsonProperty(value = "name", required = true)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    @JsonProperty(value = "description", required = false)
+    private String description;
+
+    @JsonProperty("description")
+    public String getDescription() {
+      return description;
+    }
+
+    @JsonProperty(value = "tags", required = true)
+    private Map<String, String> tags;
+
+    @JsonProperty("tags")
+    public Map<String, String> getTags() {
+      return tags;
+    }
+
+    @JsonProperty(value = "volume_type", required = true)
+    private VolumeTypeName volume_type;
+
+    @JsonProperty("volume_type")
+    public VolumeTypeName getVolumeType() {
+      return volume_type;
+    }
+
+    @JsonProperty(value = "size_gb", required = true)
+    private Long size_gb;
+
+    @JsonProperty("size_gb")
+    public Long getSizeGb() {
+      return size_gb;
+    }
+
+    @JsonProperty(value = "performance", required = true)
+    private VolumePerformance performance;
+
+    @JsonProperty("performance")
+    public VolumePerformance getPerformance() {
+      return performance;
+    }
+
+    @JsonProperty(value = "included_io_limits", required = true)
+    private IncludedIOLimits included_io_limits;
+
+    @JsonProperty("included_io_limits")
+    public IncludedIOLimits getIncludedIoLimits() {
+      return included_io_limits;
+    }
+
+    @JsonProperty(value = "status", required = true)
+    private VolumeStatus status;
+
+    @JsonProperty("status")
+    public VolumeStatus getStatus() {
+      return status;
+    }
+
+    /**
+     * Set at create time when the volume is provisioned from a bootable image. Immutable after
+     * creation.
+     */
+    @JsonProperty(value = "bootable", required = true)
+    private Boolean bootable;
+
+    @JsonProperty("bootable")
+    public Boolean getBootable() {
+      return bootable;
+    }
+
+    /**
+     * Active faults, newest first. Empty when healthy. Status is error if and only if an active
+     * error-severity fault exists. Resolved history is retained internally.
+     */
+    @JsonProperty(value = "faults", required = true)
+    private List<Fault> faults;
+
+    @JsonProperty("faults")
+    public List<Fault> getFaults() {
+      return faults;
+    }
+
+    @JsonProperty(value = "created_at", required = true)
+    private String created_at;
+
+    @JsonProperty("created_at")
+    public String getCreatedAt() {
+      return created_at;
+    }
+
+    @JsonProperty(value = "updated_at", required = true)
+    private String updated_at;
+
+    @JsonProperty("updated_at")
+    public String getUpdatedAt() {
+      return updated_at;
+    }
+
+    /** Source image identity, or null when this volume was not created from an image. */
+    @JsonProperty(value = "source_image", required = true)
+    private AttachedVolumeSourceImage source_image;
+
+    @JsonProperty("source_image")
+    public AttachedVolumeSourceImage getSourceImage() {
+      return source_image;
+    }
+
+    /** Source snapshot identity, or null when not created from a snapshot. */
+    @JsonProperty(value = "source_snapshot", required = true)
+    private AttachedVolumeSourceSnapshot source_snapshot;
+
+    @JsonProperty("source_snapshot")
+    public AttachedVolumeSourceSnapshot getSourceSnapshot() {
+      return source_snapshot;
+    }
+
+    @JsonProperty(value = "device", required = true)
     private String device;
 
     @JsonProperty("device")
     public String getDevice() {
       return device;
     }
+
+    @JsonProperty(value = "boot_index", required = true)
+    private Long boot_index;
+
+    @JsonProperty("boot_index")
+    public Long getBootIndex() {
+      return boot_index;
+    }
+
+    @JsonProperty(value = "delete_on_termination", required = true)
+    private Boolean delete_on_termination;
+
+    @JsonProperty("delete_on_termination")
+    public Boolean getDeleteOnTermination() {
+      return delete_on_termination;
+    }
+
+    @JsonProperty(value = "mount_path", required = false)
+    private String mount_path;
+
+    @JsonProperty("mount_path")
+    public String getMountPath() {
+      return mount_path;
+    }
+
+    /**
+     * Filesystem the in-guest agent formatted the volume with, or absent when the attachment did
+     * not name one and the agent used the ext4 default. Every write path — instance create, pool
+     * template and attach — refuses anything else, so this is the whole set the field can hold.
+     */
+    @JsonProperty(value = "fstype", required = false)
+    private AttachedVolumeFstype fstype;
+
+    @JsonProperty("fstype")
+    public AttachedVolumeFstype getFstype() {
+      return fstype;
+    }
+
+    @JsonProperty(value = "mount", required = false)
+    private VolumeMount mount;
+
+    @JsonProperty("mount")
+    public VolumeMount getMount() {
+      return mount;
+    }
+  }
+
+  public static final class VolumeTypeName {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public VolumeTypeName(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof VolumeTypeName v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final VolumeTypeName HDD = new VolumeTypeName("hdd");
+    public static final VolumeTypeName SSD = new VolumeTypeName("ssd");
+    public static final VolumeTypeName NVME = new VolumeTypeName("nvme");
+  }
+
+  public static final class VolumePerformance extends Model {
+    public VolumePerformance() {}
+
+    @JsonProperty(value = "requested", required = true)
+    private IncludedIOLimits requested;
+
+    @JsonProperty("requested")
+    public IncludedIOLimits getRequested() {
+      return requested;
+    }
+
+    @JsonProperty(value = "applied", required = true)
+    private IncludedIOLimits applied;
+
+    @JsonProperty("applied")
+    public IncludedIOLimits getApplied() {
+      return applied;
+    }
+  }
+
+  public static final class IncludedIOLimits extends Model {
+    public IncludedIOLimits() {}
+
+    @JsonProperty(value = "iops", required = true)
+    private Long iops;
+
+    @JsonProperty("iops")
+    public Long getIops() {
+      return iops;
+    }
+
+    @JsonProperty(value = "bytes_per_sec", required = true)
+    private Long bytes_per_sec;
+
+    @JsonProperty("bytes_per_sec")
+    public Long getBytesPerSec() {
+      return bytes_per_sec;
+    }
+
+    /** Always zero for SSD and NVMe volumes; IOPS bursting is disabled. */
+    @JsonProperty(value = "burst_iops", required = true)
+    private Long burst_iops;
+
+    @JsonProperty("burst_iops")
+    public Long getBurstIops() {
+      return burst_iops;
+    }
+
+    /** Always zero for SSD and NVMe volumes; throughput bursting is disabled. */
+    @JsonProperty(value = "burst_bytes_per_sec", required = true)
+    private Long burst_bytes_per_sec;
+
+    @JsonProperty("burst_bytes_per_sec")
+    public Long getBurstBytesPerSec() {
+      return burst_bytes_per_sec;
+    }
+
+    /** Always zero for SSD and NVMe volumes; no burst duration applies. */
+    @JsonProperty(value = "burst_seconds", required = true)
+    private Long burst_seconds;
+
+    @JsonProperty("burst_seconds")
+    public Long getBurstSeconds() {
+      return burst_seconds;
+    }
+  }
+
+  public static final class VolumeStatus {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public VolumeStatus(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof VolumeStatus v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final VolumeStatus CREATING = new VolumeStatus("creating");
+    public static final VolumeStatus AVAILABLE = new VolumeStatus("available");
+    public static final VolumeStatus IN_USE = new VolumeStatus("in_use");
+    public static final VolumeStatus EXTENDING = new VolumeStatus("extending");
+    public static final VolumeStatus UPDATING = new VolumeStatus("updating");
+    public static final VolumeStatus DELETING = new VolumeStatus("deleting");
+    public static final VolumeStatus ERROR = new VolumeStatus("error");
+  }
+
+  public static final class Fault extends Model {
+    public Fault() {}
+
+    /** Stable machine-readable code owned by the reporting operation. */
+    @JsonProperty(value = "code", required = true)
+    private String code;
+
+    @JsonProperty("code")
+    public String getCode() {
+      return code;
+    }
+
+    @JsonProperty(value = "severity", required = true)
+    private FaultSeverity severity;
+
+    @JsonProperty("severity")
+    public FaultSeverity getSeverity() {
+      return severity;
+    }
+
+    @JsonProperty(value = "message", required = true)
+    private String message;
+
+    @JsonProperty("message")
+    public String getMessage() {
+      return message;
+    }
+
+    /** Structured context; legacy strings are preserved in legacy_text. */
+    @JsonProperty(value = "details", required = true)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<Map<String, JsonNode>> details = JsonField.missing();
+
+    @JsonProperty("details")
+    public JsonField<Map<String, JsonNode>> getDetails() {
+      return details;
+    }
+
+    /** First observation in this active occurrence series. */
+    @JsonProperty(value = "first_at", required = true)
+    private String first_at;
+
+    @JsonProperty("first_at")
+    public String getFirstAt() {
+      return first_at;
+    }
+
+    /** Latest observation in this active occurrence series. */
+    @JsonProperty(value = "last_at", required = true)
+    private String last_at;
+
+    @JsonProperty("last_at")
+    public String getLastAt() {
+      return last_at;
+    }
+
+    @JsonProperty(value = "occurrences", required = true)
+    private Long occurrences;
+
+    @JsonProperty("occurrences")
+    public Long getOccurrences() {
+      return occurrences;
+    }
+  }
+
+  public static final class FaultSeverity {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public FaultSeverity(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof FaultSeverity v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final FaultSeverity ERROR = new FaultSeverity("error");
+    public static final FaultSeverity WARNING = new FaultSeverity("warning");
+  }
+
+  public static final class AttachedVolumeSourceImage {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public AttachedVolumeSourceImage(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "AttachedVolumeSourceImage{[REDACTED]}";
+    }
+
+    public static AttachedVolumeSourceImage ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new AttachedVolumeSourceImage(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static AttachedVolumeSourceImage ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new AttachedVolumeSourceImage(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class AttachedVolumeSourceSnapshot {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public AttachedVolumeSourceSnapshot(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "AttachedVolumeSourceSnapshot{[REDACTED]}";
+    }
+
+    public static AttachedVolumeSourceSnapshot ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new AttachedVolumeSourceSnapshot(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static AttachedVolumeSourceSnapshot ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new AttachedVolumeSourceSnapshot(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class AttachedVolumeFstype {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public AttachedVolumeFstype(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof AttachedVolumeFstype v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final AttachedVolumeFstype EXT4 = new AttachedVolumeFstype("ext4");
+    public static final AttachedVolumeFstype XFS = new AttachedVolumeFstype("xfs");
+  }
+
+  public static final class VolumeMount extends Model {
+    public VolumeMount() {}
+
+    /**
+     * - `unknown` — no guest agent has ever reported on this volume. The agent may predate this
+     * feature, may have been removed (which is supported), or the guest may never have booted. -
+     * `pending` — the agent cannot mount it yet and expects that to change. The ordinary state for
+     * the first seconds after an attach, while the hot-plugged disk appears in the guest. -
+     * `mounted` — mounted at `mount_path`. May still carry a `code`. - `failed` — it will not mount
+     * until something changes. Either the agent reported a refusal that waiting cannot fix, or it
+     * has been unable to make progress for long enough that waiting is no longer the explanation.
+     * `code` says which.
+     */
+    @JsonProperty(value = "state", required = true)
+    private VolumeMountState state;
+
+    @JsonProperty("state")
+    public VolumeMountState getState() {
+      return state;
+    }
+
+    /**
+     * Why the volume is in this state. Absent when there is nothing to say. Independent of `state`
+     * rather than something only a failure carries: `fstab_write_failed` accompanies a **mounted**
+     * volume whose fstab entry could not be written, which works now and will be gone after the
+     * next reboot. The commonest one to act on is `signatures_no_filesystem` — the disk carries a
+     * partition table or other signatures but no mountable filesystem, so the agent will not format
+     * it, because formatting would destroy what is there. A volume cloned from a boot disk and
+     * attached with a `mount_path` lands here. Partition and format it inside the guest, or attach
+     * it without a `mount_path` and mount it yourself. `unknown_error` is a code this platform does
+     * not recognise, reported by a guest agent newer than the region.
+     */
+    @JsonProperty(value = "code", required = false)
+    private VolumeMountCode code;
+
+    @JsonProperty("code")
+    public VolumeMountCode getCode() {
+      return code;
+    }
+
+    /**
+     * Human-readable detail from inside the guest — the failing command's output, the partition
+     * table type it found. Free text originating in the customer's own VM: sanitised and capped,
+     * but display it as text, never as markup.
+     */
+    @JsonProperty(value = "message", required = false)
+    private String message;
+
+    @JsonProperty("message")
+    public String getMessage() {
+      return message;
+    }
+
+    /** When the volume entered this condition. Absent when `state` is `unknown`. */
+    @JsonProperty(value = "since", required = false)
+    private String since;
+
+    @JsonProperty("since")
+    public String getSince() {
+      return since;
+    }
+
+    /**
+     * When the guest agent last reported, whether or not anything had changed. A `reported_at` far
+     * in the past means the agent has stopped talking to us, and the state beside it is what it
+     * last said rather than what is true now. Absent when `state` is `unknown`.
+     */
+    @JsonProperty(value = "reported_at", required = false)
+    private String reported_at;
+
+    @JsonProperty("reported_at")
+    public String getReportedAt() {
+      return reported_at;
+    }
+  }
+
+  public static final class VolumeMountState {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public VolumeMountState(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof VolumeMountState v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final VolumeMountState UNKNOWN = new VolumeMountState("unknown");
+    public static final VolumeMountState PENDING = new VolumeMountState("pending");
+    public static final VolumeMountState MOUNTED = new VolumeMountState("mounted");
+    public static final VolumeMountState FAILED = new VolumeMountState("failed");
+  }
+
+  public static final class VolumeMountCode {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public VolumeMountCode(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof VolumeMountCode v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final VolumeMountCode UNSAFE_SERIAL = new VolumeMountCode("unsafe_serial");
+    public static final VolumeMountCode DEVICE_ABSENT = new VolumeMountCode("device_absent");
+    public static final VolumeMountCode PROBE_FAILED = new VolumeMountCode("probe_failed");
+    public static final VolumeMountCode SIGNATURES_NO_FILESYSTEM =
+        new VolumeMountCode("signatures_no_filesystem");
+    public static final VolumeMountCode UNSUPPORTED_FSTYPE =
+        new VolumeMountCode("unsupported_fstype");
+    public static final VolumeMountCode MKFS_FAILED = new VolumeMountCode("mkfs_failed");
+    public static final VolumeMountCode UNSAFE_MOUNT_PATH =
+        new VolumeMountCode("unsafe_mount_path");
+    public static final VolumeMountCode MKDIR_FAILED = new VolumeMountCode("mkdir_failed");
+    public static final VolumeMountCode MOUNT_FAILED = new VolumeMountCode("mount_failed");
+    public static final VolumeMountCode FSTAB_WRITE_FAILED =
+        new VolumeMountCode("fstab_write_failed");
+    public static final VolumeMountCode UNKNOWN_ERROR = new VolumeMountCode("unknown_error");
   }
 
   public static final class ImageCreateRequestInput extends Model {
@@ -1561,103 +2175,6 @@ public final class Compute {
 
     public static final ImageDeletionRetentionReason IN_USE =
         new ImageDeletionRetentionReason("in_use");
-  }
-
-  public static final class Fault extends Model {
-    public Fault() {}
-
-    /** Stable machine-readable code owned by the reporting operation. */
-    @JsonProperty(value = "code", required = true)
-    private String code;
-
-    @JsonProperty("code")
-    public String getCode() {
-      return code;
-    }
-
-    @JsonProperty(value = "severity", required = true)
-    private FaultSeverity severity;
-
-    @JsonProperty("severity")
-    public FaultSeverity getSeverity() {
-      return severity;
-    }
-
-    @JsonProperty(value = "message", required = true)
-    private String message;
-
-    @JsonProperty("message")
-    public String getMessage() {
-      return message;
-    }
-
-    /** Structured context; legacy strings are preserved in legacy_text. */
-    @JsonProperty(value = "details", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<Map<String, JsonNode>> details = JsonField.missing();
-
-    @JsonProperty("details")
-    public JsonField<Map<String, JsonNode>> getDetails() {
-      return details;
-    }
-
-    /** First observation in this active occurrence series. */
-    @JsonProperty(value = "first_at", required = true)
-    private String first_at;
-
-    @JsonProperty("first_at")
-    public String getFirstAt() {
-      return first_at;
-    }
-
-    /** Latest observation in this active occurrence series. */
-    @JsonProperty(value = "last_at", required = true)
-    private String last_at;
-
-    @JsonProperty("last_at")
-    public String getLastAt() {
-      return last_at;
-    }
-
-    @JsonProperty(value = "occurrences", required = true)
-    private Long occurrences;
-
-    @JsonProperty("occurrences")
-    public Long getOccurrences() {
-      return occurrences;
-    }
-  }
-
-  public static final class FaultSeverity {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FaultSeverity(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof FaultSeverity v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final FaultSeverity ERROR = new FaultSeverity("error");
-    public static final FaultSeverity WARNING = new FaultSeverity("warning");
   }
 
   public static final class InstanceCreateRequestInput extends Model {
@@ -2557,7 +3074,7 @@ public final class Compute {
   public static final class CreateInstanceResponse extends Model {
     public CreateInstanceResponse() {}
 
-    @JsonProperty(value = "instance", required = false)
+    @JsonProperty(value = "instance", required = true)
     private Instance instance;
 
     @JsonProperty("instance")
@@ -2569,7 +3086,7 @@ public final class Compute {
   public static final class Instance extends Model {
     public Instance() {}
 
-    @JsonProperty(value = "id", required = false)
+    @JsonProperty(value = "id", required = true)
     private String id;
 
     @JsonProperty("id")
@@ -2578,7 +3095,7 @@ public final class Compute {
     }
 
     /** Cloud Resource Name */
-    @JsonProperty(value = "crn", required = false)
+    @JsonProperty(value = "crn", required = true)
     private String crn;
 
     @JsonProperty("crn")
@@ -2590,7 +3107,7 @@ public final class Compute {
      * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
      * braced, or urn:uuid: forms, in either case).
      */
-    @JsonProperty(value = "name", required = false)
+    @JsonProperty(value = "name", required = true)
     private String name;
 
     @JsonProperty("name")
@@ -2616,27 +3133,21 @@ public final class Compute {
       return task_state;
     }
 
-    /**
-     * Resolved flavor (compute size) the instance runs on. Omitted if the referenced flavor row has
-     * been retired.
-     */
-    @JsonProperty(value = "flavor", required = false)
-    private Flavor flavor;
+    /** Flavor identity. Every instance has a flavor; query the flavor resource for CPU and RAM. */
+    @JsonProperty(value = "flavor", required = true)
+    private ResourceRef flavor;
 
     @JsonProperty("flavor")
-    public Flavor getFlavor() {
+    public ResourceRef getFlavor() {
       return flavor;
     }
 
-    /**
-     * Resolved source image the instance booted from. Omitted for a volume-only boot or if the
-     * referenced image row is gone.
-     */
-    @JsonProperty(value = "image", required = false)
-    private Image image;
+    /** Pinned source image identity, or null for a volume-only boot. */
+    @JsonProperty(value = "image", required = true)
+    private InstanceImage image;
 
     @JsonProperty("image")
-    public Image getImage() {
+    public InstanceImage getImage() {
       return image;
     }
 
@@ -2650,15 +3161,14 @@ public final class Compute {
     }
 
     /**
-     * Summary of the attached IAM role, visible with instance read access without iam:GetRole.
-     * Omitted when no role is attached, the role was deleted, or it belongs to another account.
-     * Sensitive role fields remain available only through the IAM API.
+     * Attached IAM role identity, or null when no role is attached. Deleted roles retain their
+     * identity without name.
      */
-    @JsonProperty(value = "iam_role", required = false)
-    private InstanceRole iam_role;
+    @JsonProperty(value = "iam_role", required = true)
+    private InstanceIamRole iam_role;
 
     @JsonProperty("iam_role")
-    public InstanceRole getIamRole() {
+    public InstanceIamRole getIamRole() {
       return iam_role;
     }
 
@@ -2690,7 +3200,7 @@ public final class Compute {
       return faults;
     }
 
-    @JsonProperty(value = "created_at", required = false)
+    @JsonProperty(value = "created_at", required = true)
     private String created_at;
 
     @JsonProperty("created_at")
@@ -2698,7 +3208,7 @@ public final class Compute {
       return created_at;
     }
 
-    @JsonProperty(value = "updated_at", required = false)
+    @JsonProperty(value = "updated_at", required = true)
     private String updated_at;
 
     @JsonProperty("updated_at")
@@ -2728,7 +3238,7 @@ public final class Compute {
      * What was asked for. Only three values, because there are only three things you can ask an
      * instance to be: Create/Start/Reboot ask for running, Stop for stopped, Delete for deleted.
      */
-    @JsonProperty(value = "desired_state", required = false)
+    @JsonProperty(value = "desired_state", required = true)
     private InstanceDesiredState desired_state;
 
     @JsonProperty("desired_state")
@@ -2741,7 +3251,7 @@ public final class Compute {
      * live here, not on desired_state, because nobody asks for `stopping`. desired_state=running
      * with current_state=stopped is an instance that was asked to start and has not come up yet.
      */
-    @JsonProperty(value = "current_state", required = false)
+    @JsonProperty(value = "current_state", required = true)
     private CurrentState current_state;
 
     @JsonProperty("current_state")
@@ -2750,271 +3260,103 @@ public final class Compute {
     }
   }
 
-  public static final class Flavor extends Model {
-    public Flavor() {}
-
-    @JsonProperty(value = "id", required = false)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    /** Cloud Resource Name */
-    @JsonProperty(value = "crn", required = false)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    /**
-     * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
-     * braced, or urn:uuid: forms, in either case).
-     */
-    @JsonProperty(value = "name", required = false)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(value = "description", required = false)
-    private String description;
-
-    @JsonProperty("description")
-    public String getDescription() {
-      return description;
-    }
-
-    /** Number of virtual CPUs */
-    @JsonProperty(value = "vcpus", required = false)
-    private Long vcpus;
-
-    @JsonProperty("vcpus")
-    public Long getVcpus() {
-      return vcpus;
-    }
-
-    /** RAM in MB */
-    @JsonProperty(value = "ram_mb", required = false)
-    private Long ram_mb;
-
-    @JsonProperty("ram_mb")
-    public Long getRamMb() {
-      return ram_mb;
-    }
-
-    /**
-     * Host-pool routing. "shared" oversubscribes CPU for higher density; "dedicated" pins each vCPU
-     * 1:1 to a physical core.
-     */
-    @JsonProperty(value = "class", required = false)
-    private FlavorClass classValue;
-
-    @JsonProperty("class")
-    public FlavorClass getClassValue() {
-      return classValue;
-    }
-
-    /**
-     * Which product can book the flavor. "general" flavors are for regular instances and instance
-     * pools; "loadbalancer" and "database" flavors are reserved for the managed products (their
-     * nodes are platform- operated and priced accordingly) and cannot be used for regular
-     * instances.
-     */
-    @JsonProperty(value = "family", required = false)
-    private FlavorFamily family;
-
-    @JsonProperty("family")
-    public FlavorFamily getFamily() {
-      return family;
-    }
-
-    /**
-     * Aggregate instance network throughput limit in megabits per second. Omitted when uncapped.
-     */
-    @JsonProperty(value = "net_mbps", required = false)
-    private Long net_mbps;
-
-    @JsonProperty("net_mbps")
-    public Long getNetMbps() {
-      return net_mbps;
-    }
-
-    /** Guaranteed CPU floor as a percentage of each vCPU. Omitted when no floor is guaranteed. */
-    @JsonProperty(value = "cpu_baseline_pct", required = false)
-    private Long cpu_baseline_pct;
-
-    @JsonProperty("cpu_baseline_pct")
-    public Long getCpuBaselinePct() {
-      return cpu_baseline_pct;
-    }
-
-    /**
-     * CPU ceiling as a percentage of each vCPU. A value of 100 or an omitted field allows the full
-     * vCPU count.
-     */
-    @JsonProperty(value = "cpu_burst_pct", required = false)
-    private Long cpu_burst_pct;
-
-    @JsonProperty("cpu_burst_pct")
-    public Long getCpuBurstPct() {
-      return cpu_burst_pct;
-    }
-
-    @JsonProperty(value = "status", required = false)
-    private FlavorStatus status;
-
-    @JsonProperty("status")
-    public FlavorStatus getStatus() {
-      return status;
-    }
-
-    @JsonProperty(value = "created_at", required = false)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
-    }
-
-    @JsonProperty(value = "updated_at", required = false)
-    private String updated_at;
-
-    @JsonProperty("updated_at")
-    public String getUpdatedAt() {
-      return updated_at;
-    }
-  }
-
-  public static final class FlavorClass {
-    private final String value;
+  public static final class InstanceImage {
+    private final JsonNode value;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FlavorClass(String value) {
-      this.value = Objects.requireNonNull(value);
+    public InstanceImage(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
     }
 
     @JsonValue
-    public String value() {
-      return value;
+    public JsonNode json() {
+      return value.deepCopy();
     }
 
     @Override
     public String toString() {
-      return value;
+      return "InstanceImage{[REDACTED]}";
     }
 
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof FlavorClass v && value.equals(v.value);
+    public static InstanceImage ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new InstanceImage(Json.tree(value));
     }
 
-    @Override
-    public int hashCode() {
-      return value.hashCode();
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
     }
 
-    public static final FlavorClass SHARED = new FlavorClass("shared");
-    public static final FlavorClass DEDICATED = new FlavorClass("dedicated");
+    public static InstanceImage ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new InstanceImage(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
   }
 
-  public static final class FlavorFamily {
-    private final String value;
+  public static final class InstanceIamRole {
+    private final JsonNode value;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FlavorFamily(String value) {
-      this.value = Objects.requireNonNull(value);
+    public InstanceIamRole(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
     }
 
     @JsonValue
-    public String value() {
-      return value;
+    public JsonNode json() {
+      return value.deepCopy();
     }
 
     @Override
     public String toString() {
-      return value;
+      return "InstanceIamRole{[REDACTED]}";
     }
 
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof FlavorFamily v && value.equals(v.value);
+    public static InstanceIamRole ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new InstanceIamRole(Json.tree(value));
     }
 
-    @Override
-    public int hashCode() {
-      return value.hashCode();
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
     }
 
-    public static final FlavorFamily GENERAL = new FlavorFamily("general");
-    public static final FlavorFamily LOADBALANCER = new FlavorFamily("loadbalancer");
-    public static final FlavorFamily DATABASE = new FlavorFamily("database");
-  }
-
-  public static final class FlavorStatus {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FlavorStatus(String value) {
-      this.value = Objects.requireNonNull(value);
+    public static InstanceIamRole ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new InstanceIamRole(Json.tree(value));
     }
 
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof FlavorStatus v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final FlavorStatus ACTIVE = new FlavorStatus("active");
-    public static final FlavorStatus DISABLED = new FlavorStatus("disabled");
-  }
-
-  public static final class InstanceRole extends Model {
-    public InstanceRole() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    /** Account-scoped role identity, as used in policy documents. */
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    /** Immutable role name. */
-    @JsonProperty(value = "name", required = true)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
     }
   }
 
@@ -3096,6 +3438,20 @@ public final class Compute {
 
   public static final class InstancePoolCreateRequestInput extends Model {
     public InstancePoolCreateRequestInput() {}
+
+    /** Subnet UUIDs or CRNs in the same VPC. */
+    @JsonProperty(value = "subnets", required = true)
+    private List<String> subnets;
+
+    @JsonProperty("subnets")
+    public List<String> getSubnets() {
+      return subnets;
+    }
+
+    public InstancePoolCreateRequestInput withSubnets(List<String> value) {
+      this.subnets = value;
+      return this;
+    }
 
     @JsonProperty(value = "autoscaling", required = false)
     private AutoscalingPolicyInput autoscaling;
@@ -3662,17 +4018,49 @@ public final class Compute {
       return this;
     }
 
-    /** Per-replica interfaces. Index 0 is the primary NIC and is required; the rest are extras. */
-    @JsonProperty(value = "networks", required = true)
-    private List<NetworkConfigInput> networks;
+    /** Address families allocated per member; fixed addresses are not allowed. */
+    @JsonProperty(value = "addresses", required = false)
+    private List<AddressRequestInput> addresses;
 
-    @JsonProperty("networks")
-    public List<NetworkConfigInput> getNetworks() {
-      return networks;
+    @JsonProperty("addresses")
+    public List<AddressRequestInput> getAddresses() {
+      return addresses;
     }
 
-    public InstancePoolTemplateRequestInput withNetworks(List<NetworkConfigInput> value) {
-      this.networks = value;
+    public InstancePoolTemplateRequestInput withAddresses(List<AddressRequestInput> value) {
+      this.addresses = value;
+      return this;
+    }
+
+    /** Security group selectors applied to every member interface. */
+    @JsonProperty(value = "security_groups", required = false)
+    private List<String> security_groups;
+
+    @JsonProperty("security_groups")
+    public List<String> getSecurityGroups() {
+      return security_groups;
+    }
+
+    public InstancePoolTemplateRequestInput withSecurityGroups(List<String> value) {
+      this.security_groups = value;
+      return this;
+    }
+
+    /**
+     * Per-member public floating IP assignment. Explicit families require addresses and internet
+     * routes in every selected subnet.
+     */
+    @JsonProperty(value = "floating_ip_assignment", required = false)
+    private InstancePoolTemplateRequestInputFloatingIpAssignment floating_ip_assignment;
+
+    @JsonProperty("floating_ip_assignment")
+    public InstancePoolTemplateRequestInputFloatingIpAssignment getFloatingIpAssignment() {
+      return floating_ip_assignment;
+    }
+
+    public InstancePoolTemplateRequestInput withFloatingIpAssignment(
+        InstancePoolTemplateRequestInputFloatingIpAssignment value) {
+      this.floating_ip_assignment = value;
       return this;
     }
 
@@ -3758,6 +4146,47 @@ public final class Compute {
       this.volumes = value;
       return this;
     }
+  }
+
+  public static final class InstancePoolTemplateRequestInputFloatingIpAssignment {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public InstancePoolTemplateRequestInputFloatingIpAssignment(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof InstancePoolTemplateRequestInputFloatingIpAssignment v
+          && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final InstancePoolTemplateRequestInputFloatingIpAssignment NONE =
+        new InstancePoolTemplateRequestInputFloatingIpAssignment("none");
+    public static final InstancePoolTemplateRequestInputFloatingIpAssignment IPV4 =
+        new InstancePoolTemplateRequestInputFloatingIpAssignment("ipv4");
+    public static final InstancePoolTemplateRequestInputFloatingIpAssignment IPV6 =
+        new InstancePoolTemplateRequestInputFloatingIpAssignment("ipv6");
+    public static final InstancePoolTemplateRequestInputFloatingIpAssignment DUAL_STACK =
+        new InstancePoolTemplateRequestInputFloatingIpAssignment("dual_stack");
+    public static final InstancePoolTemplateRequestInputFloatingIpAssignment AUTO =
+        new InstancePoolTemplateRequestInputFloatingIpAssignment("auto");
   }
 
   public static final class InstanceVolumeInput extends Model {
@@ -3865,7 +4294,7 @@ public final class Compute {
   public static final class InstancePoolResponse extends Model {
     public InstancePoolResponse() {}
 
-    @JsonProperty(value = "instance_pool", required = false)
+    @JsonProperty(value = "instance_pool", required = true)
     private InstancePool instance_pool;
 
     @JsonProperty("instance_pool")
@@ -3876,6 +4305,23 @@ public final class Compute {
 
   public static final class InstancePool extends Model {
     public InstancePool() {}
+
+    /** Eligible placement subnets in the same account, region and VPC. */
+    @JsonProperty(value = "subnets", required = true)
+    private List<ResourceRef> subnets;
+
+    @JsonProperty("subnets")
+    public List<ResourceRef> getSubnets() {
+      return subnets;
+    }
+
+    @JsonProperty(value = "vpc", required = true)
+    private InstancePoolVpc vpc;
+
+    @JsonProperty("vpc")
+    public InstancePoolVpc getVpc() {
+      return vpc;
+    }
 
     @JsonProperty(value = "autoscaling", required = false)
     private AutoscalingPolicy autoscaling;
@@ -4088,6 +4534,56 @@ public final class Compute {
     @JsonProperty("template")
     public InstancePoolTemplate getTemplate() {
       return template;
+    }
+  }
+
+  public static final class InstancePoolVpc {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public InstancePoolVpc(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "InstancePoolVpc{[REDACTED]}";
+    }
+
+    public static InstancePoolVpc ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new InstancePoolVpc(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static InstancePoolVpc ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new InstancePoolVpc(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
     }
   }
 
@@ -4602,30 +5098,35 @@ public final class Compute {
   public static final class InstancePoolTemplate extends Model {
     public InstancePoolTemplate() {}
 
-    @JsonProperty(value = "flavor_id", required = false)
-    private String flavor_id;
+    /**
+     * Address families allocated on the member's sole interface. Fixed addresses are not allowed.
+     */
+    @JsonProperty(value = "addresses", required = false)
+    private List<AddressRequest> addresses;
 
-    @JsonProperty("flavor_id")
-    public String getFlavorId() {
-      return flavor_id;
+    @JsonProperty("addresses")
+    public List<AddressRequest> getAddresses() {
+      return addresses;
     }
 
-    /** Resolved image UUID pinned for every replica until template replacement. */
-    @JsonProperty(value = "image_id", required = false)
-    private String image_id;
+    @JsonProperty(value = "security_groups", required = true)
+    private List<ResourceRef> security_groups;
 
-    @JsonProperty("image_id")
-    public String getImageId() {
-      return image_id;
+    @JsonProperty("security_groups")
+    public List<ResourceRef> getSecurityGroups() {
+      return security_groups;
     }
 
-    /** Per-replica interfaces. Index 0 is the primary NIC and is required; the rest are extras. */
-    @JsonProperty(value = "networks", required = false)
-    private List<NetworkConfigResponse> networks;
+    /**
+     * Per-member public floating IP assignment. Explicit families require addresses and internet
+     * routes in every selected subnet.
+     */
+    @JsonProperty(value = "floating_ip_assignment", required = true)
+    private InstancePoolTemplateFloatingIpAssignment floating_ip_assignment;
 
-    @JsonProperty("networks")
-    public List<NetworkConfigResponse> getNetworks() {
-      return networks;
+    @JsonProperty("floating_ip_assignment")
+    public InstancePoolTemplateFloatingIpAssignment getFloatingIpAssignment() {
+      return floating_ip_assignment;
     }
 
     /** Base64-encoded user data (cloud-init), stamped on every replica. */
@@ -4661,16 +5162,12 @@ public final class Compute {
       return tags;
     }
 
-    /**
-     * Summary of the IAM role attached to every replica, visible with pool read access without
-     * iam:GetRole. Omitted when no role is attached, the role was deleted, or it belongs to another
-     * account. Sensitive role fields remain available only through the IAM API.
-     */
-    @JsonProperty(value = "iam_role", required = false)
-    private InstanceRole iam_role;
+    /** Role assigned to replicas, or null when none is configured. */
+    @JsonProperty(value = "iam_role", required = true)
+    private InstancePoolTemplateIamRole iam_role;
 
     @JsonProperty("iam_role")
-    public InstanceRole getIamRole() {
+    public InstancePoolTemplateIamRole getIamRole() {
       return iam_role;
     }
 
@@ -4686,389 +5183,23 @@ public final class Compute {
     public List<InstanceVolume> getVolumes() {
       return volumes;
     }
-  }
 
-  public static final class NetworkConfigResponse extends Model {
-    public NetworkConfigResponse() {}
+    @JsonProperty(value = "flavor", required = true)
+    private ResourceRef flavor;
 
-    /** Subnet placement; null when the referenced subnet no longer exists. */
-    @JsonProperty(value = "subnet", required = true)
-    private NetworkConfigResponseSubnet subnet;
-
-    @JsonProperty("subnet")
-    public NetworkConfigResponseSubnet getSubnet() {
-      return subnet;
+    @JsonProperty("flavor")
+    public ResourceRef getFlavor() {
+      return flavor;
     }
 
-    /**
-     * Optional MAC address. Must be locally-administered (`X2:`, `X6:`, `XA:`, `XE:` in the first
-     * octet). Generated when omitted.
-     */
-    @JsonProperty(value = "mac", required = false)
-    private String mac;
+    /** Source image pinned until the template is replaced, or null when no image is selected. */
+    @JsonProperty(value = "image", required = true)
+    private InstancePoolTemplateImage image;
 
-    @JsonProperty("mac")
-    public String getMac() {
-      return mac;
+    @JsonProperty("image")
+    public InstancePoolTemplateImage getImage() {
+      return image;
     }
-
-    /**
-     * Account-scoped security group references (UUID, CRN or name) to attach to this NIC. Each must
-     * be owned by the same account. Empty list = no per-NIC ACLs (the platform's default-allow
-     * stays in force).
-     */
-    @JsonProperty(value = "security_group_ids", required = false)
-    private List<String> security_group_ids;
-
-    @JsonProperty("security_group_ids")
-    public List<String> getSecurityGroupIds() {
-      return security_group_ids;
-    }
-
-    /**
-     * Allocate public floating IPs for this NIC at launch. Explicit families require matching guest
-     * addresses and internet routes. Detach leaves the FIP reserved. No ordinary public IPv4
-     * mapping exists.
-     */
-    @JsonProperty(value = "floating_ip_assignment", required = false)
-    private NetworkConfigResponseFloatingIpAssignment floating_ip_assignment;
-
-    @JsonProperty("floating_ip_assignment")
-    public NetworkConfigResponseFloatingIpAssignment getFloatingIpAssignment() {
-      return floating_ip_assignment;
-    }
-
-    @JsonProperty(value = "addresses", required = false)
-    private List<AddressRequest> addresses;
-
-    @JsonProperty("addresses")
-    public List<AddressRequest> getAddresses() {
-      return addresses;
-    }
-  }
-
-  public static final class NetworkConfigResponseSubnet {
-    private final JsonNode value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public NetworkConfigResponseSubnet(JsonNode value) {
-      this.value = Objects.requireNonNull(value).deepCopy();
-    }
-
-    @JsonValue
-    public JsonNode json() {
-      return value.deepCopy();
-    }
-
-    @Override
-    public String toString() {
-      return "NetworkConfigResponseSubnet{[REDACTED]}";
-    }
-
-    public static NetworkConfigResponseSubnet ofVariant1(Subnet value) {
-      Model.validate(value);
-      return new NetworkConfigResponseSubnet(Json.tree(value));
-    }
-
-    public Optional<Subnet> asVariant1() {
-      try {
-        Subnet result = Json.convert(value, new TypeReference<Subnet>() {});
-        Model.validate(result);
-        return Optional.ofNullable(result);
-      } catch (sh.basaltic.sdk.SdkException e) {
-        return Optional.empty();
-      }
-    }
-
-    public static NetworkConfigResponseSubnet ofVariant2(Map<String, JsonNode> value) {
-      Model.validate(value);
-      return new NetworkConfigResponseSubnet(Json.tree(value));
-    }
-
-    public Optional<Map<String, JsonNode>> asVariant2() {
-      try {
-        Map<String, JsonNode> result =
-            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
-        Model.validate(result);
-        return Optional.ofNullable(result);
-      } catch (sh.basaltic.sdk.SdkException e) {
-        return Optional.empty();
-      }
-    }
-  }
-
-  public static final class Subnet extends Model {
-    public Subnet() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    @JsonProperty(value = "vpc", required = true)
-    private Vpc vpc;
-
-    @JsonProperty("vpc")
-    public Vpc getVpc() {
-      return vpc;
-    }
-
-    @JsonProperty(value = "route_table", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<RouteTableSummary> route_table = JsonField.missing();
-
-    @JsonProperty("route_table")
-    public JsonField<RouteTableSummary> getRouteTable() {
-      return route_table;
-    }
-
-    /**
-     * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
-     * braced, or urn:uuid: forms, in either case).
-     */
-    @JsonProperty(value = "name", required = true)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(value = "description", required = false)
-    private String description;
-
-    @JsonProperty("description")
-    public String getDescription() {
-      return description;
-    }
-
-    @JsonProperty(value = "cidr_ipv4", required = true)
-    private String cidr_ipv4;
-
-    @JsonProperty("cidr_ipv4")
-    public String getCidrIpv4() {
-      return cidr_ipv4;
-    }
-
-    @JsonProperty(value = "gateway_ipv4", required = true)
-    private String gateway_ipv4;
-
-    @JsonProperty("gateway_ipv4")
-    public String getGatewayIpv4() {
-      return gateway_ipv4;
-    }
-
-    /**
-     * The dual-stack IPv6 /64, if the subnet is v6-enabled. Its presence (vs the v4 cidr_ipv4) is
-     * how a client tells the subnet's families apart.
-     */
-    @JsonProperty(value = "cidr_ipv6", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> cidr_ipv6 = JsonField.missing();
-
-    @JsonProperty("cidr_ipv6")
-    public JsonField<String> getCidrIpv6() {
-      return cidr_ipv6;
-    }
-
-    @JsonProperty(value = "gateway_ipv6", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> gateway_ipv6 = JsonField.missing();
-
-    @JsonProperty("gateway_ipv6")
-    public JsonField<String> getGatewayIpv6() {
-      return gateway_ipv6;
-    }
-
-    @JsonProperty(value = "tags", required = true)
-    private Map<String, String> tags;
-
-    @JsonProperty("tags")
-    public Map<String, String> getTags() {
-      return tags;
-    }
-
-    @JsonProperty(value = "created_at", required = true)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
-    }
-
-    @JsonProperty(value = "updated_at", required = true)
-    private String updated_at;
-
-    @JsonProperty("updated_at")
-    public String getUpdatedAt() {
-      return updated_at;
-    }
-  }
-
-  public static final class Vpc extends Model {
-    public Vpc() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    /** Cloud Resource Name (name-based, region+account-scoped). */
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    /**
-     * 1-63 chars, lowercase alphanumeric + hyphen Resource names must not start with the literal
-     * crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
-     */
-    @JsonProperty(value = "name", required = true)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(value = "description", required = false)
-    private String description;
-
-    @JsonProperty("description")
-    public String getDescription() {
-      return description;
-    }
-
-    /**
-     * IPv4 CIDR block carved up by subnets. Must be private (RFC 1918): within 10.0.0.0/8,
-     * 172.16.0.0/12 or 192.168.0.0/16. Immutable after create.
-     */
-    @JsonProperty(value = "cidr_ipv4", required = true)
-    private String cidr_ipv4;
-
-    @JsonProperty("cidr_ipv4")
-    public String getCidrIpv4() {
-      return cidr_ipv4;
-    }
-
-    /** Associated regional GUA or private ULA prefix. */
-    @JsonProperty(value = "cidr_ipv6", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> cidr_ipv6 = JsonField.missing();
-
-    @JsonProperty("cidr_ipv6")
-    public JsonField<String> getCidrIpv6() {
-      return cidr_ipv6;
-    }
-
-    @JsonProperty(value = "tags", required = true)
-    private Map<String, String> tags;
-
-    @JsonProperty("tags")
-    public Map<String, String> getTags() {
-      return tags;
-    }
-
-    @JsonProperty(value = "created_at", required = true)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
-    }
-
-    @JsonProperty(value = "updated_at", required = true)
-    private String updated_at;
-
-    @JsonProperty("updated_at")
-    public String getUpdatedAt() {
-      return updated_at;
-    }
-  }
-
-  public static final class RouteTableSummary extends Model {
-    public RouteTableSummary() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    @JsonProperty(value = "name", required = true)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-  }
-
-  public static final class NetworkConfigResponseFloatingIpAssignment {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public NetworkConfigResponseFloatingIpAssignment(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof NetworkConfigResponseFloatingIpAssignment v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final NetworkConfigResponseFloatingIpAssignment NONE =
-        new NetworkConfigResponseFloatingIpAssignment("none");
-    public static final NetworkConfigResponseFloatingIpAssignment IPV4 =
-        new NetworkConfigResponseFloatingIpAssignment("ipv4");
-    public static final NetworkConfigResponseFloatingIpAssignment IPV6 =
-        new NetworkConfigResponseFloatingIpAssignment("ipv6");
-    public static final NetworkConfigResponseFloatingIpAssignment DUAL_STACK =
-        new NetworkConfigResponseFloatingIpAssignment("dual_stack");
-    public static final NetworkConfigResponseFloatingIpAssignment AUTO =
-        new NetworkConfigResponseFloatingIpAssignment("auto");
   }
 
   public static final class AddressRequest extends Model {
@@ -5127,6 +5258,96 @@ public final class Compute {
 
     public static final AddressRequestFamily IPV4 = new AddressRequestFamily("ipv4");
     public static final AddressRequestFamily IPV6 = new AddressRequestFamily("ipv6");
+  }
+
+  public static final class InstancePoolTemplateFloatingIpAssignment {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public InstancePoolTemplateFloatingIpAssignment(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof InstancePoolTemplateFloatingIpAssignment v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final InstancePoolTemplateFloatingIpAssignment NONE =
+        new InstancePoolTemplateFloatingIpAssignment("none");
+    public static final InstancePoolTemplateFloatingIpAssignment IPV4 =
+        new InstancePoolTemplateFloatingIpAssignment("ipv4");
+    public static final InstancePoolTemplateFloatingIpAssignment IPV6 =
+        new InstancePoolTemplateFloatingIpAssignment("ipv6");
+    public static final InstancePoolTemplateFloatingIpAssignment DUAL_STACK =
+        new InstancePoolTemplateFloatingIpAssignment("dual_stack");
+    public static final InstancePoolTemplateFloatingIpAssignment AUTO =
+        new InstancePoolTemplateFloatingIpAssignment("auto");
+  }
+
+  public static final class InstancePoolTemplateIamRole {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public InstancePoolTemplateIamRole(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "InstancePoolTemplateIamRole{[REDACTED]}";
+    }
+
+    public static InstancePoolTemplateIamRole ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new InstancePoolTemplateIamRole(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static InstancePoolTemplateIamRole ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new InstancePoolTemplateIamRole(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
   }
 
   public static final class InstanceVolume extends Model {
@@ -5216,6 +5437,56 @@ public final class Compute {
     }
   }
 
+  public static final class InstancePoolTemplateImage {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public InstancePoolTemplateImage(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "InstancePoolTemplateImage{[REDACTED]}";
+    }
+
+    public static InstancePoolTemplateImage ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new InstancePoolTemplateImage(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static InstancePoolTemplateImage ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new InstancePoolTemplateImage(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
   public static final class SerialConsoleTicket extends Model {
     public SerialConsoleTicket() {}
 
@@ -5296,13 +5567,239 @@ public final class Compute {
   public static final class GetFlavorResponse extends Model {
     public GetFlavorResponse() {}
 
-    @JsonProperty(value = "flavor", required = false)
+    @JsonProperty(value = "flavor", required = true)
     private Flavor flavor;
 
     @JsonProperty("flavor")
     public Flavor getFlavor() {
       return flavor;
     }
+  }
+
+  public static final class Flavor extends Model {
+    public Flavor() {}
+
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
+    /** Cloud Resource Name */
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    /**
+     * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
+     * braced, or urn:uuid: forms, in either case).
+     */
+    @JsonProperty(value = "name", required = true)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    @JsonProperty(value = "description", required = false)
+    private String description;
+
+    @JsonProperty("description")
+    public String getDescription() {
+      return description;
+    }
+
+    /** Number of virtual CPUs */
+    @JsonProperty(value = "vcpus", required = true)
+    private Long vcpus;
+
+    @JsonProperty("vcpus")
+    public Long getVcpus() {
+      return vcpus;
+    }
+
+    /** RAM in MB */
+    @JsonProperty(value = "ram_mb", required = true)
+    private Long ram_mb;
+
+    @JsonProperty("ram_mb")
+    public Long getRamMb() {
+      return ram_mb;
+    }
+
+    /**
+     * Host-pool routing. "shared" oversubscribes CPU for higher density; "dedicated" pins each vCPU
+     * 1:1 to a physical core.
+     */
+    @JsonProperty(value = "class", required = true)
+    private FlavorClass classValue;
+
+    @JsonProperty("class")
+    public FlavorClass getClassValue() {
+      return classValue;
+    }
+
+    /**
+     * Which product can book the flavor. "general" flavors are for regular instances and instance
+     * pools; "loadbalancer" and "database" flavors are reserved for the managed products (their
+     * nodes are platform- operated and priced accordingly) and cannot be used for regular
+     * instances.
+     */
+    @JsonProperty(value = "family", required = true)
+    private FlavorFamily family;
+
+    @JsonProperty("family")
+    public FlavorFamily getFamily() {
+      return family;
+    }
+
+    /**
+     * Aggregate instance network throughput limit in megabits per second. Omitted when uncapped.
+     */
+    @JsonProperty(value = "net_mbps", required = false)
+    private Long net_mbps;
+
+    @JsonProperty("net_mbps")
+    public Long getNetMbps() {
+      return net_mbps;
+    }
+
+    /** Guaranteed CPU floor as a percentage of each vCPU. Omitted when no floor is guaranteed. */
+    @JsonProperty(value = "cpu_baseline_pct", required = false)
+    private Long cpu_baseline_pct;
+
+    @JsonProperty("cpu_baseline_pct")
+    public Long getCpuBaselinePct() {
+      return cpu_baseline_pct;
+    }
+
+    /**
+     * CPU ceiling as a percentage of each vCPU. A value of 100 or an omitted field allows the full
+     * vCPU count.
+     */
+    @JsonProperty(value = "cpu_burst_pct", required = false)
+    private Long cpu_burst_pct;
+
+    @JsonProperty("cpu_burst_pct")
+    public Long getCpuBurstPct() {
+      return cpu_burst_pct;
+    }
+
+    /**
+     * Active when capacity can currently place this flavor; unavailable when no capacity is
+     * available. Disabled flavors are excluded from the public catalog.
+     */
+    @JsonProperty(value = "status", required = true)
+    private FlavorStatus status;
+
+    @JsonProperty("status")
+    public FlavorStatus getStatus() {
+      return status;
+    }
+  }
+
+  public static final class FlavorClass {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public FlavorClass(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof FlavorClass v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final FlavorClass SHARED = new FlavorClass("shared");
+    public static final FlavorClass DEDICATED = new FlavorClass("dedicated");
+  }
+
+  public static final class FlavorFamily {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public FlavorFamily(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof FlavorFamily v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final FlavorFamily GENERAL = new FlavorFamily("general");
+    public static final FlavorFamily LOADBALANCER = new FlavorFamily("loadbalancer");
+    public static final FlavorFamily DATABASE = new FlavorFamily("database");
+  }
+
+  public static final class FlavorStatus {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public FlavorStatus(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof FlavorStatus v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final FlavorStatus ACTIVE = new FlavorStatus("active");
+    public static final FlavorStatus UNAVAILABLE = new FlavorStatus("unavailable");
   }
 
   public static final class GetFlavorScope extends Model {
@@ -5464,7 +5961,7 @@ public final class Compute {
   public static final class GetInstanceResponse extends Model {
     public GetInstanceResponse() {}
 
-    @JsonProperty(value = "instance", required = false)
+    @JsonProperty(value = "instance", required = true)
     private Instance instance;
 
     @JsonProperty("instance")
@@ -5669,12 +6166,63 @@ public final class Compute {
   public static final class FlavorListResponse extends Model {
     public FlavorListResponse() {}
 
-    @JsonProperty(value = "flavors", required = false)
+    @JsonProperty(value = "flavors", required = true)
     private List<Flavor> flavors;
 
     @JsonProperty("flavors")
     public List<Flavor> getFlavors() {
       return flavors;
+    }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
+    }
+  }
+
+  public static final class PaginationMeta extends Model {
+    public PaginationMeta() {}
+
+    /** Total number of items */
+    @JsonProperty(value = "total", required = false)
+    private Long total;
+
+    @JsonProperty("total")
+    public Long getTotal() {
+      return total;
+    }
+
+    /** Number of items per page */
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
+
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
+    }
+
+    /**
+     * Opaque cursor for the next page. Pass it back as the `marker` query parameter; treat it as a
+     * token, not a value to parse.
+     */
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    /** Whether there are more items */
+    @JsonProperty(value = "has_more", required = false)
+    private Boolean has_more;
+
+    @JsonProperty("has_more")
+    public Boolean getHasMore() {
+      return has_more;
     }
   }
 
@@ -5864,49 +6412,6 @@ public final class Compute {
     }
   }
 
-  public static final class PaginationMeta extends Model {
-    public PaginationMeta() {}
-
-    /** Total number of items */
-    @JsonProperty(value = "total", required = false)
-    private Long total;
-
-    @JsonProperty("total")
-    public Long getTotal() {
-      return total;
-    }
-
-    /** Number of items per page */
-    @JsonProperty(value = "limit", required = false)
-    private Long limit;
-
-    @JsonProperty("limit")
-    public Long getLimit() {
-      return limit;
-    }
-
-    /**
-     * Opaque cursor for the next page. Pass it back as the `marker` query parameter; treat it as a
-     * token, not a value to parse.
-     */
-    @JsonProperty(value = "marker", required = false)
-    private String marker;
-
-    @JsonProperty("marker")
-    public String getMarker() {
-      return marker;
-    }
-
-    /** Whether there are more items */
-    @JsonProperty(value = "has_more", required = false)
-    private Boolean has_more;
-
-    @JsonProperty("has_more")
-    public Boolean getHasMore() {
-      return has_more;
-    }
-  }
-
   public static final class ListImagesQuery extends Model {
     public ListImagesQuery() {}
 
@@ -6071,8 +6576,8 @@ public final class Compute {
     }
   }
 
-  public static final class ListInstanceNICsQuery extends Model {
-    public ListInstanceNICsQuery() {}
+  public static final class ListInstanceInterfacesQuery extends Model {
+    public ListInstanceInterfacesQuery() {}
 
     @JsonProperty(value = "name", required = false)
     private String name;
@@ -6082,7 +6587,7 @@ public final class Compute {
       return name;
     }
 
-    public ListInstanceNICsQuery withName(String value) {
+    public ListInstanceInterfacesQuery withName(String value) {
       this.name = value;
       return this;
     }
@@ -6095,347 +6600,29 @@ public final class Compute {
       return crn;
     }
 
-    public ListInstanceNICsQuery withCrn(String value) {
+    public ListInstanceInterfacesQuery withCrn(String value) {
       this.crn = value;
       return this;
     }
   }
 
-  public static final class ListInstanceNICsResponse extends Model {
-    public ListInstanceNICsResponse() {}
+  public static final class InstanceInterfaceListResponse extends Model {
+    public InstanceInterfaceListResponse() {}
 
-    @JsonProperty(value = "nics", required = false)
-    private List<ListInstanceNICsResponseNicsItem> nics;
+    @JsonProperty(value = "interfaces", required = true)
+    private List<AttachedInterface> interfaces;
 
-    @JsonProperty("nics")
-    public List<ListInstanceNICsResponseNicsItem> getNics() {
-      return nics;
-    }
-  }
-
-  public static final class ListInstanceNICsResponseNicsItem extends Model {
-    public ListInstanceNICsResponseNicsItem() {}
-
-    @JsonProperty(value = "interface_id", required = true)
-    private String interface_id;
-
-    @JsonProperty("interface_id")
-    public String getInterfaceId() {
-      return interface_id;
+    @JsonProperty("interfaces")
+    public List<AttachedInterface> getInterfaces() {
+      return interfaces;
     }
 
-    @JsonProperty(value = "boot_index", required = true)
-    private Long boot_index;
-
-    @JsonProperty("boot_index")
-    public Long getBootIndex() {
-      return boot_index;
-    }
-
-    /** The lowest-boot-index NIC — the one carrying the guest's default and metadata routes. */
-    @JsonProperty(value = "primary", required = true)
-    private Boolean primary;
-
-    @JsonProperty("primary")
-    public Boolean getPrimary() {
-      return primary;
-    }
-
-    /** A customer-attached standalone interface — detach unbinds it instead of destroying it. */
-    @JsonProperty(value = "external", required = true)
-    private Boolean external;
-
-    @JsonProperty("external")
-    public Boolean getExternal() {
-      return external;
-    }
-
-    @JsonProperty(value = "name", required = false)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(value = "mac", required = false)
-    private String mac;
-
-    @JsonProperty("mac")
-    public String getMac() {
-      return mac;
-    }
-
-    /** Subnet placement; null when the referenced subnet no longer exists. */
-    @JsonProperty(value = "subnet", required = true)
-    private ListInstanceNICsResponseNicsItemSubnet subnet;
-
-    @JsonProperty("subnet")
-    public ListInstanceNICsResponseNicsItemSubnet getSubnet() {
-      return subnet;
-    }
-
-    @JsonProperty(value = "addresses", required = true)
-    private List<InterfaceAddress> addresses;
-
-    @JsonProperty("addresses")
-    public List<InterfaceAddress> getAddresses() {
-      return addresses;
-    }
-
-    @JsonProperty(value = "routed_prefixes", required = true)
-    private List<RoutedPrefix> routed_prefixes;
-
-    @JsonProperty("routed_prefixes")
-    public List<RoutedPrefix> getRoutedPrefixes() {
-      return routed_prefixes;
-    }
-  }
-
-  public static final class ListInstanceNICsResponseNicsItemSubnet {
-    private final JsonNode value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public ListInstanceNICsResponseNicsItemSubnet(JsonNode value) {
-      this.value = Objects.requireNonNull(value).deepCopy();
-    }
-
-    @JsonValue
-    public JsonNode json() {
-      return value.deepCopy();
-    }
-
-    @Override
-    public String toString() {
-      return "ListInstanceNICsResponseNicsItemSubnet{[REDACTED]}";
-    }
-
-    public static ListInstanceNICsResponseNicsItemSubnet ofVariant1(Subnet value) {
-      Model.validate(value);
-      return new ListInstanceNICsResponseNicsItemSubnet(Json.tree(value));
-    }
-
-    public Optional<Subnet> asVariant1() {
-      try {
-        Subnet result = Json.convert(value, new TypeReference<Subnet>() {});
-        Model.validate(result);
-        return Optional.ofNullable(result);
-      } catch (sh.basaltic.sdk.SdkException e) {
-        return Optional.empty();
-      }
-    }
-
-    public static ListInstanceNICsResponseNicsItemSubnet ofVariant2(Map<String, JsonNode> value) {
-      Model.validate(value);
-      return new ListInstanceNICsResponseNicsItemSubnet(Json.tree(value));
-    }
-
-    public Optional<Map<String, JsonNode>> asVariant2() {
-      try {
-        Map<String, JsonNode> result =
-            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
-        Model.validate(result);
-        return Optional.ofNullable(result);
-      } catch (sh.basaltic.sdk.SdkException e) {
-        return Optional.empty();
-      }
-    }
-  }
-
-  public static final class RoutedPrefix extends Model {
-    public RoutedPrefix() {}
-
-    @JsonProperty(value = "id", required = true)
-    private String id;
-
-    @JsonProperty("id")
-    public String getId() {
-      return id;
-    }
-
-    @JsonProperty(value = "pool_id", required = true)
-    private String pool_id;
-
-    @JsonProperty("pool_id")
-    public String getPoolId() {
-      return pool_id;
-    }
-
-    @JsonProperty(value = "family", required = true)
-    private RoutedPrefixFamily family;
-
-    @JsonProperty("family")
-    public RoutedPrefixFamily getFamily() {
-      return family;
-    }
-
-    /** A routed /28 from a VPC prefix pool. */
-    @JsonProperty(value = "prefix", required = true)
-    private String prefix;
-
-    @JsonProperty("prefix")
-    public String getPrefix() {
-      return prefix;
-    }
-  }
-
-  public static final class RoutedPrefixFamily {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public RoutedPrefixFamily(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof RoutedPrefixFamily v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final RoutedPrefixFamily IPV4 = new RoutedPrefixFamily("ipv4");
-  }
-
-  public static final class ListInstanceNICsItem extends Model {
-    public ListInstanceNICsItem() {}
-
-    @JsonProperty(value = "interface_id", required = true)
-    private String interface_id;
-
-    @JsonProperty("interface_id")
-    public String getInterfaceId() {
-      return interface_id;
-    }
-
-    @JsonProperty(value = "boot_index", required = true)
-    private Long boot_index;
-
-    @JsonProperty("boot_index")
-    public Long getBootIndex() {
-      return boot_index;
-    }
-
-    /** The lowest-boot-index NIC — the one carrying the guest's default and metadata routes. */
-    @JsonProperty(value = "primary", required = true)
-    private Boolean primary;
-
-    @JsonProperty("primary")
-    public Boolean getPrimary() {
-      return primary;
-    }
-
-    /** A customer-attached standalone interface — detach unbinds it instead of destroying it. */
-    @JsonProperty(value = "external", required = true)
-    private Boolean external;
-
-    @JsonProperty("external")
-    public Boolean getExternal() {
-      return external;
-    }
-
-    @JsonProperty(value = "name", required = false)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(value = "mac", required = false)
-    private String mac;
-
-    @JsonProperty("mac")
-    public String getMac() {
-      return mac;
-    }
-
-    /** Subnet placement; null when the referenced subnet no longer exists. */
-    @JsonProperty(value = "subnet", required = true)
-    private ListInstanceNICsItemSubnet subnet;
-
-    @JsonProperty("subnet")
-    public ListInstanceNICsItemSubnet getSubnet() {
-      return subnet;
-    }
-
-    @JsonProperty(value = "addresses", required = true)
-    private List<InterfaceAddress> addresses;
-
-    @JsonProperty("addresses")
-    public List<InterfaceAddress> getAddresses() {
-      return addresses;
-    }
-
-    @JsonProperty(value = "routed_prefixes", required = true)
-    private List<RoutedPrefix> routed_prefixes;
-
-    @JsonProperty("routed_prefixes")
-    public List<RoutedPrefix> getRoutedPrefixes() {
-      return routed_prefixes;
-    }
-  }
-
-  public static final class ListInstanceNICsItemSubnet {
-    private final JsonNode value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public ListInstanceNICsItemSubnet(JsonNode value) {
-      this.value = Objects.requireNonNull(value).deepCopy();
-    }
-
-    @JsonValue
-    public JsonNode json() {
-      return value.deepCopy();
-    }
-
-    @Override
-    public String toString() {
-      return "ListInstanceNICsItemSubnet{[REDACTED]}";
-    }
-
-    public static ListInstanceNICsItemSubnet ofVariant1(Subnet value) {
-      Model.validate(value);
-      return new ListInstanceNICsItemSubnet(Json.tree(value));
-    }
-
-    public Optional<Subnet> asVariant1() {
-      try {
-        Subnet result = Json.convert(value, new TypeReference<Subnet>() {});
-        Model.validate(result);
-        return Optional.ofNullable(result);
-      } catch (sh.basaltic.sdk.SdkException e) {
-        return Optional.empty();
-      }
-    }
-
-    public static ListInstanceNICsItemSubnet ofVariant2(Map<String, JsonNode> value) {
-      Model.validate(value);
-      return new ListInstanceNICsItemSubnet(Json.tree(value));
-    }
-
-    public Optional<Map<String, JsonNode>> asVariant2() {
-      try {
-        Map<String, JsonNode> result =
-            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
-        Model.validate(result);
-        return Optional.ofNullable(result);
-      } catch (sh.basaltic.sdk.SdkException e) {
-        return Optional.empty();
-      }
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
     }
   }
 
@@ -6574,7 +6761,7 @@ public final class Compute {
   public static final class InstancePoolListResponse extends Model {
     public InstancePoolListResponse() {}
 
-    @JsonProperty(value = "instance_pools", required = false)
+    @JsonProperty(value = "instance_pools", required = true)
     private List<InstancePool> instance_pools;
 
     @JsonProperty("instance_pools")
@@ -6582,7 +6769,7 @@ public final class Compute {
       return instance_pools;
     }
 
-    @JsonProperty(value = "meta", required = false)
+    @JsonProperty(value = "meta", required = true)
     private PaginationMeta meta;
 
     @JsonProperty("meta")
@@ -6621,450 +6808,24 @@ public final class Compute {
     }
   }
 
-  public static final class ListInstanceVolumesResponse extends Model {
-    public ListInstanceVolumesResponse() {}
+  public static final class InstanceVolumeListResponse extends Model {
+    public InstanceVolumeListResponse() {}
 
-    @JsonProperty(value = "attachments", required = false)
-    private List<ListInstanceVolumesResponseAttachmentsItem> attachments;
+    @JsonProperty(value = "volumes", required = true)
+    private List<AttachedVolume> volumes;
 
-    @JsonProperty("attachments")
-    public List<ListInstanceVolumesResponseAttachmentsItem> getAttachments() {
-      return attachments;
-    }
-  }
-
-  public static final class ListInstanceVolumesResponseAttachmentsItem extends Model {
-    public ListInstanceVolumesResponseAttachmentsItem() {}
-
-    @JsonProperty(value = "volume_id", required = false)
-    private String volume_id;
-
-    @JsonProperty("volume_id")
-    public String getVolumeId() {
-      return volume_id;
+    @JsonProperty("volumes")
+    public List<AttachedVolume> getVolumes() {
+      return volumes;
     }
 
-    @JsonProperty(value = "device", required = false)
-    private String device;
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
 
-    @JsonProperty("device")
-    public String getDevice() {
-      return device;
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
     }
-
-    @JsonProperty(value = "boot_index", required = false)
-    private Long boot_index;
-
-    @JsonProperty("boot_index")
-    public Long getBootIndex() {
-      return boot_index;
-    }
-
-    @JsonProperty(value = "delete_on_termination", required = false)
-    private Boolean delete_on_termination;
-
-    @JsonProperty("delete_on_termination")
-    public Boolean getDeleteOnTermination() {
-      return delete_on_termination;
-    }
-
-    @JsonProperty(value = "mount_path", required = false)
-    private String mount_path;
-
-    @JsonProperty("mount_path")
-    public String getMountPath() {
-      return mount_path;
-    }
-
-    /**
-     * Filesystem the in-guest agent formatted the volume with, or absent when the attachment did
-     * not name one and the agent used the ext4 default. Every write path — instance create, pool
-     * template and attach — refuses anything else, so this is the whole set the field can hold.
-     */
-    @JsonProperty(value = "fstype", required = false)
-    private ListInstanceVolumesResponseAttachmentsItemFstype fstype;
-
-    @JsonProperty("fstype")
-    public ListInstanceVolumesResponseAttachmentsItemFstype getFstype() {
-      return fstype;
-    }
-
-    @JsonProperty(value = "name", required = false)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(value = "volume_type", required = false)
-    private String volume_type;
-
-    @JsonProperty("volume_type")
-    public String getVolumeType() {
-      return volume_type;
-    }
-
-    @JsonProperty(value = "size_gb", required = false)
-    private Long size_gb;
-
-    @JsonProperty("size_gb")
-    public Long getSizeGb() {
-      return size_gb;
-    }
-
-    @JsonProperty(value = "status", required = false)
-    private String status;
-
-    @JsonProperty("status")
-    public String getStatus() {
-      return status;
-    }
-
-    @JsonProperty(value = "bootable", required = false)
-    private Boolean bootable;
-
-    @JsonProperty("bootable")
-    public Boolean getBootable() {
-      return bootable;
-    }
-
-    @JsonProperty(value = "mount", required = false)
-    private VolumeMount mount;
-
-    @JsonProperty("mount")
-    public VolumeMount getMount() {
-      return mount;
-    }
-  }
-
-  public static final class ListInstanceVolumesResponseAttachmentsItemFstype {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public ListInstanceVolumesResponseAttachmentsItemFstype(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof ListInstanceVolumesResponseAttachmentsItemFstype v
-          && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final ListInstanceVolumesResponseAttachmentsItemFstype EXT4 =
-        new ListInstanceVolumesResponseAttachmentsItemFstype("ext4");
-    public static final ListInstanceVolumesResponseAttachmentsItemFstype XFS =
-        new ListInstanceVolumesResponseAttachmentsItemFstype("xfs");
-  }
-
-  public static final class VolumeMount extends Model {
-    public VolumeMount() {}
-
-    /**
-     * - `unknown` — no guest agent has ever reported on this volume. The agent may predate this
-     * feature, may have been removed (which is supported), or the guest may never have booted. -
-     * `pending` — the agent cannot mount it yet and expects that to change. The ordinary state for
-     * the first seconds after an attach, while the hot-plugged disk appears in the guest. -
-     * `mounted` — mounted at `mount_path`. May still carry a `code`. - `failed` — it will not mount
-     * until something changes. Either the agent reported a refusal that waiting cannot fix, or it
-     * has been unable to make progress for long enough that waiting is no longer the explanation.
-     * `code` says which.
-     */
-    @JsonProperty(value = "state", required = true)
-    private VolumeMountState state;
-
-    @JsonProperty("state")
-    public VolumeMountState getState() {
-      return state;
-    }
-
-    /**
-     * Why the volume is in this state. Absent when there is nothing to say. Independent of `state`
-     * rather than something only a failure carries: `fstab_write_failed` accompanies a **mounted**
-     * volume whose fstab entry could not be written, which works now and will be gone after the
-     * next reboot. The commonest one to act on is `signatures_no_filesystem` — the disk carries a
-     * partition table or other signatures but no mountable filesystem, so the agent will not format
-     * it, because formatting would destroy what is there. A volume cloned from a boot disk and
-     * attached with a `mount_path` lands here. Partition and format it inside the guest, or attach
-     * it without a `mount_path` and mount it yourself. `unknown_error` is a code this platform does
-     * not recognise, reported by a guest agent newer than the region.
-     */
-    @JsonProperty(value = "code", required = false)
-    private VolumeMountCode code;
-
-    @JsonProperty("code")
-    public VolumeMountCode getCode() {
-      return code;
-    }
-
-    /**
-     * Human-readable detail from inside the guest — the failing command's output, the partition
-     * table type it found. Free text originating in the customer's own VM: sanitised and capped,
-     * but display it as text, never as markup.
-     */
-    @JsonProperty(value = "message", required = false)
-    private String message;
-
-    @JsonProperty("message")
-    public String getMessage() {
-      return message;
-    }
-
-    /** When the volume entered this condition. Absent when `state` is `unknown`. */
-    @JsonProperty(value = "since", required = false)
-    private String since;
-
-    @JsonProperty("since")
-    public String getSince() {
-      return since;
-    }
-
-    /**
-     * When the guest agent last reported, whether or not anything had changed. A `reported_at` far
-     * in the past means the agent has stopped talking to us, and the state beside it is what it
-     * last said rather than what is true now. Absent when `state` is `unknown`.
-     */
-    @JsonProperty(value = "reported_at", required = false)
-    private String reported_at;
-
-    @JsonProperty("reported_at")
-    public String getReportedAt() {
-      return reported_at;
-    }
-  }
-
-  public static final class VolumeMountState {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public VolumeMountState(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof VolumeMountState v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final VolumeMountState UNKNOWN = new VolumeMountState("unknown");
-    public static final VolumeMountState PENDING = new VolumeMountState("pending");
-    public static final VolumeMountState MOUNTED = new VolumeMountState("mounted");
-    public static final VolumeMountState FAILED = new VolumeMountState("failed");
-  }
-
-  public static final class VolumeMountCode {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public VolumeMountCode(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof VolumeMountCode v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final VolumeMountCode UNSAFE_SERIAL = new VolumeMountCode("unsafe_serial");
-    public static final VolumeMountCode DEVICE_ABSENT = new VolumeMountCode("device_absent");
-    public static final VolumeMountCode PROBE_FAILED = new VolumeMountCode("probe_failed");
-    public static final VolumeMountCode SIGNATURES_NO_FILESYSTEM =
-        new VolumeMountCode("signatures_no_filesystem");
-    public static final VolumeMountCode UNSUPPORTED_FSTYPE =
-        new VolumeMountCode("unsupported_fstype");
-    public static final VolumeMountCode MKFS_FAILED = new VolumeMountCode("mkfs_failed");
-    public static final VolumeMountCode UNSAFE_MOUNT_PATH =
-        new VolumeMountCode("unsafe_mount_path");
-    public static final VolumeMountCode MKDIR_FAILED = new VolumeMountCode("mkdir_failed");
-    public static final VolumeMountCode MOUNT_FAILED = new VolumeMountCode("mount_failed");
-    public static final VolumeMountCode FSTAB_WRITE_FAILED =
-        new VolumeMountCode("fstab_write_failed");
-    public static final VolumeMountCode UNKNOWN_ERROR = new VolumeMountCode("unknown_error");
-  }
-
-  public static final class ListInstanceVolumesItem extends Model {
-    public ListInstanceVolumesItem() {}
-
-    @JsonProperty(value = "volume_id", required = false)
-    private String volume_id;
-
-    @JsonProperty("volume_id")
-    public String getVolumeId() {
-      return volume_id;
-    }
-
-    @JsonProperty(value = "device", required = false)
-    private String device;
-
-    @JsonProperty("device")
-    public String getDevice() {
-      return device;
-    }
-
-    @JsonProperty(value = "boot_index", required = false)
-    private Long boot_index;
-
-    @JsonProperty("boot_index")
-    public Long getBootIndex() {
-      return boot_index;
-    }
-
-    @JsonProperty(value = "delete_on_termination", required = false)
-    private Boolean delete_on_termination;
-
-    @JsonProperty("delete_on_termination")
-    public Boolean getDeleteOnTermination() {
-      return delete_on_termination;
-    }
-
-    @JsonProperty(value = "mount_path", required = false)
-    private String mount_path;
-
-    @JsonProperty("mount_path")
-    public String getMountPath() {
-      return mount_path;
-    }
-
-    /**
-     * Filesystem the in-guest agent formatted the volume with, or absent when the attachment did
-     * not name one and the agent used the ext4 default. Every write path — instance create, pool
-     * template and attach — refuses anything else, so this is the whole set the field can hold.
-     */
-    @JsonProperty(value = "fstype", required = false)
-    private ListInstanceVolumesItemFstype fstype;
-
-    @JsonProperty("fstype")
-    public ListInstanceVolumesItemFstype getFstype() {
-      return fstype;
-    }
-
-    @JsonProperty(value = "name", required = false)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(value = "volume_type", required = false)
-    private String volume_type;
-
-    @JsonProperty("volume_type")
-    public String getVolumeType() {
-      return volume_type;
-    }
-
-    @JsonProperty(value = "size_gb", required = false)
-    private Long size_gb;
-
-    @JsonProperty("size_gb")
-    public Long getSizeGb() {
-      return size_gb;
-    }
-
-    @JsonProperty(value = "status", required = false)
-    private String status;
-
-    @JsonProperty("status")
-    public String getStatus() {
-      return status;
-    }
-
-    @JsonProperty(value = "bootable", required = false)
-    private Boolean bootable;
-
-    @JsonProperty("bootable")
-    public Boolean getBootable() {
-      return bootable;
-    }
-
-    @JsonProperty(value = "mount", required = false)
-    private VolumeMount mount;
-
-    @JsonProperty("mount")
-    public VolumeMount getMount() {
-      return mount;
-    }
-  }
-
-  public static final class ListInstanceVolumesItemFstype {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public ListInstanceVolumesItemFstype(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof ListInstanceVolumesItemFstype v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final ListInstanceVolumesItemFstype EXT4 =
-        new ListInstanceVolumesItemFstype("ext4");
-    public static final ListInstanceVolumesItemFstype XFS =
-        new ListInstanceVolumesItemFstype("xfs");
   }
 
   public static final class ListInstancesQuery extends Model {
@@ -7165,7 +6926,7 @@ public final class Compute {
   public static final class InstanceListResponse extends Model {
     public InstanceListResponse() {}
 
-    @JsonProperty(value = "instances", required = false)
+    @JsonProperty(value = "instances", required = true)
     private List<Instance> instances;
 
     @JsonProperty("instances")
@@ -7173,7 +6934,7 @@ public final class Compute {
       return instances;
     }
 
-    @JsonProperty(value = "meta", required = false)
+    @JsonProperty(value = "meta", required = true)
     private PaginationMeta meta;
 
     @JsonProperty("meta")
@@ -7568,7 +7329,7 @@ public final class Compute {
   public static final class UpdateInstanceResponse extends Model {
     public UpdateInstanceResponse() {}
 
-    @JsonProperty(value = "instance", required = false)
+    @JsonProperty(value = "instance", required = true)
     private Instance instance;
 
     @JsonProperty("instance")
@@ -7579,6 +7340,23 @@ public final class Compute {
 
   public static final class InstancePoolUpdateRequestInput extends Model {
     public InstancePoolUpdateRequestInput() {}
+
+    /**
+     * Replace the eligible placement set. Omit to preserve it. Affects future launches; run an
+     * explicit refresh to move existing members. All selected subnets must share a VPC.
+     */
+    @JsonProperty(value = "subnets", required = false)
+    private List<String> subnets;
+
+    @JsonProperty("subnets")
+    public List<String> getSubnets() {
+      return subnets;
+    }
+
+    public InstancePoolUpdateRequestInput withSubnets(List<String> value) {
+      this.subnets = value;
+      return this;
+    }
 
     @JsonProperty(value = "autoscaling", required = false)
     private AutoscalingPolicyInput autoscaling;

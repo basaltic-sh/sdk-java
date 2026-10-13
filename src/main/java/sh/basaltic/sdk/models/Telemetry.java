@@ -44,7 +44,7 @@ public final class Telemetry {
       return this;
     }
 
-    /** 1..3650, or omit for never expire */
+    /** Retention in days. Omit or use null for no expiry. */
     @JsonProperty(value = "retention_days", required = false)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private JsonField<Long> retention_days = JsonField.missing();
@@ -94,7 +94,7 @@ public final class Telemetry {
   public static final class LogGroupResponse extends Model {
     public LogGroupResponse() {}
 
-    @JsonProperty(value = "log_group", required = false)
+    @JsonProperty(value = "log_group", required = true)
     private LogGroup log_group;
 
     @JsonProperty("log_group")
@@ -106,7 +106,15 @@ public final class Telemetry {
   public static final class LogGroup extends Model {
     public LogGroup() {}
 
-    @JsonProperty(value = "id", required = false)
+    @JsonProperty(value = "kms_key", required = false)
+    private ResourceRef kms_key;
+
+    @JsonProperty("kms_key")
+    public ResourceRef getKmsKey() {
+      return kms_key;
+    }
+
+    @JsonProperty(value = "id", required = true)
     private String id;
 
     @JsonProperty("id")
@@ -115,7 +123,7 @@ public final class Telemetry {
     }
 
     /** CRN of the log group (used as the IAM resource ARN) */
-    @JsonProperty(value = "crn", required = false)
+    @JsonProperty(value = "crn", required = true)
     private String crn;
 
     @JsonProperty("crn")
@@ -123,21 +131,12 @@ public final class Telemetry {
       return crn;
     }
 
-    /** Owning account — the tenant fence for this group */
-    @JsonProperty(value = "account_id", required = false)
-    private String account_id;
-
-    @JsonProperty("account_id")
-    public String getAccountId() {
-      return account_id;
-    }
-
     /**
      * 1..512 chars, [A-Za-z0-9_./#-]. Leading "/" not allowed. Resource names must not start with
      * the literal crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in
      * either case).
      */
-    @JsonProperty(value = "name", required = false)
+    @JsonProperty(value = "name", required = true)
     private String name;
 
     @JsonProperty("name")
@@ -153,8 +152,8 @@ public final class Telemetry {
       return description;
     }
 
-    /** 1..3650 days, or null for never expire */
-    @JsonProperty(value = "retention_days", required = false)
+    /** Retention in days, or null for no expiry. */
+    @JsonProperty(value = "retention_days", required = true)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private JsonField<Long> retention_days = JsonField.missing();
 
@@ -163,29 +162,7 @@ public final class Telemetry {
       return retention_days;
     }
 
-    /**
-     * True when the bound key has been deleted. The CRN is omitted, but the binding remains
-     * encrypted under its original key identity; this does not select platform encryption or
-     * plaintext.
-     */
-    @JsonProperty(value = "kms_key_unavailable", required = false)
-    private Boolean kms_key_unavailable;
-
-    @JsonProperty("kms_key_unavailable")
-    public Boolean getKmsKeyUnavailable() {
-      return kms_key_unavailable;
-    }
-
-    /** KMS key CRN. Omitted for plaintext or when kms_key_unavailable is true. */
-    @JsonProperty(value = "kms_key_crn", required = false)
-    private String kms_key_crn;
-
-    @JsonProperty("kms_key_crn")
-    public String getKmsKeyCrn() {
-      return kms_key_crn;
-    }
-
-    @JsonProperty(value = "tags", required = false)
+    @JsonProperty(value = "tags", required = true)
     private Map<String, String> tags;
 
     @JsonProperty("tags")
@@ -193,7 +170,7 @@ public final class Telemetry {
       return tags;
     }
 
-    @JsonProperty(value = "created_at", required = false)
+    @JsonProperty(value = "created_at", required = true)
     private String created_at;
 
     @JsonProperty("created_at")
@@ -201,7 +178,7 @@ public final class Telemetry {
       return created_at;
     }
 
-    @JsonProperty(value = "updated_at", required = false)
+    @JsonProperty(value = "updated_at", required = true)
     private String updated_at;
 
     @JsonProperty("updated_at")
@@ -210,10 +187,43 @@ public final class Telemetry {
     }
   }
 
+  public static final class ResourceRef extends Model {
+    public ResourceRef() {}
+
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    /**
+     * Display label at response time — the resource's name where it has one, otherwise its human
+     * label (an invoice number, an account display name). Absent when the target is gone. Not a
+     * lookup key.
+     */
+    @JsonProperty(value = "name", required = false)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+  }
+
   public static final class LogResponse extends Model {
     public LogResponse() {}
 
-    @JsonProperty(value = "log", required = false)
+    @JsonProperty(value = "log", required = true)
     private LogRecord log;
 
     @JsonProperty("log")
@@ -225,7 +235,7 @@ public final class Telemetry {
   public static final class LogRecord extends Model {
     public LogRecord() {}
 
-    @JsonProperty(value = "id", required = false)
+    @JsonProperty(value = "id", required = true)
     private String id;
 
     @JsonProperty("id")
@@ -234,7 +244,7 @@ public final class Telemetry {
     }
 
     /** Producer-stamped event time */
-    @JsonProperty(value = "timestamp", required = false)
+    @JsonProperty(value = "timestamp", required = true)
     private String timestamp;
 
     @JsonProperty("timestamp")
@@ -242,42 +252,16 @@ public final class Telemetry {
       return timestamp;
     }
 
-    @JsonProperty(value = "organization_id", required = false)
-    private String organization_id;
-
-    @JsonProperty("organization_id")
-    public String getOrganizationId() {
-      return organization_id;
-    }
-
-    /** Owning account, empty for org-scoped events */
-    @JsonProperty(value = "account_id", required = false)
-    private String account_id;
-
-    @JsonProperty("account_id")
-    public String getAccountId() {
-      return account_id;
-    }
-
-    @JsonProperty(value = "log_group_id", required = false)
-    private String log_group_id;
-
-    @JsonProperty("log_group_id")
-    public String getLogGroupId() {
-      return log_group_id;
-    }
-
-    /** Name of the parent log group */
-    @JsonProperty(value = "log_group", required = false)
-    private String log_group;
+    @JsonProperty(value = "log_group", required = true)
+    private ResourceRef log_group;
 
     @JsonProperty("log_group")
-    public String getLogGroup() {
+    public ResourceRef getLogGroup() {
       return log_group;
     }
 
     /** Within-group stream name (typically the producer host) */
-    @JsonProperty(value = "log_stream", required = false)
+    @JsonProperty(value = "log_stream", required = true)
     private String log_stream;
 
     @JsonProperty("log_stream")
@@ -285,7 +269,7 @@ public final class Telemetry {
       return log_stream;
     }
 
-    @JsonProperty(value = "severity", required = false)
+    @JsonProperty(value = "severity", required = true)
     private LogRecordSeverity severity;
 
     @JsonProperty("severity")
@@ -294,7 +278,7 @@ public final class Telemetry {
     }
 
     /** OTel numeric severity band (1..24) */
-    @JsonProperty(value = "severity_number", required = false)
+    @JsonProperty(value = "severity_number", required = true)
     private Long severity_number;
 
     @JsonProperty("severity_number")
@@ -302,7 +286,7 @@ public final class Telemetry {
       return severity_number;
     }
 
-    @JsonProperty(value = "body", required = false)
+    @JsonProperty(value = "body", required = true)
     private String body;
 
     @JsonProperty("body")
@@ -396,260 +380,44 @@ public final class Telemetry {
     }
   }
 
-  public static final class GetRetainedTelemetryPresenceResponse extends Model {
-    public GetRetainedTelemetryPresenceResponse() {}
+  public static final class RetainedDataResponse extends Model {
+    public RetainedDataResponse() {}
 
-    @JsonProperty(value = "has_resources", required = true)
-    private Boolean has_resources;
+    @JsonProperty(value = "retained_data", required = true)
+    private RetainedDataResponseRetainedData retained_data;
 
-    @JsonProperty("has_resources")
-    public Boolean getHasResources() {
-      return has_resources;
+    @JsonProperty("retained_data")
+    public RetainedDataResponseRetainedData getRetainedData() {
+      return retained_data;
+    }
+  }
+
+  public static final class RetainedDataResponseRetainedData extends Model {
+    public RetainedDataResponseRetainedData() {}
+
+    @JsonProperty(value = "has_data", required = true)
+    private Boolean has_data;
+
+    @JsonProperty("has_data")
+    public Boolean getHasData() {
+      return has_data;
     }
   }
 
   public static final class TraceResponse extends Model {
     public TraceResponse() {}
 
-    @JsonProperty(value = "trace_id", required = false)
-    private String trace_id;
+    @JsonProperty(value = "trace", required = true)
+    private TraceSummary trace;
 
-    @JsonProperty("trace_id")
-    public String getTraceId() {
-      return trace_id;
-    }
-
-    @JsonProperty(value = "spans", required = false)
-    private List<Span> spans;
-
-    @JsonProperty("spans")
-    public List<Span> getSpans() {
-      return spans;
+    @JsonProperty("trace")
+    public TraceSummary getTrace() {
+      return trace;
     }
   }
 
-  public static final class Span extends Model {
-    public Span() {}
-
-    @JsonProperty(value = "trace_id", required = false)
-    private String trace_id;
-
-    @JsonProperty("trace_id")
-    public String getTraceId() {
-      return trace_id;
-    }
-
-    @JsonProperty(value = "span_id", required = false)
-    private String span_id;
-
-    @JsonProperty("span_id")
-    public String getSpanId() {
-      return span_id;
-    }
-
-    @JsonProperty(value = "parent_span_id", required = false)
-    private String parent_span_id;
-
-    @JsonProperty("parent_span_id")
-    public String getParentSpanId() {
-      return parent_span_id;
-    }
-
-    @JsonProperty(value = "name", required = false)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(value = "kind", required = false)
-    private SpanKind kind;
-
-    @JsonProperty("kind")
-    public SpanKind getKind() {
-      return kind;
-    }
-
-    @JsonProperty(value = "service_name", required = false)
-    private String service_name;
-
-    @JsonProperty("service_name")
-    public String getServiceName() {
-      return service_name;
-    }
-
-    @JsonProperty(value = "start_time", required = false)
-    private String start_time;
-
-    @JsonProperty("start_time")
-    public String getStartTime() {
-      return start_time;
-    }
-
-    @JsonProperty(value = "end_time", required = false)
-    private String end_time;
-
-    @JsonProperty("end_time")
-    public String getEndTime() {
-      return end_time;
-    }
-
-    @JsonProperty(value = "duration_ms", required = false)
-    private BigDecimal duration_ms;
-
-    @JsonProperty("duration_ms")
-    public BigDecimal getDurationMs() {
-      return duration_ms;
-    }
-
-    @JsonProperty(value = "status_code", required = false)
-    private SpanStatusCode status_code;
-
-    @JsonProperty("status_code")
-    public SpanStatusCode getStatusCode() {
-      return status_code;
-    }
-
-    @JsonProperty(value = "status_message", required = false)
-    private String status_message;
-
-    @JsonProperty("status_message")
-    public String getStatusMessage() {
-      return status_message;
-    }
-
-    @JsonProperty(value = "attributes", required = false)
-    private Map<String, String> attributes;
-
-    @JsonProperty("attributes")
-    public Map<String, String> getAttributes() {
-      return attributes;
-    }
-
-    @JsonProperty(value = "resource", required = false)
-    private Map<String, String> resource;
-
-    @JsonProperty("resource")
-    public Map<String, String> getResource() {
-      return resource;
-    }
-
-    @JsonProperty(value = "events", required = false)
-    private List<SpanEvent> events;
-
-    @JsonProperty("events")
-    public List<SpanEvent> getEvents() {
-      return events;
-    }
-
-    @JsonProperty(value = "links", required = false)
-    private List<SpanLink> links;
-
-    @JsonProperty("links")
-    public List<SpanLink> getLinks() {
-      return links;
-    }
-  }
-
-  public static final class SpanKind {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public SpanKind(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof SpanKind v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final SpanKind INTERNAL = new SpanKind("INTERNAL");
-    public static final SpanKind SERVER = new SpanKind("SERVER");
-    public static final SpanKind CLIENT = new SpanKind("CLIENT");
-    public static final SpanKind PRODUCER = new SpanKind("PRODUCER");
-    public static final SpanKind CONSUMER = new SpanKind("CONSUMER");
-  }
-
-  public static final class SpanStatusCode {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public SpanStatusCode(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof SpanStatusCode v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final SpanStatusCode UNSET = new SpanStatusCode("UNSET");
-    public static final SpanStatusCode OK = new SpanStatusCode("OK");
-    public static final SpanStatusCode ERROR = new SpanStatusCode("ERROR");
-  }
-
-  public static final class SpanEvent extends Model {
-    public SpanEvent() {}
-
-    @JsonProperty(value = "timestamp", required = false)
-    private String timestamp;
-
-    @JsonProperty("timestamp")
-    public String getTimestamp() {
-      return timestamp;
-    }
-
-    @JsonProperty(value = "name", required = true)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    @JsonProperty(value = "attributes", required = false)
-    private Map<String, String> attributes;
-
-    @JsonProperty("attributes")
-    public Map<String, String> getAttributes() {
-      return attributes;
-    }
-  }
-
-  public static final class SpanLink extends Model {
-    public SpanLink() {}
+  public static final class TraceSummary extends Model {
+    public TraceSummary() {}
 
     @JsonProperty(value = "trace_id", required = true)
     private String trace_id;
@@ -659,19 +427,75 @@ public final class Telemetry {
       return trace_id;
     }
 
-    @JsonProperty(value = "span_id", required = true)
-    private String span_id;
+    @JsonProperty(value = "root_span_id", required = true)
+    private String root_span_id;
 
-    @JsonProperty("span_id")
-    public String getSpanId() {
-      return span_id;
+    @JsonProperty("root_span_id")
+    public String getRootSpanId() {
+      return root_span_id;
+    }
+
+    @JsonProperty(value = "root_name", required = true)
+    private String root_name;
+
+    @JsonProperty("root_name")
+    public String getRootName() {
+      return root_name;
+    }
+
+    @JsonProperty(value = "root_service", required = true)
+    private String root_service;
+
+    @JsonProperty("root_service")
+    public String getRootService() {
+      return root_service;
+    }
+
+    @JsonProperty(value = "start_time", required = true)
+    private String start_time;
+
+    @JsonProperty("start_time")
+    public String getStartTime() {
+      return start_time;
+    }
+
+    @JsonProperty(value = "duration_ms", required = true)
+    private BigDecimal duration_ms;
+
+    @JsonProperty("duration_ms")
+    public BigDecimal getDurationMs() {
+      return duration_ms;
+    }
+
+    @JsonProperty(value = "span_count", required = true)
+    private Long span_count;
+
+    @JsonProperty("span_count")
+    public Long getSpanCount() {
+      return span_count;
+    }
+
+    @JsonProperty(value = "error_count", required = true)
+    private Long error_count;
+
+    @JsonProperty("error_count")
+    public Long getErrorCount() {
+      return error_count;
+    }
+
+    @JsonProperty(value = "service_count", required = true)
+    private Long service_count;
+
+    @JsonProperty("service_count")
+    public Long getServiceCount() {
+      return service_count;
     }
   }
 
   public static final class TraceSettingsResponse extends Model {
     public TraceSettingsResponse() {}
 
-    @JsonProperty(value = "trace_settings", required = false)
+    @JsonProperty(value = "trace_settings", required = true)
     private TraceSettings trace_settings;
 
     @JsonProperty("trace_settings")
@@ -683,44 +507,13 @@ public final class Telemetry {
   public static final class TraceSettings extends Model {
     public TraceSettings() {}
 
-    @JsonProperty(value = "account_id", required = false)
-    private String account_id;
-
-    @JsonProperty("account_id")
-    public String getAccountId() {
-      return account_id;
-    }
-
-    /** 1..3650, or null for never-expire */
-    @JsonProperty(value = "retention_days", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<Long> retention_days = JsonField.missing();
+    /** Effective retention in days. Defaults to 30; traces always expire. */
+    @JsonProperty(value = "retention_days", required = true)
+    private Long retention_days;
 
     @JsonProperty("retention_days")
-    public JsonField<Long> getRetentionDays() {
+    public Long getRetentionDays() {
       return retention_days;
-    }
-
-    /**
-     * True when the bound key has been deleted. The CRN is omitted, but the binding remains
-     * encrypted under its original key identity; this does not select platform encryption or
-     * plaintext.
-     */
-    @JsonProperty(value = "kms_key_unavailable", required = false)
-    private Boolean kms_key_unavailable;
-
-    @JsonProperty("kms_key_unavailable")
-    public Boolean getKmsKeyUnavailable() {
-      return kms_key_unavailable;
-    }
-
-    /** KMS key CRN. Omitted for plaintext or when kms_key_unavailable is true. */
-    @JsonProperty(value = "kms_key_crn", required = false)
-    private String kms_key_crn;
-
-    @JsonProperty("kms_key_crn")
-    public String getKmsKeyCrn() {
-      return kms_key_crn;
     }
 
     @JsonProperty(value = "created_at", required = false)
@@ -737,6 +530,14 @@ public final class Telemetry {
     @JsonProperty("updated_at")
     public String getUpdatedAt() {
       return updated_at;
+    }
+
+    @JsonProperty(value = "kms_key", required = false)
+    private ResourceRef kms_key;
+
+    @JsonProperty("kms_key")
+    public ResourceRef getKmsKey() {
+      return kms_key;
     }
   }
 
@@ -886,10 +687,22 @@ public final class Telemetry {
     }
   }
 
+  public static final class IngestResponse extends Model {
+    public IngestResponse() {}
+
+    @JsonProperty(value = "ingestion", required = true)
+    private IngestResult ingestion;
+
+    @JsonProperty("ingestion")
+    public IngestResult getIngestion() {
+      return ingestion;
+    }
+  }
+
   public static final class IngestResult extends Model {
     public IngestResult() {}
 
-    @JsonProperty(value = "accepted", required = false)
+    @JsonProperty(value = "accepted", required = true)
     private Long accepted;
 
     @JsonProperty("accepted")
@@ -897,7 +710,7 @@ public final class Telemetry {
       return accepted;
     }
 
-    @JsonProperty(value = "rejected", required = false)
+    @JsonProperty(value = "rejected", required = true)
     private Long rejected;
 
     @JsonProperty("rejected")
@@ -906,11 +719,40 @@ public final class Telemetry {
     }
 
     @JsonProperty(value = "errors", required = false)
-    private List<String> errors;
+    private List<IngestError> errors;
 
     @JsonProperty("errors")
-    public List<String> getErrors() {
+    public List<IngestError> getErrors() {
       return errors;
+    }
+  }
+
+  public static final class IngestError extends Model {
+    public IngestError() {}
+
+    /** Zero-based input record index. */
+    @JsonProperty(value = "index", required = true)
+    private Long index;
+
+    @JsonProperty("index")
+    public Long getIndex() {
+      return index;
+    }
+
+    @JsonProperty(value = "code", required = true)
+    private String code;
+
+    @JsonProperty("code")
+    public String getCode() {
+      return code;
+    }
+
+    @JsonProperty(value = "message", required = true)
+    private String message;
+
+    @JsonProperty("message")
+    public String getMessage() {
+      return message;
     }
   }
 
@@ -1329,7 +1171,7 @@ public final class Telemetry {
   public static final class LogGroupListResponse extends Model {
     public LogGroupListResponse() {}
 
-    @JsonProperty(value = "log_groups", required = false)
+    @JsonProperty(value = "log_groups", required = true)
     private List<LogGroup> log_groups;
 
     @JsonProperty("log_groups")
@@ -1337,7 +1179,7 @@ public final class Telemetry {
       return log_groups;
     }
 
-    @JsonProperty(value = "meta", required = false)
+    @JsonProperty(value = "meta", required = true)
     private PaginationMeta meta;
 
     @JsonProperty("meta")
@@ -1417,25 +1259,51 @@ public final class Telemetry {
       this.end = value;
       return this;
     }
-  }
 
-  public static final class ListMetricNamesResponse extends Model {
-    public ListMetricNamesResponse() {}
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
 
-    @JsonProperty(value = "status", required = false)
-    private String status;
-
-    @JsonProperty("status")
-    public String getStatus() {
-      return status;
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
     }
 
-    @JsonProperty(value = "data", required = false)
-    private List<String> data;
+    public ListMetricNamesQuery withLimit(Long value) {
+      this.limit = value;
+      return this;
+    }
 
-    @JsonProperty("data")
-    public List<String> getData() {
-      return data;
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    public ListMetricNamesQuery withMarker(String value) {
+      this.marker = value;
+      return this;
+    }
+  }
+
+  public static final class MetricNamesResponse extends Model {
+    public MetricNamesResponse() {}
+
+    @JsonProperty(value = "metric_names", required = true)
+    private List<String> metric_names;
+
+    @JsonProperty("metric_names")
+    public List<String> getMetricNames() {
+      return metric_names;
+    }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
     }
   }
 
@@ -1467,25 +1335,31 @@ public final class Telemetry {
       this.end = value;
       return this;
     }
-  }
 
-  public static final class ListMetricNamesPostResponse extends Model {
-    public ListMetricNamesPostResponse() {}
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
 
-    @JsonProperty(value = "status", required = false)
-    private String status;
-
-    @JsonProperty("status")
-    public String getStatus() {
-      return status;
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
     }
 
-    @JsonProperty(value = "data", required = false)
-    private List<String> data;
+    public ListMetricNamesPostBody withLimit(Long value) {
+      this.limit = value;
+      return this;
+    }
 
-    @JsonProperty("data")
-    public List<String> getData() {
-      return data;
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    public ListMetricNamesPostBody withMarker(String value) {
+      this.marker = value;
+      return this;
     }
   }
 
@@ -1530,6 +1404,52 @@ public final class Telemetry {
       this.end = value;
       return this;
     }
+
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
+
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
+    }
+
+    public ListMetricSeriesQuery withLimit(Long value) {
+      this.limit = value;
+      return this;
+    }
+
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    public ListMetricSeriesQuery withMarker(String value) {
+      this.marker = value;
+      return this;
+    }
+  }
+
+  public static final class MetricSeriesResponse extends Model {
+    public MetricSeriesResponse() {}
+
+    @JsonProperty(value = "series", required = true)
+    private List<Map<String, String>> series;
+
+    @JsonProperty("series")
+    public List<Map<String, String>> getSeries() {
+      return series;
+    }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
+    }
   }
 
   public static final class ListMetricSeriesPostBody extends Model {
@@ -1573,57 +1493,321 @@ public final class Telemetry {
       this.end = value;
       return this;
     }
+
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
+
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
+    }
+
+    public ListMetricSeriesPostBody withLimit(Long value) {
+      this.limit = value;
+      return this;
+    }
+
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    public ListMetricSeriesPostBody withMarker(String value) {
+      this.marker = value;
+      return this;
+    }
   }
 
-  public static final class UpdateTraceSettingsRequestInput extends Model {
-    public UpdateTraceSettingsRequestInput() {}
+  public static final class ListTraceSpansQuery extends Model {
+    public ListTraceSpansQuery() {}
 
-    /** 1..3650; pass clear_retention=true to switch to never-expire */
-    @JsonProperty(value = "retention_days", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<Long> retention_days = JsonField.missing();
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
 
-    @JsonProperty("retention_days")
-    public JsonField<Long> getRetentionDays() {
-      return retention_days;
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
     }
 
-    public UpdateTraceSettingsRequestInput withRetentionDays(JsonField<Long> value) {
-      this.retention_days = value;
+    public ListTraceSpansQuery withLimit(Long value) {
+      this.limit = value;
       return this;
     }
 
-    /** When true, sets retention to never-expire (ignores retention_days) */
-    @JsonProperty(value = "clear_retention", required = false)
-    private Boolean clear_retention;
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
 
-    @JsonProperty("clear_retention")
-    public Boolean getClearRetention() {
-      return clear_retention;
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
     }
 
-    public UpdateTraceSettingsRequestInput withClearRetention(Boolean value) {
-      this.clear_retention = value;
+    public ListTraceSpansQuery withMarker(String value) {
+      this.marker = value;
       return this;
     }
+  }
 
-    /**
-     * KMS key UUID, CRN or exact name in the authenticated account and serving region. PUT replaces
-     * settings; omission or an empty string selects plaintext for future spans. Historical
-     * ciphertext retains its original key UUID.
-     */
-    @JsonProperty(value = "kms_key", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> kms_key = JsonField.missing();
+  public static final class SpanListResponse extends Model {
+    public SpanListResponse() {}
 
-    @JsonProperty("kms_key")
-    public JsonField<String> getKmsKey() {
-      return kms_key;
+    @JsonProperty(value = "spans", required = true)
+    private List<Span> spans;
+
+    @JsonProperty("spans")
+    public List<Span> getSpans() {
+      return spans;
     }
 
-    public UpdateTraceSettingsRequestInput withKmsKey(JsonField<String> value) {
-      this.kms_key = value;
-      return this;
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
+    }
+  }
+
+  public static final class Span extends Model {
+    public Span() {}
+
+    @JsonProperty(value = "trace_id", required = true)
+    private String trace_id;
+
+    @JsonProperty("trace_id")
+    public String getTraceId() {
+      return trace_id;
+    }
+
+    @JsonProperty(value = "span_id", required = true)
+    private String span_id;
+
+    @JsonProperty("span_id")
+    public String getSpanId() {
+      return span_id;
+    }
+
+    @JsonProperty(value = "parent_span_id", required = false)
+    private String parent_span_id;
+
+    @JsonProperty("parent_span_id")
+    public String getParentSpanId() {
+      return parent_span_id;
+    }
+
+    @JsonProperty(value = "name", required = true)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    @JsonProperty(value = "kind", required = true)
+    private SpanKind kind;
+
+    @JsonProperty("kind")
+    public SpanKind getKind() {
+      return kind;
+    }
+
+    @JsonProperty(value = "service_name", required = true)
+    private String service_name;
+
+    @JsonProperty("service_name")
+    public String getServiceName() {
+      return service_name;
+    }
+
+    @JsonProperty(value = "start_time", required = true)
+    private String start_time;
+
+    @JsonProperty("start_time")
+    public String getStartTime() {
+      return start_time;
+    }
+
+    @JsonProperty(value = "end_time", required = true)
+    private String end_time;
+
+    @JsonProperty("end_time")
+    public String getEndTime() {
+      return end_time;
+    }
+
+    @JsonProperty(value = "duration_ms", required = true)
+    private BigDecimal duration_ms;
+
+    @JsonProperty("duration_ms")
+    public BigDecimal getDurationMs() {
+      return duration_ms;
+    }
+
+    @JsonProperty(value = "status_code", required = true)
+    private SpanStatusCode status_code;
+
+    @JsonProperty("status_code")
+    public SpanStatusCode getStatusCode() {
+      return status_code;
+    }
+
+    @JsonProperty(value = "status_message", required = false)
+    private String status_message;
+
+    @JsonProperty("status_message")
+    public String getStatusMessage() {
+      return status_message;
+    }
+
+    @JsonProperty(value = "attributes", required = false)
+    private Map<String, String> attributes;
+
+    @JsonProperty("attributes")
+    public Map<String, String> getAttributes() {
+      return attributes;
+    }
+
+    @JsonProperty(value = "resource", required = false)
+    private Map<String, String> resource;
+
+    @JsonProperty("resource")
+    public Map<String, String> getResource() {
+      return resource;
+    }
+
+    @JsonProperty(value = "events", required = false)
+    private List<SpanEvent> events;
+
+    @JsonProperty("events")
+    public List<SpanEvent> getEvents() {
+      return events;
+    }
+
+    @JsonProperty(value = "links", required = false)
+    private List<SpanLink> links;
+
+    @JsonProperty("links")
+    public List<SpanLink> getLinks() {
+      return links;
+    }
+  }
+
+  public static final class SpanKind {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public SpanKind(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof SpanKind v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final SpanKind INTERNAL = new SpanKind("INTERNAL");
+    public static final SpanKind SERVER = new SpanKind("SERVER");
+    public static final SpanKind CLIENT = new SpanKind("CLIENT");
+    public static final SpanKind PRODUCER = new SpanKind("PRODUCER");
+    public static final SpanKind CONSUMER = new SpanKind("CONSUMER");
+  }
+
+  public static final class SpanStatusCode {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public SpanStatusCode(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof SpanStatusCode v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final SpanStatusCode UNSET = new SpanStatusCode("UNSET");
+    public static final SpanStatusCode OK = new SpanStatusCode("OK");
+    public static final SpanStatusCode ERROR = new SpanStatusCode("ERROR");
+  }
+
+  public static final class SpanEvent extends Model {
+    public SpanEvent() {}
+
+    @JsonProperty(value = "timestamp", required = false)
+    private String timestamp;
+
+    @JsonProperty("timestamp")
+    public String getTimestamp() {
+      return timestamp;
+    }
+
+    @JsonProperty(value = "name", required = true)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    @JsonProperty(value = "attributes", required = false)
+    private Map<String, String> attributes;
+
+    @JsonProperty("attributes")
+    public Map<String, String> getAttributes() {
+      return attributes;
+    }
+  }
+
+  public static final class SpanLink extends Model {
+    public SpanLink() {}
+
+    @JsonProperty(value = "trace_id", required = true)
+    private String trace_id;
+
+    @JsonProperty("trace_id")
+    public String getTraceId() {
+      return trace_id;
+    }
+
+    @JsonProperty(value = "span_id", required = true)
+    private String span_id;
+
+    @JsonProperty("span_id")
+    public String getSpanId() {
+      return span_id;
     }
   }
 
@@ -1643,7 +1827,7 @@ public final class Telemetry {
       return this;
     }
 
-    @JsonProperty(value = "agg", required = true)
+    @JsonProperty(value = "agg", required = false)
     private QueryMetricsInstantQueryAgg agg;
 
     @JsonProperty("agg")
@@ -1749,6 +1933,80 @@ public final class Telemetry {
         new QueryMetricsInstantQueryAgg("increase");
   }
 
+  public static final class MetricQueryResponse extends Model {
+    public MetricQueryResponse() {}
+
+    @JsonProperty(value = "query_result", required = true)
+    private MetricQueryResult query_result;
+
+    @JsonProperty("query_result")
+    public MetricQueryResult getQueryResult() {
+      return query_result;
+    }
+  }
+
+  public static final class MetricQueryResult extends Model {
+    public MetricQueryResult() {}
+
+    @JsonProperty(value = "metric", required = true)
+    private String metric;
+
+    @JsonProperty("metric")
+    public String getMetric() {
+      return metric;
+    }
+
+    @JsonProperty(value = "series", required = true)
+    private List<MetricQuerySeries> series;
+
+    @JsonProperty("series")
+    public List<MetricQuerySeries> getSeries() {
+      return series;
+    }
+  }
+
+  public static final class MetricQuerySeries extends Model {
+    public MetricQuerySeries() {}
+
+    @JsonProperty(value = "labels", required = true)
+    private Map<String, String> labels;
+
+    @JsonProperty("labels")
+    public Map<String, String> getLabels() {
+      return labels;
+    }
+
+    @JsonProperty(value = "points", required = true)
+    private List<MetricPoint> points;
+
+    @JsonProperty("points")
+    public List<MetricPoint> getPoints() {
+      return points;
+    }
+  }
+
+  public static final class MetricPoint extends Model {
+    public MetricPoint() {}
+
+    /** Unix timestamp in seconds, including fractional seconds. */
+    @JsonProperty(value = "timestamp", required = true)
+    private BigDecimal timestamp;
+
+    @JsonProperty("timestamp")
+    public BigDecimal getTimestamp() {
+      return timestamp;
+    }
+
+    /** Float value as text, including NaN and infinities. */
+    @JsonProperty(value = "value", required = true)
+    private String value;
+
+    @JsonProperty("value")
+    public String getValue() {
+      return value;
+    }
+  }
+
   public static final class QueryMetricsInstantPostBody extends Model {
     public QueryMetricsInstantPostBody() {}
 
@@ -1765,7 +2023,7 @@ public final class Telemetry {
       return this;
     }
 
-    @JsonProperty(value = "agg", required = true)
+    @JsonProperty(value = "agg", required = false)
     private QueryMetricsInstantPostBodyAgg agg;
 
     @JsonProperty("agg")
@@ -1775,32 +2033,6 @@ public final class Telemetry {
 
     public QueryMetricsInstantPostBody withAgg(QueryMetricsInstantPostBodyAgg value) {
       this.agg = value;
-      return this;
-    }
-
-    @JsonProperty(value = "match[]", required = false)
-    private List<String> match;
-
-    @JsonProperty("match[]")
-    public List<String> getMatch() {
-      return match;
-    }
-
-    public QueryMetricsInstantPostBody withMatch(List<String> value) {
-      this.match = value;
-      return this;
-    }
-
-    @JsonProperty(value = "by[]", required = false)
-    private List<String> by;
-
-    @JsonProperty("by[]")
-    public List<String> getBy() {
-      return by;
-    }
-
-    public QueryMetricsInstantPostBody withBy(List<String> value) {
-      this.by = value;
       return this;
     }
 
@@ -1827,6 +2059,32 @@ public final class Telemetry {
 
     public QueryMetricsInstantPostBody withTime(String value) {
       this.time = value;
+      return this;
+    }
+
+    @JsonProperty(value = "match", required = false)
+    private List<String> match;
+
+    @JsonProperty("match")
+    public List<String> getMatch() {
+      return match;
+    }
+
+    public QueryMetricsInstantPostBody withMatch(List<String> value) {
+      this.match = value;
+      return this;
+    }
+
+    @JsonProperty(value = "by", required = false)
+    private List<String> by;
+
+    @JsonProperty("by")
+    public List<String> getBy() {
+      return by;
+    }
+
+    public QueryMetricsInstantPostBody withBy(List<String> value) {
+      this.by = value;
       return this;
     }
   }
@@ -1893,7 +2151,7 @@ public final class Telemetry {
       return this;
     }
 
-    @JsonProperty(value = "agg", required = true)
+    @JsonProperty(value = "agg", required = false)
     private QueryMetricsRangeQueryAgg agg;
 
     @JsonProperty("agg")
@@ -2027,7 +2285,7 @@ public final class Telemetry {
       return this;
     }
 
-    @JsonProperty(value = "agg", required = true)
+    @JsonProperty(value = "agg", required = false)
     private QueryMetricsRangePostBodyAgg agg;
 
     @JsonProperty("agg")
@@ -2037,32 +2295,6 @@ public final class Telemetry {
 
     public QueryMetricsRangePostBody withAgg(QueryMetricsRangePostBodyAgg value) {
       this.agg = value;
-      return this;
-    }
-
-    @JsonProperty(value = "match[]", required = false)
-    private List<String> match;
-
-    @JsonProperty("match[]")
-    public List<String> getMatch() {
-      return match;
-    }
-
-    public QueryMetricsRangePostBody withMatch(List<String> value) {
-      this.match = value;
-      return this;
-    }
-
-    @JsonProperty(value = "by[]", required = false)
-    private List<String> by;
-
-    @JsonProperty("by[]")
-    public List<String> getBy() {
-      return by;
-    }
-
-    public QueryMetricsRangePostBody withBy(List<String> value) {
-      this.by = value;
       return this;
     }
 
@@ -2102,6 +2334,32 @@ public final class Telemetry {
 
     public QueryMetricsRangePostBody withStep(String value) {
       this.step = value;
+      return this;
+    }
+
+    @JsonProperty(value = "match", required = false)
+    private List<String> match;
+
+    @JsonProperty("match")
+    public List<String> getMatch() {
+      return match;
+    }
+
+    public QueryMetricsRangePostBody withMatch(List<String> value) {
+      this.match = value;
+      return this;
+    }
+
+    @JsonProperty(value = "by", required = false)
+    private List<String> by;
+
+    @JsonProperty("by")
+    public List<String> getBy() {
+      return by;
+    }
+
+    public QueryMetricsRangePostBody withBy(List<String> value) {
+      this.by = value;
       return this;
     }
   }
@@ -2321,7 +2579,7 @@ public final class Telemetry {
   public static final class LogListResponse extends Model {
     public LogListResponse() {}
 
-    @JsonProperty(value = "logs", required = false)
+    @JsonProperty(value = "logs", required = true)
     private List<LogRecord> logs;
 
     @JsonProperty("logs")
@@ -2329,7 +2587,7 @@ public final class Telemetry {
       return logs;
     }
 
-    @JsonProperty(value = "meta", required = false)
+    @JsonProperty(value = "meta", required = true)
     private PaginationMeta meta;
 
     @JsonProperty("meta")
@@ -2484,7 +2742,7 @@ public final class Telemetry {
   public static final class TraceListResponse extends Model {
     public TraceListResponse() {}
 
-    @JsonProperty(value = "traces", required = false)
+    @JsonProperty(value = "traces", required = true)
     private List<TraceSummary> traces;
 
     @JsonProperty("traces")
@@ -2492,88 +2750,12 @@ public final class Telemetry {
       return traces;
     }
 
-    @JsonProperty(value = "meta", required = false)
+    @JsonProperty(value = "meta", required = true)
     private PaginationMeta meta;
 
     @JsonProperty("meta")
     public PaginationMeta getMeta() {
       return meta;
-    }
-  }
-
-  public static final class TraceSummary extends Model {
-    public TraceSummary() {}
-
-    @JsonProperty(value = "trace_id", required = false)
-    private String trace_id;
-
-    @JsonProperty("trace_id")
-    public String getTraceId() {
-      return trace_id;
-    }
-
-    @JsonProperty(value = "root_span_id", required = false)
-    private String root_span_id;
-
-    @JsonProperty("root_span_id")
-    public String getRootSpanId() {
-      return root_span_id;
-    }
-
-    @JsonProperty(value = "root_name", required = false)
-    private String root_name;
-
-    @JsonProperty("root_name")
-    public String getRootName() {
-      return root_name;
-    }
-
-    @JsonProperty(value = "root_service", required = false)
-    private String root_service;
-
-    @JsonProperty("root_service")
-    public String getRootService() {
-      return root_service;
-    }
-
-    @JsonProperty(value = "start_time", required = false)
-    private String start_time;
-
-    @JsonProperty("start_time")
-    public String getStartTime() {
-      return start_time;
-    }
-
-    @JsonProperty(value = "duration_ms", required = false)
-    private BigDecimal duration_ms;
-
-    @JsonProperty("duration_ms")
-    public BigDecimal getDurationMs() {
-      return duration_ms;
-    }
-
-    @JsonProperty(value = "span_count", required = false)
-    private Long span_count;
-
-    @JsonProperty("span_count")
-    public Long getSpanCount() {
-      return span_count;
-    }
-
-    @JsonProperty(value = "error_count", required = false)
-    private Long error_count;
-
-    @JsonProperty("error_count")
-    public Long getErrorCount() {
-      return error_count;
-    }
-
-    @JsonProperty(value = "service_count", required = false)
-    private Long service_count;
-
-    @JsonProperty("service_count")
-    public Long getServiceCount() {
-      return service_count;
     }
   }
 
@@ -2594,38 +2776,24 @@ public final class Telemetry {
       return this;
     }
 
-    /** 1..3650; pass clear_retention to switch to never expire */
+    /** Omit to preserve retention. Null selects no expiry. */
     @JsonProperty(value = "retention_days", required = false)
-    private Long retention_days;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<Long> retention_days = JsonField.missing();
 
     @JsonProperty("retention_days")
-    public Long getRetentionDays() {
+    public JsonField<Long> getRetentionDays() {
       return retention_days;
     }
 
-    public UpdateLogGroupRequestInput withRetentionDays(Long value) {
+    public UpdateLogGroupRequestInput withRetentionDays(JsonField<Long> value) {
       this.retention_days = value;
       return this;
     }
 
-    /** When true, sets retention to never-expire (ignores retention_days) */
-    @JsonProperty(value = "clear_retention", required = false)
-    private Boolean clear_retention;
-
-    @JsonProperty("clear_retention")
-    public Boolean getClearRetention() {
-      return clear_retention;
-    }
-
-    public UpdateLogGroupRequestInput withClearRetention(Boolean value) {
-      this.clear_retention = value;
-      return this;
-    }
-
     /**
-     * KMS key UUID, CRN or exact name in the authenticated account and serving region. Omission
-     * preserves the pinned UUID; an empty string clears encryption for future records. Unavailable
-     * key metadata does not clear the binding.
+     * KMS key UUID, CRN or exact name in this account and region. Omit to preserve the binding;
+     * null clears encryption for future records.
      */
     @JsonProperty(value = "kms_key", required = false)
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
@@ -2651,6 +2819,43 @@ public final class Telemetry {
 
     public UpdateLogGroupRequestInput withTags(Map<String, String> value) {
       this.tags = value;
+      return this;
+    }
+  }
+
+  public static final class UpdateTraceSettingsRequestInput extends Model {
+    public UpdateTraceSettingsRequestInput() {}
+
+    /** Omit to preserve retention. Null restores the default 30 days; traces always expire. */
+    @JsonProperty(value = "retention_days", required = false)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<Long> retention_days = JsonField.missing();
+
+    @JsonProperty("retention_days")
+    public JsonField<Long> getRetentionDays() {
+      return retention_days;
+    }
+
+    public UpdateTraceSettingsRequestInput withRetentionDays(JsonField<Long> value) {
+      this.retention_days = value;
+      return this;
+    }
+
+    /**
+     * KMS key UUID, CRN or exact name in this account and region. Omit to preserve the binding;
+     * null clears encryption for future records.
+     */
+    @JsonProperty(value = "kms_key", required = false)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> kms_key = JsonField.missing();
+
+    @JsonProperty("kms_key")
+    public JsonField<String> getKmsKey() {
+      return kms_key;
+    }
+
+    public UpdateTraceSettingsRequestInput withKmsKey(JsonField<String> value) {
+      this.kms_key = value;
       return this;
     }
   }

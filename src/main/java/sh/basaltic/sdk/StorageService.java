@@ -7,7 +7,6 @@ import sh.basaltic.sdk.models.Storage.BucketCORSResponse;
 import sh.basaltic.sdk.models.Storage.BucketEncryptionResponse;
 import sh.basaltic.sdk.models.Storage.BucketLifecycleResponse;
 import sh.basaltic.sdk.models.Storage.BucketListResponse;
-import sh.basaltic.sdk.models.Storage.BucketObjectLockResponse;
 import sh.basaltic.sdk.models.Storage.BucketPolicyResponse;
 import sh.basaltic.sdk.models.Storage.BucketResponse;
 import sh.basaltic.sdk.models.Storage.BucketTaggingResponse;
@@ -35,12 +34,13 @@ import sh.basaltic.sdk.models.Storage.MultipartPart;
 import sh.basaltic.sdk.models.Storage.MultipartUpload;
 import sh.basaltic.sdk.models.Storage.MultipartUploadResponse;
 import sh.basaltic.sdk.models.Storage.ObjectListResponse;
+import sh.basaltic.sdk.models.Storage.ObjectLockConfig;
+import sh.basaltic.sdk.models.Storage.ObjectLockConfigInput;
 import sh.basaltic.sdk.models.Storage.ObjectVersion;
 import sh.basaltic.sdk.models.Storage.PutBucketCORSRequestInput;
 import sh.basaltic.sdk.models.Storage.PutBucketDeletionProtectionRequestInput;
 import sh.basaltic.sdk.models.Storage.PutBucketEncryptionRequestInput;
 import sh.basaltic.sdk.models.Storage.PutBucketLifecycleRequestInput;
-import sh.basaltic.sdk.models.Storage.PutBucketObjectLockRequestInput;
 import sh.basaltic.sdk.models.Storage.PutBucketPolicyRequestInput;
 import sh.basaltic.sdk.models.Storage.PutBucketTaggingRequestInput;
 import sh.basaltic.sdk.models.Storage.PutBucketVersioningRequestInput;
@@ -126,7 +126,7 @@ public final class StorageService {
       new Operation(
           "createSnapshotPolicy",
           "POST",
-          "/v1/snapshot-policies",
+          "/v1/volumes/{volume_id}/snapshot-policies",
           true,
           List.of(),
           List.of(),
@@ -258,7 +258,7 @@ public final class StorageService {
       new Operation(
           "deleteSnapshotPolicy",
           "DELETE",
-          "/v1/snapshot-policies/{policy_id}",
+          "/v1/volumes/{volume_id}/snapshot-policies/{policy_id}",
           true,
           List.of(),
           List.of(),
@@ -402,7 +402,7 @@ public final class StorageService {
       new Operation(
           "getSnapshotPolicy",
           "GET",
-          "/v1/snapshot-policies/{policy_id}",
+          "/v1/volumes/{volume_id}/snapshot-policies/{policy_id}",
           true,
           List.of(),
           List.of(),
@@ -536,14 +536,13 @@ public final class StorageService {
       new Operation(
           "listSnapshotPolicies",
           "GET",
-          "/v1/snapshot-policies",
+          "/v1/volumes/{volume_id}/snapshot-policies",
           true,
           List.of(),
           List.of(),
           Map.ofEntries(
               Map.entry("limit", new Operation.Encoding("form", true)),
               Map.entry("marker", new Operation.Encoding("form", true)),
-              Map.entry("volume", new Operation.Encoding("form", true)),
               Map.entry("enabled", new Operation.Encoding("form", true)),
               Map.entry("name", new Operation.Encoding("form", true)),
               Map.entry("crn", new Operation.Encoding("form", true))),
@@ -736,7 +735,7 @@ public final class StorageService {
       new Operation(
           "updateSnapshotPolicy",
           "PATCH",
-          "/v1/snapshot-policies/{policy_id}",
+          "/v1/volumes/{volume_id}/snapshot-policies/{policy_id}",
           true,
           List.of(),
           List.of(),
@@ -839,14 +838,14 @@ public final class StorageService {
 
   /** Create snapshot policy */
   public Request<SnapshotPolicyResponse> createSnapshotPolicy(
-      SnapshotPolicyCreateRequestInput body) {
+      String volume_id, SnapshotPolicyCreateRequestInput body) {
     return new Request<>(
         new Core(
             transport,
             "storage",
             "https://storage.{region}.basaltic.sh",
             OP_4,
-            Map.ofEntries(),
+            Map.ofEntries(Map.entry("volume_id", volume_id)),
             body,
             null),
         new TypeReference<SnapshotPolicyResponse>() {});
@@ -985,14 +984,14 @@ public final class StorageService {
   }
 
   /** Delete snapshot policy */
-  public EmptyRequest deleteSnapshotPolicy(String policy_id) {
+  public EmptyRequest deleteSnapshotPolicy(String volume_id, String policy_id) {
     return new EmptyRequest(
         new Core(
             transport,
             "storage",
             "https://storage.{region}.basaltic.sh",
             OP_15,
-            Map.ofEntries(Map.entry("policy_id", policy_id)),
+            Map.ofEntries(Map.entry("volume_id", volume_id), Map.entry("policy_id", policy_id)),
             null,
             null));
   }
@@ -1067,7 +1066,7 @@ public final class StorageService {
   }
 
   /** Get bucket object-lock configuration */
-  public Request<BucketObjectLockResponse> getBucketObjectLock(String bucket) {
+  public Request<ObjectLockConfig> getBucketObjectLock(String bucket) {
     return new Request<>(
         new Core(
             transport,
@@ -1077,7 +1076,7 @@ public final class StorageService {
             Map.ofEntries(Map.entry("bucket", bucket)),
             null,
             null),
-        new TypeReference<BucketObjectLockResponse>() {});
+        new TypeReference<ObjectLockConfig>() {});
   }
 
   /** Get bucket policy */
@@ -1180,14 +1179,14 @@ public final class StorageService {
   }
 
   /** Get snapshot policy */
-  public Request<SnapshotPolicyResponse> getSnapshotPolicy(String policy_id) {
+  public Request<SnapshotPolicyResponse> getSnapshotPolicy(String volume_id, String policy_id) {
     return new Request<>(
         new Core(
             transport,
             "storage",
             "https://storage.{region}.basaltic.sh",
             OP_27,
-            Map.ofEntries(Map.entry("policy_id", policy_id)),
+            Map.ofEntries(Map.entry("volume_id", volume_id), Map.entry("policy_id", policy_id)),
             null,
             null),
         new TypeReference<SnapshotPolicyResponse>() {});
@@ -1195,14 +1194,14 @@ public final class StorageService {
 
   /** Resolve by UUID, CRN, or an unambiguous name. */
   public Request<SnapshotPolicy> getSnapshotPolicyByReference(
-      String reference, GetSnapshotPolicyScope scope) {
+      String volume_id, String reference, GetSnapshotPolicyScope scope) {
     return Request.reference(
         new Core(
             transport,
             "storage",
             "https://storage.{region}.basaltic.sh",
             OP_27,
-            Map.ofEntries(Map.entry("policy_id", reference)),
+            Map.ofEntries(Map.entry("volume_id", volume_id), Map.entry("policy_id", reference)),
             null,
             null),
         new Core(
@@ -1210,7 +1209,7 @@ public final class StorageService {
             "storage",
             "https://storage.{region}.basaltic.sh",
             OP_37,
-            Map.ofEntries(),
+            Map.ofEntries(Map.entry("volume_id", volume_id)),
             null,
             scope),
         reference,
@@ -1220,8 +1219,8 @@ public final class StorageService {
         new TypeReference<SnapshotPolicy>() {});
   }
 
-  public Request<SnapshotPolicy> getSnapshotPolicyByReference(String reference) {
-    return getSnapshotPolicyByReference(reference, null);
+  public Request<SnapshotPolicy> getSnapshotPolicyByReference(String volume_id, String reference) {
+    return getSnapshotPolicyByReference(volume_id, reference, null);
   }
 
   /** Get volume */
@@ -1412,14 +1411,14 @@ public final class StorageService {
 
   /** List snapshot policies */
   public PagedRequest<SnapshotPolicyListResponse, SnapshotPolicy> listSnapshotPolicies(
-      ListSnapshotPoliciesQuery query) {
+      String volume_id, ListSnapshotPoliciesQuery query) {
     return new PagedRequest<>(
         new Core(
             transport,
             "storage",
             "https://storage.{region}.basaltic.sh",
             OP_37,
-            Map.ofEntries(),
+            Map.ofEntries(Map.entry("volume_id", volume_id)),
             null,
             query),
         new TypeReference<SnapshotPolicyListResponse>() {},
@@ -1428,8 +1427,9 @@ public final class StorageService {
   }
 
   /** Execute with optional inputs omitted. */
-  public PagedRequest<SnapshotPolicyListResponse, SnapshotPolicy> listSnapshotPolicies() {
-    return listSnapshotPolicies(null);
+  public PagedRequest<SnapshotPolicyListResponse, SnapshotPolicy> listSnapshotPolicies(
+      String volume_id) {
+    return listSnapshotPolicies(volume_id, null);
   }
 
   /** List snapshots */
@@ -1550,7 +1550,7 @@ public final class StorageService {
   }
 
   /** Put bucket object-lock configuration */
-  public EmptyRequest putBucketObjectLock(String bucket, PutBucketObjectLockRequestInput body) {
+  public EmptyRequest putBucketObjectLock(String bucket, ObjectLockConfigInput body) {
     return new EmptyRequest(
         new Core(
             transport,
@@ -1645,14 +1645,14 @@ public final class StorageService {
 
   /** Update snapshot policy */
   public Request<SnapshotPolicyResponse> updateSnapshotPolicy(
-      String policy_id, SnapshotPolicyUpdateRequestInput body) {
+      String volume_id, String policy_id, SnapshotPolicyUpdateRequestInput body) {
     return new Request<>(
         new Core(
             transport,
             "storage",
             "https://storage.{region}.basaltic.sh",
             OP_52,
-            Map.ofEntries(Map.entry("policy_id", policy_id)),
+            Map.ofEntries(Map.entry("volume_id", volume_id), Map.entry("policy_id", policy_id)),
             body,
             null),
         new TypeReference<SnapshotPolicyResponse>() {});

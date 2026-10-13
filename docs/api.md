@@ -29,7 +29,7 @@ Read the organization billing profile
 `GET /v1/profile`
 
 ```java
-public Request<BillingProfile> getBillingProfile()
+public Request<BillingProfileResponse> getBillingProfile()
 ```
 
 ## `billing.getCurrentUsage`
@@ -59,7 +59,7 @@ Get an invoice with its line items
 `GET /v1/invoices/{invoice_id}`
 
 ```java
-public Request<Invoice> getInvoice(String invoice_id)
+public Request<InvoiceResponse> getInvoice(String invoice_id)
 ```
 
 ## `billing.getInvoicePdf`
@@ -84,12 +84,12 @@ public PagedRequest<CreditListResponse,Credit> listCredits(ListCreditsQuery quer
 
 ## `billing.listFiscalInvoices`
 
-List fiscal invoice issuance and delivery status
+List issued fiscal invoices
 
 `GET /v1/fiscal-invoices`
 
 ```java
-public PagedRequest<ListFiscalInvoicesResponse,FiscalInvoice> listFiscalInvoices(ListFiscalInvoicesQuery query)
+public PagedRequest<FiscalInvoiceListResponse,FiscalInvoice> listFiscalInvoices(ListFiscalInvoicesQuery query)
 ```
 
 ## `billing.listInvoices`
@@ -139,17 +139,7 @@ Save organization billing details
 `PUT /v1/profile`
 
 ```java
-public Request<BillingProfile> updateBillingProfile(BillingProfileUpdateInput body)
-```
-
-## `catalog.getCountry`
-
-Get a country and its address rules
-
-`GET /v1/countries/{country}`
-
-```java
-public Request<GetCountryResponse> getCountry(String country)
+public Request<BillingProfileResponse> updateBillingProfile(BillingProfileUpdateInput body)
 ```
 
 ## `catalog.getRegion`
@@ -159,27 +149,7 @@ Get a region
 `GET /v1/regions/{code}`
 
 ```java
-public Request<Region> getRegion(String code)
-```
-
-## `catalog.listCities`
-
-List cities
-
-`GET /v1/cities`
-
-```java
-public PagedRequest<ListCitiesResponse,City> listCities(ListCitiesQuery query)
-```
-
-## `catalog.listCountries`
-
-List countries
-
-`GET /v1/countries`
-
-```java
-public PagedRequest<ListCountriesResponse,Country> listCountries()
+public Request<RegionResponse> getRegion(String code)
 ```
 
 ## `catalog.listRegions`
@@ -190,26 +160,6 @@ List regions
 
 ```java
 public PagedRequest<ListRegionsResponse,Region> listRegions(ListRegionsQuery query)
-```
-
-## `catalog.listStates`
-
-List a country's states
-
-`GET /v1/states`
-
-```java
-public PagedRequest<ListStatesResponse,State> listStates(ListStatesQuery query)
-```
-
-## `catalog.lookupPostalCode`
-
-Look up a postal code
-
-`GET /v1/postal-codes/{code}`
-
-```java
-public Request<LookupPostalCodeResponse> lookupPostalCode(String code,LookupPostalCodeQuery query)
 ```
 
 ## `certificate.createCertificate`
@@ -272,14 +222,14 @@ Revoke certificate
 public Request<CertificateResponse> revokeCertificate(String certificate_id)
 ```
 
-## `compute.attachInstanceNIC`
+## `compute.attachInstanceInterface`
 
 Attach an existing NIC to an instance
 
-`POST /v1/instances/{instance_id}/nics`
+`POST /v1/instances/{instance_id}/interfaces`
 
 ```java
-public Request<AttachInstanceNICResponse> attachInstanceNIC(String instance_id,AttachInstanceNICBody body)
+public Request<InstanceInterfaceResponse> attachInstanceInterface(String instance_id,AttachInstanceInterfaceBody body)
 ```
 
 ## `compute.attachInstancePoolFloatingIp`
@@ -299,7 +249,7 @@ Attach a data volume to an instance
 `POST /v1/instances/{instance_id}/volumes`
 
 ```java
-public Request<AttachInstanceVolumeResponse> attachInstanceVolume(String instance_id,AttachInstanceVolumeBody body)
+public Request<InstanceVolumeResponse> attachInstanceVolume(String instance_id,AttachInstanceVolumeBody body)
 ```
 
 ## `compute.createImage`
@@ -372,14 +322,14 @@ Delete an instance pool
 public EmptyRequest deleteInstancePool(String pool_id)
 ```
 
-## `compute.detachInstanceNIC`
+## `compute.detachInstanceInterface`
 
-Detach a NIC from a running instance
+Detach an interface from a running instance
 
-`DELETE /v1/instances/{instance_id}/nics/{interface_id}`
+`DELETE /v1/instances/{instance_id}/interfaces/{interface_id}`
 
 ```java
-public EmptyRequest detachInstanceNIC(String instance_id,String interface_id)
+public EmptyRequest detachInstanceInterface(String instance_id,String interface_id)
 ```
 
 ## `compute.detachInstancePoolFloatingIp`
@@ -492,14 +442,14 @@ List images
 public PagedRequest<ImageListResponse,Image> listImages(ListImagesQuery query)
 ```
 
-## `compute.listInstanceNICs`
+## `compute.listInstanceInterfaces`
 
 List the instance's network interfaces
 
-`GET /v1/instances/{instance_id}/nics`
+`GET /v1/instances/{instance_id}/interfaces`
 
 ```java
-public PagedRequest<ListInstanceNICsResponse,ListInstanceNICsItem> listInstanceNICs(String instance_id,ListInstanceNICsQuery query)
+public PagedRequest<InstanceInterfaceListResponse,AttachedInterface> listInstanceInterfaces(String instance_id,ListInstanceInterfacesQuery query)
 ```
 
 ## `compute.listInstancePoolFloatingIps`
@@ -529,7 +479,7 @@ List the instance's attached volumes
 `GET /v1/instances/{instance_id}/volumes`
 
 ```java
-public PagedRequest<ListInstanceVolumesResponse,ListInstanceVolumesItem> listInstanceVolumes(String instance_id,ListInstanceVolumesQuery query)
+public PagedRequest<InstanceVolumeListResponse,AttachedVolume> listInstanceVolumes(String instance_id,ListInstanceVolumesQuery query)
 ```
 
 ## `compute.listInstances`
@@ -799,7 +749,7 @@ List VPC associations
 `GET /v1/zones/{zone_id}/vpc-associations`
 
 ```java
-public PagedRequest<VPCAssociationsResponse,String> listZoneVPCAssociations(String zone_id,ListZoneVPCAssociationsQuery query)
+public PagedRequest<VPCAssociationsResponse,Vpc> listZoneVPCAssociations(String zone_id,ListZoneVPCAssociationsQuery query)
 ```
 
 ## `dns.listZones`
@@ -892,6 +842,16 @@ Approve a CLI login and issue an authorization code
 public Request<OAuthAuthorizeResponse> authorizeOAuthClient(OAuthAuthorizeRequestInput body)
 ```
 
+## `iam.createOIDCProvider`
+
+Create an OIDC provider
+
+`POST /v1/oidc-providers`
+
+```java
+public Request<OIDCProviderResponse> createOIDCProvider(OIDCProviderCreateRequestInput body)
+```
+
 ## `iam.createPersonalSSHKey`
 
 Add personal SSH key
@@ -950,6 +910,16 @@ Add service-account SSH key
 
 ```java
 public Request<CreateServiceAccountSSHKeyResponse> createServiceAccountSSHKey(String service_account_id,SSHKeyCreateRequestInput body)
+```
+
+## `iam.deleteOIDCProvider`
+
+Delete an OIDC provider
+
+`DELETE /v1/oidc-providers/{provider_id}`
+
+```java
+public EmptyRequest deleteOIDCProvider(String provider_id)
 ```
 
 ## `iam.deletePersonalSSHKey`
@@ -1062,6 +1032,16 @@ Exchange an access key for a bearer token
 public Request<OAuthTokenResponse> getOAuthToken(OAuthTokenRequestInput body)
 ```
 
+## `iam.getOIDCProvider`
+
+Get an OIDC provider
+
+`GET /v1/oidc-providers/{provider_id}`
+
+```java
+public Request<OIDCProviderResponse> getOIDCProvider(String provider_id)
+```
+
 ## `iam.getPersonalLinuxIdentity`
 
 Get personal Linux identity
@@ -1162,6 +1142,16 @@ Get a service account's permission boundary
 public Request<PermissionBoundaryResponse> getServiceAccountPermissionBoundary(String service_account_id)
 ```
 
+## `iam.listOIDCProviders`
+
+List OIDC providers
+
+`GET /v1/oidc-providers`
+
+```java
+public PagedRequest<OIDCProviderListResponse,OIDCProvider> listOIDCProviders(ListOIDCProvidersQuery query)
+```
+
 ## `iam.listPersonalSSHKeys`
 
 List personal SSH keys
@@ -1200,16 +1190,6 @@ List service accounts with policy
 
 ```java
 public PagedRequest<PolicyServiceAccountsListResponse,ServiceAccount> listPolicyServiceAccounts(String policy_id,ListPolicyServiceAccountsQuery query)
-```
-
-## `iam.listRegions`
-
-List regions (legacy IAM)
-
-`GET /v1/regions`
-
-```java
-public PagedRequest<ListRegionsResponse,Region> listRegions(ListRegionsQuery query)
 ```
 
 ## `iam.listRoleInlinePolicies`
@@ -1380,6 +1360,16 @@ Set a service account's permission boundary
 
 ```java
 public EmptyRequest setServiceAccountPermissionBoundary(String service_account_id,SetBoundaryRequestInput body)
+```
+
+## `iam.updateOIDCProvider`
+
+Update an OIDC provider
+
+`PATCH /v1/oidc-providers/{provider_id}`
+
+```java
+public Request<OIDCProviderResponse> updateOIDCProvider(String provider_id,OIDCProviderUpdateRequestInput body)
 ```
 
 ## `iam.updatePolicy`
@@ -1619,7 +1609,7 @@ Attach an additional certificate to an HTTPS listener
 `POST /v1/load-balancers/{id}/listeners/{listener_id}/certificates`
 
 ```java
-public Request<ListenerResponse> attachListenerCertificate(String id,String listener_id,AttachListenerCertificateRequestInput body)
+public Request<ListenerCertificateResponse> attachListenerCertificate(String id,String listener_id,AttachListenerCertificateRequestInput body)
 ```
 
 ## `loadbalancer.attachTarget`
@@ -1782,6 +1772,16 @@ Get a target group
 public Request<TargetGroupResponse> getTargetGroup(String id)
 ```
 
+## `loadbalancer.listListenerCertificates`
+
+List listener certificates
+
+`GET /v1/load-balancers/{id}/listeners/{listener_id}/certificates`
+
+```java
+public PagedRequest<ListenerCertificateListResponse,Certificate> listListenerCertificates(String id,String listener_id)
+```
+
 ## `loadbalancer.listListeners`
 
 List this load balancer's listeners
@@ -1792,14 +1792,14 @@ List this load balancer's listeners
 public PagedRequest<ListenerListResponse,Listener> listListeners(String id,ListListenersQuery query)
 ```
 
-## `loadbalancer.listLoadBalancerReplicas`
+## `loadbalancer.listLoadBalancerInstances`
 
-List the LB's instance replicas with live health
+List a load balancer's instances
 
-`GET /v1/load-balancers/{id}/replicas`
+`GET /v1/load-balancers/{id}/instances`
 
 ```java
-public PagedRequest<LoadBalancerReplicasResponse,LoadBalancerReplica> listLoadBalancerReplicas(String id,ListLoadBalancerReplicasQuery query)
+public PagedRequest<LoadBalancerInstancesResponse,LoadBalancerInstance> listLoadBalancerInstances(String id,ListLoadBalancerInstancesQuery query)
 ```
 
 ## `loadbalancer.listLoadBalancers`
@@ -1844,7 +1844,7 @@ public PagedRequest<TargetListResponse,Target> listTargets(String id,ListTargets
 
 ## `loadbalancer.updateListener`
 
-Patch a listener (rotate cert, change default target group)
+Update a listener
 
 `PATCH /v1/load-balancers/{id}/listeners/{listener_id}`
 
@@ -1884,22 +1884,22 @@ public Request<TargetGroupResponse> updateTargetGroup(String id,UpdateTargetGrou
 
 ## `network.attachFloatingIp`
 
-Attach a floating IP to an interface
+Attach an interface to a floating IP
 
-`POST /v1/floating-ips/{floating_ip_id}/attach`
+`POST /v1/floating-ips/{floating_ip_id}/interfaces`
 
 ```java
-public Request<AttachFloatingIpResponse> attachFloatingIp(String floating_ip_id,AttachFloatingIpBody body)
+public Request<FloatingIpInterfaceResponse> attachFloatingIp(String floating_ip_id,AttachFloatingIpBody body)
 ```
 
-## `network.attachInternetGateway`
+## `network.attachInterfaceSecurityGroup`
 
-Attach internet gateway to a VPC
+Attach a security group to an interface
 
-`POST /v1/internet-gateways/{internet_gateway_id}/attach`
+`POST /v1/interfaces/{interface_id}/security-groups`
 
 ```java
-public Request<InternetGatewayResponse> attachInternetGateway(String internet_gateway_id,InternetGatewayAttachRequestInput body)
+public Request<SecurityGroupResponse> attachInterfaceSecurityGroup(String interface_id,InterfaceSecurityGroupRequestInput body)
 ```
 
 ## `network.createEgressOnlyGateway`
@@ -2184,22 +2184,52 @@ public EmptyRequest deleteVpc(String vpc_id)
 
 ## `network.detachFloatingIp`
 
-Detach a floating IP
+Detach all direct interfaces from a floating IP
 
-`POST /v1/floating-ips/{floating_ip_id}/detach`
+`DELETE /v1/floating-ips/{floating_ip_id}/interfaces`
 
 ```java
-public Request<DetachFloatingIpResponse> detachFloatingIp(String floating_ip_id,DetachFloatingIpBody body)
+public EmptyRequest detachFloatingIp(String floating_ip_id)
 ```
 
-## `network.detachInternetGateway`
+## `network.detachFloatingIpInterface`
 
-Detach internet gateway from its VPC
+Detach an interface from a floating IP
 
-`POST /v1/internet-gateways/{internet_gateway_id}/detach`
+`DELETE /v1/floating-ips/{floating_ip_id}/interfaces/{interface_id}`
 
 ```java
-public Request<InternetGatewayResponse> detachInternetGateway(String internet_gateway_id)
+public EmptyRequest detachFloatingIpInterface(String floating_ip_id,String interface_id)
+```
+
+## `network.detachInterfaceSecurityGroup`
+
+Detach a security group from an interface
+
+`DELETE /v1/interfaces/{interface_id}/security-groups/{security_group_id}`
+
+```java
+public EmptyRequest detachInterfaceSecurityGroup(String interface_id,String security_group_id)
+```
+
+## `network.enableSubnetIPv6`
+
+Enable IPv6 on a subnet
+
+`POST /v1/subnets/{subnet_id}/ipv6`
+
+```java
+public Request<SubnetResponse> enableSubnetIPv6(String subnet_id,SubnetIPv6RequestInput body)
+```
+
+## `network.enableVPCIPv6`
+
+Enable IPv6 on a vpc
+
+`POST /v1/vpcs/{vpc_id}/ipv6`
+
+```java
+public Request<VpcResponse> enableVPCIPv6(String vpc_id,VpcIPv6RequestInput body)
 ```
 
 ## `network.getEgressOnlyGateway`
@@ -2342,6 +2372,16 @@ List egress-only gateways
 public PagedRequest<EgressOnlyGatewayListResponse,EgressOnlyGateway> listEgressOnlyGateways(ListEgressOnlyGatewaysQuery query)
 ```
 
+## `network.listFloatingIpInterfaces`
+
+List a floating IP’s interfaces
+
+`GET /v1/floating-ips/{floating_ip_id}/interfaces`
+
+```java
+public PagedRequest<FloatingIpInterfaceListResponse,FloatingIpInterface> listFloatingIpInterfaces(String floating_ip_id,ListFloatingIpInterfacesQuery query)
+```
+
 ## `network.listFloatingIps`
 
 List floating IPs
@@ -2374,12 +2414,12 @@ public PagedRequest<ListInterfacePrefixesResponse,RoutedPrefix> listInterfacePre
 
 ## `network.listInterfaceSecurityGroups`
 
-List interface security-group membership
+List an interface’s security groups
 
 `GET /v1/interfaces/{interface_id}/security-groups`
 
 ```java
-public PagedRequest<InterfaceSecurityGroupsResponse,String> listInterfaceSecurityGroups(String interface_id,ListInterfaceSecurityGroupsQuery query)
+public PagedRequest<SecurityGroupListResponse,SecurityGroup> listInterfaceSecurityGroups(String interface_id,ListInterfaceSecurityGroupsQuery query)
 ```
 
 ## `network.listInterfaces`
@@ -2500,16 +2540,6 @@ List VPCs
 
 ```java
 public PagedRequest<VpcListResponse,Vpc> listVpcs(ListVpcsQuery query)
-```
-
-## `network.setInterfaceSecurityGroups`
-
-Set interface security-group membership
-
-`PUT /v1/interfaces/{interface_id}/security-groups`
-
-```java
-public Request<InterfaceSecurityGroupsResponse> setInterfaceSecurityGroups(String interface_id,InterfaceSecurityGroupsRequestInput body)
 ```
 
 ## `network.updateEgressOnlyGateway`
@@ -2756,10 +2786,10 @@ public Request<SnapshotResponse> createSnapshot(SnapshotCreateRequestInput body)
 
 Create snapshot policy
 
-`POST /v1/snapshot-policies`
+`POST /v1/volumes/{volume_id}/snapshot-policies`
 
 ```java
-public Request<SnapshotPolicyResponse> createSnapshotPolicy(SnapshotPolicyCreateRequestInput body)
+public Request<SnapshotPolicyResponse> createSnapshotPolicy(String volume_id,SnapshotPolicyCreateRequestInput body)
 ```
 
 ## `storage.createVolume`
@@ -2866,10 +2896,10 @@ public EmptyRequest deleteSnapshot(String snapshot_id)
 
 Delete snapshot policy
 
-`DELETE /v1/snapshot-policies/{policy_id}`
+`DELETE /v1/volumes/{volume_id}/snapshot-policies/{policy_id}`
 
 ```java
-public EmptyRequest deleteSnapshotPolicy(String policy_id)
+public EmptyRequest deleteSnapshotPolicy(String volume_id,String policy_id)
 ```
 
 ## `storage.deleteVolume`
@@ -2929,7 +2959,7 @@ Get bucket object-lock configuration
 `GET /v1/buckets/{bucket}/object-lock`
 
 ```java
-public Request<BucketObjectLockResponse> getBucketObjectLock(String bucket)
+public Request<ObjectLockConfig> getBucketObjectLock(String bucket)
 ```
 
 ## `storage.getBucketPolicy`
@@ -2986,10 +3016,10 @@ public Request<SnapshotResponse> getSnapshot(String snapshot_id)
 
 Get snapshot policy
 
-`GET /v1/snapshot-policies/{policy_id}`
+`GET /v1/volumes/{volume_id}/snapshot-policies/{policy_id}`
 
 ```java
-public Request<SnapshotPolicyResponse> getSnapshotPolicy(String policy_id)
+public Request<SnapshotPolicyResponse> getSnapshotPolicy(String volume_id,String policy_id)
 ```
 
 ## `storage.getVolume`
@@ -3086,10 +3116,10 @@ public PagedRequest<ListPartsResponse,MultipartPart> listParts(String bucket,Str
 
 List snapshot policies
 
-`GET /v1/snapshot-policies`
+`GET /v1/volumes/{volume_id}/snapshot-policies`
 
 ```java
-public PagedRequest<SnapshotPolicyListResponse,SnapshotPolicy> listSnapshotPolicies(ListSnapshotPoliciesQuery query)
+public PagedRequest<SnapshotPolicyListResponse,SnapshotPolicy> listSnapshotPolicies(String volume_id,ListSnapshotPoliciesQuery query)
 ```
 
 ## `storage.listSnapshots`
@@ -3169,7 +3199,7 @@ Put bucket object-lock configuration
 `PUT /v1/buckets/{bucket}/object-lock`
 
 ```java
-public EmptyRequest putBucketObjectLock(String bucket,PutBucketObjectLockRequestInput body)
+public EmptyRequest putBucketObjectLock(String bucket,ObjectLockConfigInput body)
 ```
 
 ## `storage.putBucketPolicy`
@@ -3236,10 +3266,10 @@ public Request<SnapshotResponse> updateSnapshot(String snapshot_id,SnapshotUpdat
 
 Update snapshot policy
 
-`PATCH /v1/snapshot-policies/{policy_id}`
+`PATCH /v1/volumes/{volume_id}/snapshot-policies/{policy_id}`
 
 ```java
-public Request<SnapshotPolicyResponse> updateSnapshotPolicy(String policy_id,SnapshotPolicyUpdateRequestInput body)
+public Request<SnapshotPolicyResponse> updateSnapshotPolicy(String volume_id,String policy_id,SnapshotPolicyUpdateRequestInput body)
 ```
 
 ## `storage.updateVolume`
@@ -3326,15 +3356,15 @@ public Request<LogGroupResponse> getLogGroup(String id)
 
 Check retained telemetry presence
 
-`GET /v1/trace-settings/retained-data`
+`GET /v1/retained-data`
 
 ```java
-public Request<GetRetainedTelemetryPresenceResponse> getRetainedTelemetryPresence()
+public Request<RetainedDataResponse> getRetainedTelemetryPresence()
 ```
 
 ## `telemetry.getTrace`
 
-Get all spans for a trace
+Get a trace
 
 `GET /v1/traces/{trace_id}`
 
@@ -3359,7 +3389,7 @@ Ingest a batch of log records
 `POST /v1/logs`
 
 ```java
-public Request<IngestResult> ingestLogs(IngestRequestInput body)
+public Request<IngestResponse> ingestLogs(IngestRequestInput body)
 ```
 
 ## `telemetry.ingestSpans`
@@ -3369,7 +3399,7 @@ Ingest a batch of trace spans
 `POST /v1/spans`
 
 ```java
-public Request<IngestResult> ingestSpans(IngestSpansRequestInput body)
+public Request<IngestResponse> ingestSpans(IngestSpansRequestInput body)
 ```
 
 ## `telemetry.listLogGroups`
@@ -3384,92 +3414,92 @@ public PagedRequest<LogGroupListResponse,LogGroup> listLogGroups(ListLogGroupsQu
 
 ## `telemetry.listMetricNames`
 
-List the distinct metric names emitted in a time window
+List metric names
 
 `GET /v1/metrics/names`
 
 ```java
-public PagedRequest<ListMetricNamesResponse,String> listMetricNames(ListMetricNamesQuery query)
+public PagedRequest<MetricNamesResponse,String> listMetricNames(ListMetricNamesQuery query)
 ```
 
 ## `telemetry.listMetricNamesPost`
 
-List the distinct metric names emitted in a time window (form body)
+List metric names (JSON)
 
 `POST /v1/metrics/names`
 
 ```java
-public Request<ListMetricNamesPostResponse> listMetricNamesPost(ListMetricNamesPostBody body)
+public Request<MetricNamesResponse> listMetricNamesPost(ListMetricNamesPostBody body)
 ```
 
 ## `telemetry.listMetricSeries`
 
-List distinct label sets for a metric
+List metric series
 
 `GET /v1/metrics/series`
 
 ```java
-public Request<Map<String, JsonNode>> listMetricSeries(ListMetricSeriesQuery query)
+public PagedRequest<MetricSeriesResponse,Map<String, String>> listMetricSeries(ListMetricSeriesQuery query)
 ```
 
 ## `telemetry.listMetricSeriesPost`
 
-List distinct label sets for a metric (form body)
+List metric series (JSON)
 
 `POST /v1/metrics/series`
 
 ```java
-public Request<Map<String, JsonNode>> listMetricSeriesPost(ListMetricSeriesPostBody body)
+public Request<MetricSeriesResponse> listMetricSeriesPost(ListMetricSeriesPostBody body)
 ```
 
-## `telemetry.putTraceSettings`
+## `telemetry.listTraceSpans`
 
-Update the caller account's trace settings
+List spans in a trace
 
-`PUT /v1/trace-settings`
+`GET /v1/traces/{trace_id}/spans`
 
 ```java
-public Request<TraceSettingsResponse> putTraceSettings(UpdateTraceSettingsRequestInput body)
+public PagedRequest<SpanListResponse,Span> listTraceSpans(String trace_id,ListTraceSpansQuery query)
 ```
 
 ## `telemetry.queryMetricsInstant`
 
-Instant structured metric query
+Run an instant metric query
 
 `GET /v1/metrics/query`
 
 ```java
-public Request<Map<String, JsonNode>> queryMetricsInstant(QueryMetricsInstantQuery query)
+public Request<MetricQueryResponse> queryMetricsInstant(QueryMetricsInstantQuery query)
 ```
 
 ## `telemetry.queryMetricsInstantPost`
 
-Instant structured metric query (form body)
+Run an instant metric query (JSON)
 
 `POST /v1/metrics/query`
 
 ```java
-public Request<Map<String, JsonNode>> queryMetricsInstantPost(QueryMetricsInstantPostBody body)
+public Request<MetricQueryResponse> queryMetricsInstantPost(QueryMetricsInstantPostBody body)
 ```
 
 ## `telemetry.queryMetricsRange`
 
-Range structured metric query
+Run a range metric query
 
-`GET /v1/metrics/query_range`
+`GET /v1/metrics/query-range`
 
 ```java
-public Request<Map<String, JsonNode>> queryMetricsRange(QueryMetricsRangeQuery query)
+public Request<MetricQueryResponse> queryMetricsRange(QueryMetricsRangeQuery query)
 ```
 
 ## `telemetry.queryMetricsRangePost`
 
-Range structured metric query (form body)
+Run a range metric query (JSON)
 
-`POST /v1/metrics/query_range`
+`POST /v1/metrics/query-range`
 
 ```java
-public Request<Map<String, JsonNode>> queryMetricsRangePost(QueryMetricsRangePostBody body)
+public Request<MetricQueryResponse> queryMetricsRangePost(QueryMetricsRangePostBody body)
 ```
 
 ## `telemetry.searchLogs`
@@ -3500,6 +3530,16 @@ Update a log group
 
 ```java
 public Request<LogGroupResponse> updateLogGroup(String id,UpdateLogGroupRequestInput body)
+```
+
+## `telemetry.updateTraceSettings`
+
+Update the caller account's trace settings
+
+`PATCH /v1/trace-settings`
+
+```java
+public Request<TraceSettingsResponse> updateTraceSettings(UpdateTraceSettingsRequestInput body)
 ```
 
 ## `telemetry.writeMetrics`

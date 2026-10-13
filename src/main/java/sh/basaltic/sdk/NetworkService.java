@@ -4,14 +4,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.*;
 import sh.basaltic.sdk.models.Network.AddressRequestInput;
 import sh.basaltic.sdk.models.Network.AttachFloatingIpBody;
-import sh.basaltic.sdk.models.Network.AttachFloatingIpResponse;
 import sh.basaltic.sdk.models.Network.CreateInterfaceAddressResponse;
 import sh.basaltic.sdk.models.Network.CreateInterfacePrefixBody;
 import sh.basaltic.sdk.models.Network.CreateInterfacePrefixResponse;
 import sh.basaltic.sdk.models.Network.CreatePrefixPoolBody;
 import sh.basaltic.sdk.models.Network.CreatePrefixPoolResponse;
-import sh.basaltic.sdk.models.Network.DetachFloatingIpBody;
-import sh.basaltic.sdk.models.Network.DetachFloatingIpResponse;
 import sh.basaltic.sdk.models.Network.EgressOnlyGateway;
 import sh.basaltic.sdk.models.Network.EgressOnlyGatewayCreateRequestInput;
 import sh.basaltic.sdk.models.Network.EgressOnlyGatewayListResponse;
@@ -19,6 +16,9 @@ import sh.basaltic.sdk.models.Network.EgressOnlyGatewayResponse;
 import sh.basaltic.sdk.models.Network.EgressOnlyGatewayUpdateRequestInput;
 import sh.basaltic.sdk.models.Network.FloatingIp;
 import sh.basaltic.sdk.models.Network.FloatingIpCreateRequestInput;
+import sh.basaltic.sdk.models.Network.FloatingIpInterface;
+import sh.basaltic.sdk.models.Network.FloatingIpInterfaceListResponse;
+import sh.basaltic.sdk.models.Network.FloatingIpInterfaceResponse;
 import sh.basaltic.sdk.models.Network.FloatingIpListResponse;
 import sh.basaltic.sdk.models.Network.FloatingIpResponse;
 import sh.basaltic.sdk.models.Network.FloatingIpUpdateRequestInput;
@@ -41,17 +41,16 @@ import sh.basaltic.sdk.models.Network.InterfaceAddress;
 import sh.basaltic.sdk.models.Network.InterfaceCreateRequestInput;
 import sh.basaltic.sdk.models.Network.InterfaceListResponse;
 import sh.basaltic.sdk.models.Network.InterfaceResponse;
-import sh.basaltic.sdk.models.Network.InterfaceSecurityGroupsRequestInput;
-import sh.basaltic.sdk.models.Network.InterfaceSecurityGroupsResponse;
+import sh.basaltic.sdk.models.Network.InterfaceSecurityGroupRequestInput;
 import sh.basaltic.sdk.models.Network.InterfaceUpdateRequestInput;
 import sh.basaltic.sdk.models.Network.InternetGateway;
-import sh.basaltic.sdk.models.Network.InternetGatewayAttachRequestInput;
 import sh.basaltic.sdk.models.Network.InternetGatewayCreateRequestInput;
 import sh.basaltic.sdk.models.Network.InternetGatewayListResponse;
 import sh.basaltic.sdk.models.Network.InternetGatewayResponse;
 import sh.basaltic.sdk.models.Network.InternetGatewayUpdateRequestInput;
 import sh.basaltic.sdk.models.Network.ListEgressOnlyGatewayRoutesQuery;
 import sh.basaltic.sdk.models.Network.ListEgressOnlyGatewaysQuery;
+import sh.basaltic.sdk.models.Network.ListFloatingIpInterfacesQuery;
 import sh.basaltic.sdk.models.Network.ListFloatingIpsQuery;
 import sh.basaltic.sdk.models.Network.ListInterfaceAddressesResponse;
 import sh.basaltic.sdk.models.Network.ListInterfacePrefixesResponse;
@@ -96,11 +95,13 @@ import sh.basaltic.sdk.models.Network.SecurityGroupRuleResponse;
 import sh.basaltic.sdk.models.Network.SecurityGroupUpdateRequestInput;
 import sh.basaltic.sdk.models.Network.Subnet;
 import sh.basaltic.sdk.models.Network.SubnetCreateRequestInput;
+import sh.basaltic.sdk.models.Network.SubnetIPv6RequestInput;
 import sh.basaltic.sdk.models.Network.SubnetListResponse;
 import sh.basaltic.sdk.models.Network.SubnetResponse;
 import sh.basaltic.sdk.models.Network.SubnetUpdateRequestInput;
 import sh.basaltic.sdk.models.Network.Vpc;
 import sh.basaltic.sdk.models.Network.VpcCreateRequestInput;
+import sh.basaltic.sdk.models.Network.VpcIPv6RequestInput;
 import sh.basaltic.sdk.models.Network.VpcListResponse;
 import sh.basaltic.sdk.models.Network.VpcResponse;
 import sh.basaltic.sdk.models.Network.VpcUpdateRequestInput;
@@ -117,7 +118,7 @@ public final class NetworkService {
       new Operation(
           "attachFloatingIp",
           "POST",
-          "/v1/floating-ips/{floating_ip_id}/attach",
+          "/v1/floating-ips/{floating_ip_id}/interfaces",
           true,
           List.of(),
           List.of(),
@@ -127,9 +128,9 @@ public final class NetworkService {
           "application/json");
   private static final Operation OP_1 =
       new Operation(
-          "attachInternetGateway",
+          "attachInterfaceSecurityGroup",
           "POST",
-          "/v1/internet-gateways/{internet_gateway_id}/attach",
+          "/v1/interfaces/{interface_id}/security-groups",
           true,
           List.of(),
           List.of(),
@@ -476,20 +477,20 @@ public final class NetworkService {
   private static final Operation OP_30 =
       new Operation(
           "detachFloatingIp",
-          "POST",
-          "/v1/floating-ips/{floating_ip_id}/detach",
+          "DELETE",
+          "/v1/floating-ips/{floating_ip_id}/interfaces",
           true,
           List.of(),
           List.of(),
           Map.ofEntries(),
           false,
-          "application/json",
+          "",
           "application/json");
   private static final Operation OP_31 =
       new Operation(
-          "detachInternetGateway",
-          "POST",
-          "/v1/internet-gateways/{internet_gateway_id}/detach",
+          "detachFloatingIpInterface",
+          "DELETE",
+          "/v1/floating-ips/{floating_ip_id}/interfaces/{interface_id}",
           true,
           List.of(),
           List.of(),
@@ -498,6 +499,42 @@ public final class NetworkService {
           "",
           "application/json");
   private static final Operation OP_32 =
+      new Operation(
+          "detachInterfaceSecurityGroup",
+          "DELETE",
+          "/v1/interfaces/{interface_id}/security-groups/{security_group_id}",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          false,
+          "",
+          "application/json");
+  private static final Operation OP_33 =
+      new Operation(
+          "enableSubnetIPv6",
+          "POST",
+          "/v1/subnets/{subnet_id}/ipv6",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          true,
+          "application/json",
+          "application/json");
+  private static final Operation OP_34 =
+      new Operation(
+          "enableVPCIPv6",
+          "POST",
+          "/v1/vpcs/{vpc_id}/ipv6",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          true,
+          "application/json",
+          "application/json");
+  private static final Operation OP_35 =
       new Operation(
           "getEgressOnlyGateway",
           "GET",
@@ -509,7 +546,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_33 =
+  private static final Operation OP_36 =
       new Operation(
           "getFloatingIp",
           "GET",
@@ -521,7 +558,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_34 =
+  private static final Operation OP_37 =
       new Operation(
           "getInterface",
           "GET",
@@ -533,7 +570,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_35 =
+  private static final Operation OP_38 =
       new Operation(
           "getInterfaceAddress",
           "GET",
@@ -545,7 +582,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_36 =
+  private static final Operation OP_39 =
       new Operation(
           "getInternetGateway",
           "GET",
@@ -557,7 +594,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_37 =
+  private static final Operation OP_40 =
       new Operation(
           "getNATGateway",
           "GET",
@@ -569,7 +606,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_38 =
+  private static final Operation OP_41 =
       new Operation(
           "getRoute",
           "GET",
@@ -581,7 +618,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_39 =
+  private static final Operation OP_42 =
       new Operation(
           "getRouteTable",
           "GET",
@@ -593,7 +630,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_40 =
+  private static final Operation OP_43 =
       new Operation(
           "getSecurityGroup",
           "GET",
@@ -605,7 +642,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_41 =
+  private static final Operation OP_44 =
       new Operation(
           "getSecurityGroupRule",
           "GET",
@@ -617,7 +654,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_42 =
+  private static final Operation OP_45 =
       new Operation(
           "getSubnet",
           "GET",
@@ -629,7 +666,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_43 =
+  private static final Operation OP_46 =
       new Operation(
           "getVpc",
           "GET",
@@ -641,7 +678,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_44 =
+  private static final Operation OP_47 =
       new Operation(
           "listEgressOnlyGatewayRoutes",
           "GET",
@@ -657,7 +694,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_45 =
+  private static final Operation OP_48 =
       new Operation(
           "listEgressOnlyGateways",
           "GET",
@@ -673,7 +710,23 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_46 =
+  private static final Operation OP_49 =
+      new Operation(
+          "listFloatingIpInterfaces",
+          "GET",
+          "/v1/floating-ips/{floating_ip_id}/interfaces",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(
+              Map.entry("limit", new Operation.Encoding("form", true)),
+              Map.entry("marker", new Operation.Encoding("form", true)),
+              Map.entry("crn", new Operation.Encoding("form", true)),
+              Map.entry("name", new Operation.Encoding("form", true))),
+          false,
+          "",
+          "application/json");
+  private static final Operation OP_50 =
       new Operation(
           "listFloatingIps",
           "GET",
@@ -690,7 +743,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_47 =
+  private static final Operation OP_51 =
       new Operation(
           "listInterfaceAddresses",
           "GET",
@@ -702,7 +755,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_48 =
+  private static final Operation OP_52 =
       new Operation(
           "listInterfacePrefixes",
           "GET",
@@ -714,7 +767,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_49 =
+  private static final Operation OP_53 =
       new Operation(
           "listInterfaceSecurityGroups",
           "GET",
@@ -724,11 +777,13 @@ public final class NetworkService {
           List.of(),
           Map.ofEntries(
               Map.entry("name", new Operation.Encoding("form", true)),
-              Map.entry("crn", new Operation.Encoding("form", true))),
+              Map.entry("crn", new Operation.Encoding("form", true)),
+              Map.entry("marker", new Operation.Encoding("form", true)),
+              Map.entry("limit", new Operation.Encoding("form", true))),
           false,
           "",
           "application/json");
-  private static final Operation OP_50 =
+  private static final Operation OP_54 =
       new Operation(
           "listInterfaces",
           "GET",
@@ -746,7 +801,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_51 =
+  private static final Operation OP_55 =
       new Operation(
           "listInternetGatewayRoutes",
           "GET",
@@ -762,7 +817,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_52 =
+  private static final Operation OP_56 =
       new Operation(
           "listInternetGateways",
           "GET",
@@ -778,7 +833,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_53 =
+  private static final Operation OP_57 =
       new Operation(
           "listNATGatewayRoutes",
           "GET",
@@ -794,7 +849,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_54 =
+  private static final Operation OP_58 =
       new Operation(
           "listNATGateways",
           "GET",
@@ -812,7 +867,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_55 =
+  private static final Operation OP_59 =
       new Operation(
           "listPrefixPools",
           "GET",
@@ -824,7 +879,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_56 =
+  private static final Operation OP_60 =
       new Operation(
           "listRouteTables",
           "GET",
@@ -841,7 +896,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_57 =
+  private static final Operation OP_61 =
       new Operation(
           "listRoutes",
           "GET",
@@ -857,7 +912,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_58 =
+  private static final Operation OP_62 =
       new Operation(
           "listSecurityGroupRules",
           "GET",
@@ -873,7 +928,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_59 =
+  private static final Operation OP_63 =
       new Operation(
           "listSecurityGroups",
           "GET",
@@ -889,7 +944,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_60 =
+  private static final Operation OP_64 =
       new Operation(
           "listSubnets",
           "GET",
@@ -906,7 +961,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_61 =
+  private static final Operation OP_65 =
       new Operation(
           "listVpcs",
           "GET",
@@ -922,19 +977,7 @@ public final class NetworkService {
           false,
           "",
           "application/json");
-  private static final Operation OP_62 =
-      new Operation(
-          "setInterfaceSecurityGroups",
-          "PUT",
-          "/v1/interfaces/{interface_id}/security-groups",
-          true,
-          List.of(),
-          List.of(),
-          Map.ofEntries(),
-          true,
-          "application/json",
-          "application/json");
-  private static final Operation OP_63 =
+  private static final Operation OP_66 =
       new Operation(
           "updateEgressOnlyGateway",
           "PATCH",
@@ -946,7 +989,7 @@ public final class NetworkService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_64 =
+  private static final Operation OP_67 =
       new Operation(
           "updateFloatingIp",
           "PATCH",
@@ -958,7 +1001,7 @@ public final class NetworkService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_65 =
+  private static final Operation OP_68 =
       new Operation(
           "updateInterface",
           "PATCH",
@@ -970,7 +1013,7 @@ public final class NetworkService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_66 =
+  private static final Operation OP_69 =
       new Operation(
           "updateInternetGateway",
           "PATCH",
@@ -982,7 +1025,7 @@ public final class NetworkService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_67 =
+  private static final Operation OP_70 =
       new Operation(
           "updateNATGateway",
           "PATCH",
@@ -994,7 +1037,7 @@ public final class NetworkService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_68 =
+  private static final Operation OP_71 =
       new Operation(
           "updateRoute",
           "PATCH",
@@ -1006,7 +1049,7 @@ public final class NetworkService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_69 =
+  private static final Operation OP_72 =
       new Operation(
           "updateRouteTable",
           "PATCH",
@@ -1018,7 +1061,7 @@ public final class NetworkService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_70 =
+  private static final Operation OP_73 =
       new Operation(
           "updateSecurityGroup",
           "PATCH",
@@ -1030,7 +1073,7 @@ public final class NetworkService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_71 =
+  private static final Operation OP_74 =
       new Operation(
           "updateSubnet",
           "PATCH",
@@ -1042,7 +1085,7 @@ public final class NetworkService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_72 =
+  private static final Operation OP_75 =
       new Operation(
           "updateVpc",
           "PATCH",
@@ -1055,8 +1098,8 @@ public final class NetworkService {
           "application/json",
           "application/json");
 
-  /** Attach a floating IP to an interface */
-  public Request<AttachFloatingIpResponse> attachFloatingIp(
+  /** Attach an interface to a floating IP */
+  public Request<FloatingIpInterfaceResponse> attachFloatingIp(
       String floating_ip_id, AttachFloatingIpBody body) {
     return new Request<>(
         new Core(
@@ -1067,22 +1110,22 @@ public final class NetworkService {
             Map.ofEntries(Map.entry("floating_ip_id", floating_ip_id)),
             body,
             null),
-        new TypeReference<AttachFloatingIpResponse>() {});
+        new TypeReference<FloatingIpInterfaceResponse>() {});
   }
 
-  /** Attach internet gateway to a VPC */
-  public Request<InternetGatewayResponse> attachInternetGateway(
-      String internet_gateway_id, InternetGatewayAttachRequestInput body) {
+  /** Attach a security group to an interface */
+  public Request<SecurityGroupResponse> attachInterfaceSecurityGroup(
+      String interface_id, InterfaceSecurityGroupRequestInput body) {
     return new Request<>(
         new Core(
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
             OP_1,
-            Map.ofEntries(Map.entry("internet_gateway_id", internet_gateway_id)),
+            Map.ofEntries(Map.entry("interface_id", interface_id)),
             body,
             null),
-        new TypeReference<InternetGatewayResponse>() {});
+        new TypeReference<SecurityGroupResponse>() {});
   }
 
   /** Create egress-only gateway */
@@ -1478,38 +1521,75 @@ public final class NetworkService {
             null));
   }
 
-  /** Detach a floating IP */
-  public Request<DetachFloatingIpResponse> detachFloatingIp(
-      String floating_ip_id, DetachFloatingIpBody body) {
-    return new Request<>(
+  /** Detach all direct interfaces from a floating IP */
+  public EmptyRequest detachFloatingIp(String floating_ip_id) {
+    return new EmptyRequest(
         new Core(
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
             OP_30,
             Map.ofEntries(Map.entry("floating_ip_id", floating_ip_id)),
-            body,
-            null),
-        new TypeReference<DetachFloatingIpResponse>() {});
+            null,
+            null));
   }
 
-  /** Execute with optional inputs omitted. */
-  public Request<DetachFloatingIpResponse> detachFloatingIp(String floating_ip_id) {
-    return detachFloatingIp(floating_ip_id, null);
-  }
-
-  /** Detach internet gateway from its VPC */
-  public Request<InternetGatewayResponse> detachInternetGateway(String internet_gateway_id) {
-    return new Request<>(
+  /** Detach an interface from a floating IP */
+  public EmptyRequest detachFloatingIpInterface(String floating_ip_id, String interface_id) {
+    return new EmptyRequest(
         new Core(
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
             OP_31,
-            Map.ofEntries(Map.entry("internet_gateway_id", internet_gateway_id)),
+            Map.ofEntries(
+                Map.entry("floating_ip_id", floating_ip_id),
+                Map.entry("interface_id", interface_id)),
             null,
+            null));
+  }
+
+  /** Detach a security group from an interface */
+  public EmptyRequest detachInterfaceSecurityGroup(String interface_id, String security_group_id) {
+    return new EmptyRequest(
+        new Core(
+            transport,
+            "network",
+            "https://network.{region}.basaltic.sh",
+            OP_32,
+            Map.ofEntries(
+                Map.entry("interface_id", interface_id),
+                Map.entry("security_group_id", security_group_id)),
+            null,
+            null));
+  }
+
+  /** Enable IPv6 on a subnet */
+  public Request<SubnetResponse> enableSubnetIPv6(String subnet_id, SubnetIPv6RequestInput body) {
+    return new Request<>(
+        new Core(
+            transport,
+            "network",
+            "https://network.{region}.basaltic.sh",
+            OP_33,
+            Map.ofEntries(Map.entry("subnet_id", subnet_id)),
+            body,
             null),
-        new TypeReference<InternetGatewayResponse>() {});
+        new TypeReference<SubnetResponse>() {});
+  }
+
+  /** Enable IPv6 on a vpc */
+  public Request<VpcResponse> enableVPCIPv6(String vpc_id, VpcIPv6RequestInput body) {
+    return new Request<>(
+        new Core(
+            transport,
+            "network",
+            "https://network.{region}.basaltic.sh",
+            OP_34,
+            Map.ofEntries(Map.entry("vpc_id", vpc_id)),
+            body,
+            null),
+        new TypeReference<VpcResponse>() {});
   }
 
   /** Get egress-only gateway */
@@ -1519,7 +1599,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_32,
+            OP_35,
             Map.ofEntries(Map.entry("egress_only_gateway_id", egress_only_gateway_id)),
             null,
             null),
@@ -1534,7 +1614,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_32,
+            OP_35,
             Map.ofEntries(Map.entry("egress_only_gateway_id", reference)),
             null,
             null),
@@ -1542,7 +1622,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_45,
+            OP_48,
             Map.ofEntries(),
             null,
             scope),
@@ -1564,7 +1644,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_33,
+            OP_36,
             Map.ofEntries(Map.entry("floating_ip_id", floating_ip_id)),
             null,
             null),
@@ -1578,7 +1658,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_33,
+            OP_36,
             Map.ofEntries(Map.entry("floating_ip_id", reference)),
             null,
             null),
@@ -1586,7 +1666,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_46,
+            OP_50,
             Map.ofEntries(),
             null,
             scope),
@@ -1608,7 +1688,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_34,
+            OP_37,
             Map.ofEntries(Map.entry("interface_id", interface_id)),
             null,
             null),
@@ -1622,7 +1702,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_34,
+            OP_37,
             Map.ofEntries(Map.entry("interface_id", reference)),
             null,
             null),
@@ -1630,7 +1710,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_50,
+            OP_54,
             Map.ofEntries(),
             null,
             scope),
@@ -1653,7 +1733,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_35,
+            OP_38,
             Map.ofEntries(
                 Map.entry("interface_id", interface_id), Map.entry("address_id", address_id)),
             null,
@@ -1668,7 +1748,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_36,
+            OP_39,
             Map.ofEntries(Map.entry("internet_gateway_id", internet_gateway_id)),
             null,
             null),
@@ -1683,7 +1763,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_36,
+            OP_39,
             Map.ofEntries(Map.entry("internet_gateway_id", reference)),
             null,
             null),
@@ -1691,7 +1771,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_52,
+            OP_56,
             Map.ofEntries(),
             null,
             scope),
@@ -1713,7 +1793,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_37,
+            OP_40,
             Map.ofEntries(Map.entry("nat_gateway_id", nat_gateway_id)),
             null,
             null),
@@ -1727,7 +1807,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_37,
+            OP_40,
             Map.ofEntries(Map.entry("nat_gateway_id", reference)),
             null,
             null),
@@ -1735,7 +1815,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_54,
+            OP_58,
             Map.ofEntries(),
             null,
             scope),
@@ -1757,7 +1837,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_38,
+            OP_41,
             Map.ofEntries(
                 Map.entry("route_table_id", route_table_id), Map.entry("route_id", route_id)),
             null,
@@ -1773,7 +1853,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_38,
+            OP_41,
             Map.ofEntries(
                 Map.entry("route_table_id", route_table_id), Map.entry("route_id", reference)),
             null,
@@ -1782,7 +1862,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_57,
+            OP_61,
             Map.ofEntries(Map.entry("route_table_id", route_table_id)),
             null,
             scope),
@@ -1804,7 +1884,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_39,
+            OP_42,
             Map.ofEntries(Map.entry("route_table_id", route_table_id)),
             null,
             null),
@@ -1818,7 +1898,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_39,
+            OP_42,
             Map.ofEntries(Map.entry("route_table_id", reference)),
             null,
             null),
@@ -1826,7 +1906,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_56,
+            OP_60,
             Map.ofEntries(),
             null,
             scope),
@@ -1848,7 +1928,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_40,
+            OP_43,
             Map.ofEntries(Map.entry("security_group_id", security_group_id)),
             null,
             null),
@@ -1863,7 +1943,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_40,
+            OP_43,
             Map.ofEntries(Map.entry("security_group_id", reference)),
             null,
             null),
@@ -1871,7 +1951,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_59,
+            OP_63,
             Map.ofEntries(),
             null,
             scope),
@@ -1894,7 +1974,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_41,
+            OP_44,
             Map.ofEntries(
                 Map.entry("security_group_id", security_group_id), Map.entry("rule_id", rule_id)),
             null,
@@ -1910,7 +1990,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_41,
+            OP_44,
             Map.ofEntries(
                 Map.entry("security_group_id", security_group_id), Map.entry("rule_id", reference)),
             null,
@@ -1919,7 +1999,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_58,
+            OP_62,
             Map.ofEntries(Map.entry("security_group_id", security_group_id)),
             null,
             scope),
@@ -1942,7 +2022,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_42,
+            OP_45,
             Map.ofEntries(Map.entry("subnet_id", subnet_id)),
             null,
             null),
@@ -1956,7 +2036,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_42,
+            OP_45,
             Map.ofEntries(Map.entry("subnet_id", reference)),
             null,
             null),
@@ -1964,7 +2044,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_60,
+            OP_64,
             Map.ofEntries(),
             null,
             scope),
@@ -1986,7 +2066,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_43,
+            OP_46,
             Map.ofEntries(Map.entry("vpc_id", vpc_id)),
             null,
             null),
@@ -2000,7 +2080,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_43,
+            OP_46,
             Map.ofEntries(Map.entry("vpc_id", reference)),
             null,
             null),
@@ -2008,7 +2088,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_61,
+            OP_65,
             Map.ofEntries(),
             null,
             scope),
@@ -2031,7 +2111,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_44,
+            OP_47,
             Map.ofEntries(Map.entry("egress_only_gateway_id", egress_only_gateway_id)),
             null,
             query),
@@ -2054,7 +2134,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_45,
+            OP_48,
             Map.ofEntries(),
             null,
             query),
@@ -2068,6 +2148,29 @@ public final class NetworkService {
     return listEgressOnlyGateways(null);
   }
 
+  /** List a floating IP’s interfaces */
+  public PagedRequest<FloatingIpInterfaceListResponse, FloatingIpInterface>
+      listFloatingIpInterfaces(String floating_ip_id, ListFloatingIpInterfacesQuery query) {
+    return new PagedRequest<>(
+        new Core(
+            transport,
+            "network",
+            "https://network.{region}.basaltic.sh",
+            OP_49,
+            Map.ofEntries(Map.entry("floating_ip_id", floating_ip_id)),
+            null,
+            query),
+        new TypeReference<FloatingIpInterfaceListResponse>() {},
+        new TypeReference<FloatingIpInterface>() {},
+        "interfaces");
+  }
+
+  /** Execute with optional inputs omitted. */
+  public PagedRequest<FloatingIpInterfaceListResponse, FloatingIpInterface>
+      listFloatingIpInterfaces(String floating_ip_id) {
+    return listFloatingIpInterfaces(floating_ip_id, null);
+  }
+
   /** List floating IPs */
   public PagedRequest<FloatingIpListResponse, FloatingIp> listFloatingIps(
       ListFloatingIpsQuery query) {
@@ -2076,7 +2179,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_46,
+            OP_50,
             Map.ofEntries(),
             null,
             query),
@@ -2098,7 +2201,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_47,
+            OP_51,
             Map.ofEntries(Map.entry("interface_id", interface_id)),
             null,
             null),
@@ -2115,34 +2218,34 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_48,
+            OP_52,
             Map.ofEntries(Map.entry("interface_id", interface_id)),
             null,
             null),
         new TypeReference<ListInterfacePrefixesResponse>() {},
         new TypeReference<RoutedPrefix>() {},
-        "routed_prefixes");
+        "prefixes");
   }
 
-  /** List interface security-group membership */
-  public PagedRequest<InterfaceSecurityGroupsResponse, String> listInterfaceSecurityGroups(
+  /** List an interface’s security groups */
+  public PagedRequest<SecurityGroupListResponse, SecurityGroup> listInterfaceSecurityGroups(
       String interface_id, ListInterfaceSecurityGroupsQuery query) {
     return new PagedRequest<>(
         new Core(
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_49,
+            OP_53,
             Map.ofEntries(Map.entry("interface_id", interface_id)),
             null,
             query),
-        new TypeReference<InterfaceSecurityGroupsResponse>() {},
-        new TypeReference<String>() {},
-        "security_group_ids");
+        new TypeReference<SecurityGroupListResponse>() {},
+        new TypeReference<SecurityGroup>() {},
+        "security_groups");
   }
 
   /** Execute with optional inputs omitted. */
-  public PagedRequest<InterfaceSecurityGroupsResponse, String> listInterfaceSecurityGroups(
+  public PagedRequest<SecurityGroupListResponse, SecurityGroup> listInterfaceSecurityGroups(
       String interface_id) {
     return listInterfaceSecurityGroups(interface_id, null);
   }
@@ -2154,7 +2257,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_50,
+            OP_54,
             Map.ofEntries(),
             null,
             query),
@@ -2176,7 +2279,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_51,
+            OP_55,
             Map.ofEntries(Map.entry("internet_gateway_id", internet_gateway_id)),
             null,
             query),
@@ -2199,7 +2302,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_52,
+            OP_56,
             Map.ofEntries(),
             null,
             query),
@@ -2221,7 +2324,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_53,
+            OP_57,
             Map.ofEntries(Map.entry("nat_gateway_id", nat_gateway_id)),
             null,
             query),
@@ -2244,7 +2347,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_54,
+            OP_58,
             Map.ofEntries(),
             null,
             query),
@@ -2265,7 +2368,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_55,
+            OP_59,
             Map.ofEntries(Map.entry("vpc_id", vpc_id)),
             null,
             null),
@@ -2282,7 +2385,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_56,
+            OP_60,
             Map.ofEntries(),
             null,
             query),
@@ -2304,7 +2407,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_57,
+            OP_61,
             Map.ofEntries(Map.entry("route_table_id", route_table_id)),
             null,
             query),
@@ -2326,7 +2429,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_58,
+            OP_62,
             Map.ofEntries(Map.entry("security_group_id", security_group_id)),
             null,
             query),
@@ -2349,7 +2452,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_59,
+            OP_63,
             Map.ofEntries(),
             null,
             query),
@@ -2370,7 +2473,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_60,
+            OP_64,
             Map.ofEntries(),
             null,
             query),
@@ -2391,7 +2494,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_61,
+            OP_65,
             Map.ofEntries(),
             null,
             query),
@@ -2405,21 +2508,6 @@ public final class NetworkService {
     return listVpcs(null);
   }
 
-  /** Set interface security-group membership */
-  public Request<InterfaceSecurityGroupsResponse> setInterfaceSecurityGroups(
-      String interface_id, InterfaceSecurityGroupsRequestInput body) {
-    return new Request<>(
-        new Core(
-            transport,
-            "network",
-            "https://network.{region}.basaltic.sh",
-            OP_62,
-            Map.ofEntries(Map.entry("interface_id", interface_id)),
-            body,
-            null),
-        new TypeReference<InterfaceSecurityGroupsResponse>() {});
-  }
-
   /** Update egress-only gateway */
   public Request<EgressOnlyGatewayResponse> updateEgressOnlyGateway(
       String egress_only_gateway_id, EgressOnlyGatewayUpdateRequestInput body) {
@@ -2428,7 +2516,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_63,
+            OP_66,
             Map.ofEntries(Map.entry("egress_only_gateway_id", egress_only_gateway_id)),
             body,
             null),
@@ -2443,7 +2531,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_64,
+            OP_67,
             Map.ofEntries(Map.entry("floating_ip_id", floating_ip_id)),
             body,
             null),
@@ -2458,7 +2546,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_65,
+            OP_68,
             Map.ofEntries(Map.entry("interface_id", interface_id)),
             body,
             null),
@@ -2473,7 +2561,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_66,
+            OP_69,
             Map.ofEntries(Map.entry("internet_gateway_id", internet_gateway_id)),
             body,
             null),
@@ -2488,7 +2576,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_67,
+            OP_70,
             Map.ofEntries(Map.entry("nat_gateway_id", nat_gateway_id)),
             body,
             null),
@@ -2503,7 +2591,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_68,
+            OP_71,
             Map.ofEntries(
                 Map.entry("route_table_id", route_table_id), Map.entry("route_id", route_id)),
             body,
@@ -2519,7 +2607,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_69,
+            OP_72,
             Map.ofEntries(Map.entry("route_table_id", route_table_id)),
             body,
             null),
@@ -2534,7 +2622,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_70,
+            OP_73,
             Map.ofEntries(Map.entry("security_group_id", security_group_id)),
             body,
             null),
@@ -2548,7 +2636,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_71,
+            OP_74,
             Map.ofEntries(Map.entry("subnet_id", subnet_id)),
             body,
             null),
@@ -2562,7 +2650,7 @@ public final class NetworkService {
             transport,
             "network",
             "https://network.{region}.basaltic.sh",
-            OP_72,
+            OP_75,
             Map.ofEntries(Map.entry("vpc_id", vpc_id)),
             body,
             null),

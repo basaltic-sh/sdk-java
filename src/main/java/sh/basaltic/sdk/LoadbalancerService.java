@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.*;
 import sh.basaltic.sdk.models.Loadbalancer.AttachListenerCertificateRequestInput;
 import sh.basaltic.sdk.models.Loadbalancer.AttachTargetRequestInput;
+import sh.basaltic.sdk.models.Loadbalancer.Certificate;
 import sh.basaltic.sdk.models.Loadbalancer.CreateListenerRequestInput;
 import sh.basaltic.sdk.models.Loadbalancer.CreateLoadBalancerRequestInput;
 import sh.basaltic.sdk.models.Loadbalancer.CreateRuleRequestInput;
@@ -14,18 +15,20 @@ import sh.basaltic.sdk.models.Loadbalancer.GetRuleScope;
 import sh.basaltic.sdk.models.Loadbalancer.GetTargetGroupScope;
 import sh.basaltic.sdk.models.Loadbalancer.GetTargetScope;
 import sh.basaltic.sdk.models.Loadbalancer.ListListenersQuery;
-import sh.basaltic.sdk.models.Loadbalancer.ListLoadBalancerReplicasQuery;
+import sh.basaltic.sdk.models.Loadbalancer.ListLoadBalancerInstancesQuery;
 import sh.basaltic.sdk.models.Loadbalancer.ListLoadBalancersQuery;
 import sh.basaltic.sdk.models.Loadbalancer.ListRulesQuery;
 import sh.basaltic.sdk.models.Loadbalancer.ListTargetGroupsQuery;
 import sh.basaltic.sdk.models.Loadbalancer.ListTargetsQuery;
 import sh.basaltic.sdk.models.Loadbalancer.Listener;
+import sh.basaltic.sdk.models.Loadbalancer.ListenerCertificateListResponse;
+import sh.basaltic.sdk.models.Loadbalancer.ListenerCertificateResponse;
 import sh.basaltic.sdk.models.Loadbalancer.ListenerListResponse;
 import sh.basaltic.sdk.models.Loadbalancer.ListenerResponse;
 import sh.basaltic.sdk.models.Loadbalancer.LoadBalancer;
+import sh.basaltic.sdk.models.Loadbalancer.LoadBalancerInstance;
+import sh.basaltic.sdk.models.Loadbalancer.LoadBalancerInstancesResponse;
 import sh.basaltic.sdk.models.Loadbalancer.LoadBalancerListResponse;
-import sh.basaltic.sdk.models.Loadbalancer.LoadBalancerReplica;
-import sh.basaltic.sdk.models.Loadbalancer.LoadBalancerReplicasResponse;
 import sh.basaltic.sdk.models.Loadbalancer.LoadBalancerResponse;
 import sh.basaltic.sdk.models.Loadbalancer.Rule;
 import sh.basaltic.sdk.models.Loadbalancer.RuleListResponse;
@@ -255,6 +258,18 @@ public final class LoadbalancerService {
           "application/json");
   private static final Operation OP_17 =
       new Operation(
+          "listListenerCertificates",
+          "GET",
+          "/v1/load-balancers/{id}/listeners/{listener_id}/certificates",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          false,
+          "",
+          "application/json");
+  private static final Operation OP_18 =
+      new Operation(
           "listListeners",
           "GET",
           "/v1/load-balancers/{id}/listeners",
@@ -267,21 +282,26 @@ public final class LoadbalancerService {
           false,
           "",
           "application/json");
-  private static final Operation OP_18 =
+  private static final Operation OP_19 =
       new Operation(
-          "listLoadBalancerReplicas",
+          "listLoadBalancerInstances",
           "GET",
-          "/v1/load-balancers/{id}/replicas",
+          "/v1/load-balancers/{id}/instances",
           true,
           List.of(),
           List.of(),
           Map.ofEntries(
+              Map.entry("crn", new Operation.Encoding("form", true)),
+              Map.entry("limit", new Operation.Encoding("form", true)),
+              Map.entry("marker", new Operation.Encoding("form", true)),
               Map.entry("name", new Operation.Encoding("form", true)),
-              Map.entry("crn", new Operation.Encoding("form", true))),
+              Map.entry("current_state", new Operation.Encoding("form", true)),
+              Map.entry("flavor", new Operation.Encoding("form", true)),
+              Map.entry("image", new Operation.Encoding("form", true))),
           false,
           "",
           "application/json");
-  private static final Operation OP_19 =
+  private static final Operation OP_20 =
       new Operation(
           "listLoadBalancers",
           "GET",
@@ -298,7 +318,7 @@ public final class LoadbalancerService {
           false,
           "",
           "application/json");
-  private static final Operation OP_20 =
+  private static final Operation OP_21 =
       new Operation(
           "listRules",
           "GET",
@@ -312,7 +332,7 @@ public final class LoadbalancerService {
           false,
           "",
           "application/json");
-  private static final Operation OP_21 =
+  private static final Operation OP_22 =
       new Operation(
           "listTargetGroups",
           "GET",
@@ -329,7 +349,7 @@ public final class LoadbalancerService {
           false,
           "",
           "application/json");
-  private static final Operation OP_22 =
+  private static final Operation OP_23 =
       new Operation(
           "listTargets",
           "GET",
@@ -343,7 +363,7 @@ public final class LoadbalancerService {
           false,
           "",
           "application/json");
-  private static final Operation OP_23 =
+  private static final Operation OP_24 =
       new Operation(
           "updateListener",
           "PATCH",
@@ -355,7 +375,7 @@ public final class LoadbalancerService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_24 =
+  private static final Operation OP_25 =
       new Operation(
           "updateLoadBalancer",
           "PATCH",
@@ -367,7 +387,7 @@ public final class LoadbalancerService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_25 =
+  private static final Operation OP_26 =
       new Operation(
           "updateRule",
           "PATCH",
@@ -379,7 +399,7 @@ public final class LoadbalancerService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_26 =
+  private static final Operation OP_27 =
       new Operation(
           "updateTargetGroup",
           "PATCH",
@@ -393,7 +413,7 @@ public final class LoadbalancerService {
           "application/json");
 
   /** Attach an additional certificate to an HTTPS listener */
-  public Request<ListenerResponse> attachListenerCertificate(
+  public Request<ListenerCertificateResponse> attachListenerCertificate(
       String id, String listener_id, AttachListenerCertificateRequestInput body) {
     return new Request<>(
         new Core(
@@ -404,7 +424,7 @@ public final class LoadbalancerService {
             Map.ofEntries(Map.entry("id", id), Map.entry("listener_id", listener_id)),
             body,
             null),
-        new TypeReference<ListenerResponse>() {});
+        new TypeReference<ListenerCertificateResponse>() {});
   }
 
   /** Attach a target to this group */
@@ -593,7 +613,7 @@ public final class LoadbalancerService {
             transport,
             "loadbalancer",
             "https://loadbalancer.{region}.basaltic.sh",
-            OP_17,
+            OP_18,
             Map.ofEntries(Map.entry("id", id)),
             null,
             scope),
@@ -638,7 +658,7 @@ public final class LoadbalancerService {
             transport,
             "loadbalancer",
             "https://loadbalancer.{region}.basaltic.sh",
-            OP_19,
+            OP_20,
             Map.ofEntries(),
             null,
             scope),
@@ -689,7 +709,7 @@ public final class LoadbalancerService {
             transport,
             "loadbalancer",
             "https://loadbalancer.{region}.basaltic.sh",
-            OP_20,
+            OP_21,
             Map.ofEntries(Map.entry("id", id), Map.entry("listener_id", listener_id)),
             null,
             scope),
@@ -733,7 +753,7 @@ public final class LoadbalancerService {
             transport,
             "loadbalancer",
             "https://loadbalancer.{region}.basaltic.sh",
-            OP_22,
+            OP_23,
             Map.ofEntries(Map.entry("id", id)),
             null,
             scope),
@@ -778,7 +798,7 @@ public final class LoadbalancerService {
             transport,
             "loadbalancer",
             "https://loadbalancer.{region}.basaltic.sh",
-            OP_21,
+            OP_22,
             Map.ofEntries(),
             null,
             scope),
@@ -793,6 +813,23 @@ public final class LoadbalancerService {
     return getTargetGroupByReference(reference, null);
   }
 
+  /** List listener certificates */
+  public PagedRequest<ListenerCertificateListResponse, Certificate> listListenerCertificates(
+      String id, String listener_id) {
+    return new PagedRequest<>(
+        new Core(
+            transport,
+            "loadbalancer",
+            "https://loadbalancer.{region}.basaltic.sh",
+            OP_17,
+            Map.ofEntries(Map.entry("id", id), Map.entry("listener_id", listener_id)),
+            null,
+            null),
+        new TypeReference<ListenerCertificateListResponse>() {},
+        new TypeReference<Certificate>() {},
+        "certificates");
+  }
+
   /** List this load balancer's listeners */
   public PagedRequest<ListenerListResponse, Listener> listListeners(
       String id, ListListenersQuery query) {
@@ -801,7 +838,7 @@ public final class LoadbalancerService {
             transport,
             "loadbalancer",
             "https://loadbalancer.{region}.basaltic.sh",
-            OP_17,
+            OP_18,
             Map.ofEntries(Map.entry("id", id)),
             null,
             query),
@@ -815,27 +852,27 @@ public final class LoadbalancerService {
     return listListeners(id, null);
   }
 
-  /** List the LB's instance replicas with live health */
-  public PagedRequest<LoadBalancerReplicasResponse, LoadBalancerReplica> listLoadBalancerReplicas(
-      String id, ListLoadBalancerReplicasQuery query) {
+  /** List a load balancer's instances */
+  public PagedRequest<LoadBalancerInstancesResponse, LoadBalancerInstance>
+      listLoadBalancerInstances(String id, ListLoadBalancerInstancesQuery query) {
     return new PagedRequest<>(
         new Core(
             transport,
             "loadbalancer",
             "https://loadbalancer.{region}.basaltic.sh",
-            OP_18,
+            OP_19,
             Map.ofEntries(Map.entry("id", id)),
             null,
             query),
-        new TypeReference<LoadBalancerReplicasResponse>() {},
-        new TypeReference<LoadBalancerReplica>() {},
-        "replicas");
+        new TypeReference<LoadBalancerInstancesResponse>() {},
+        new TypeReference<LoadBalancerInstance>() {},
+        "instances");
   }
 
   /** Execute with optional inputs omitted. */
-  public PagedRequest<LoadBalancerReplicasResponse, LoadBalancerReplica> listLoadBalancerReplicas(
-      String id) {
-    return listLoadBalancerReplicas(id, null);
+  public PagedRequest<LoadBalancerInstancesResponse, LoadBalancerInstance>
+      listLoadBalancerInstances(String id) {
+    return listLoadBalancerInstances(id, null);
   }
 
   /** List load balancers */
@@ -846,7 +883,7 @@ public final class LoadbalancerService {
             transport,
             "loadbalancer",
             "https://loadbalancer.{region}.basaltic.sh",
-            OP_19,
+            OP_20,
             Map.ofEntries(),
             null,
             query),
@@ -868,7 +905,7 @@ public final class LoadbalancerService {
             transport,
             "loadbalancer",
             "https://loadbalancer.{region}.basaltic.sh",
-            OP_20,
+            OP_21,
             Map.ofEntries(Map.entry("id", id), Map.entry("listener_id", listener_id)),
             null,
             query),
@@ -890,7 +927,7 @@ public final class LoadbalancerService {
             transport,
             "loadbalancer",
             "https://loadbalancer.{region}.basaltic.sh",
-            OP_21,
+            OP_22,
             Map.ofEntries(),
             null,
             query),
@@ -911,7 +948,7 @@ public final class LoadbalancerService {
             transport,
             "loadbalancer",
             "https://loadbalancer.{region}.basaltic.sh",
-            OP_22,
+            OP_23,
             Map.ofEntries(Map.entry("id", id)),
             null,
             query),
@@ -925,7 +962,7 @@ public final class LoadbalancerService {
     return listTargets(id, null);
   }
 
-  /** Patch a listener (rotate cert, change default target group) */
+  /** Update a listener */
   public Request<ListenerResponse> updateListener(
       String id, String listener_id, UpdateListenerRequestInput body) {
     return new Request<>(
@@ -933,7 +970,7 @@ public final class LoadbalancerService {
             transport,
             "loadbalancer",
             "https://loadbalancer.{region}.basaltic.sh",
-            OP_23,
+            OP_24,
             Map.ofEntries(Map.entry("id", id), Map.entry("listener_id", listener_id)),
             body,
             null),
@@ -948,7 +985,7 @@ public final class LoadbalancerService {
             transport,
             "loadbalancer",
             "https://loadbalancer.{region}.basaltic.sh",
-            OP_24,
+            OP_25,
             Map.ofEntries(Map.entry("id", id)),
             body,
             null),
@@ -963,7 +1000,7 @@ public final class LoadbalancerService {
             transport,
             "loadbalancer",
             "https://loadbalancer.{region}.basaltic.sh",
-            OP_25,
+            OP_26,
             Map.ofEntries(
                 Map.entry("id", id),
                 Map.entry("listener_id", listener_id),
@@ -981,7 +1018,7 @@ public final class LoadbalancerService {
             transport,
             "loadbalancer",
             "https://loadbalancer.{region}.basaltic.sh",
-            OP_26,
+            OP_27,
             Map.ofEntries(Map.entry("id", id)),
             body,
             null),

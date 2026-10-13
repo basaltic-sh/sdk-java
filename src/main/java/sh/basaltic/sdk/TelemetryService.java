@@ -1,32 +1,35 @@
 package sh.basaltic.sdk;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.*;
 import sh.basaltic.sdk.models.Telemetry.CreateLogGroupRequestInput;
 import sh.basaltic.sdk.models.Telemetry.GetLogGroupScope;
-import sh.basaltic.sdk.models.Telemetry.GetRetainedTelemetryPresenceResponse;
 import sh.basaltic.sdk.models.Telemetry.IngestRequestInput;
-import sh.basaltic.sdk.models.Telemetry.IngestResult;
+import sh.basaltic.sdk.models.Telemetry.IngestResponse;
 import sh.basaltic.sdk.models.Telemetry.IngestSpansRequestInput;
 import sh.basaltic.sdk.models.Telemetry.ListLogGroupsQuery;
 import sh.basaltic.sdk.models.Telemetry.ListMetricNamesPostBody;
-import sh.basaltic.sdk.models.Telemetry.ListMetricNamesPostResponse;
 import sh.basaltic.sdk.models.Telemetry.ListMetricNamesQuery;
-import sh.basaltic.sdk.models.Telemetry.ListMetricNamesResponse;
 import sh.basaltic.sdk.models.Telemetry.ListMetricSeriesPostBody;
 import sh.basaltic.sdk.models.Telemetry.ListMetricSeriesQuery;
+import sh.basaltic.sdk.models.Telemetry.ListTraceSpansQuery;
 import sh.basaltic.sdk.models.Telemetry.LogGroup;
 import sh.basaltic.sdk.models.Telemetry.LogGroupListResponse;
 import sh.basaltic.sdk.models.Telemetry.LogGroupResponse;
 import sh.basaltic.sdk.models.Telemetry.LogListResponse;
 import sh.basaltic.sdk.models.Telemetry.LogResponse;
+import sh.basaltic.sdk.models.Telemetry.MetricNamesResponse;
+import sh.basaltic.sdk.models.Telemetry.MetricQueryResponse;
+import sh.basaltic.sdk.models.Telemetry.MetricSeriesResponse;
 import sh.basaltic.sdk.models.Telemetry.QueryMetricsInstantPostBody;
 import sh.basaltic.sdk.models.Telemetry.QueryMetricsInstantQuery;
 import sh.basaltic.sdk.models.Telemetry.QueryMetricsRangePostBody;
 import sh.basaltic.sdk.models.Telemetry.QueryMetricsRangeQuery;
+import sh.basaltic.sdk.models.Telemetry.RetainedDataResponse;
 import sh.basaltic.sdk.models.Telemetry.SearchLogsQuery;
 import sh.basaltic.sdk.models.Telemetry.SearchTracesQuery;
+import sh.basaltic.sdk.models.Telemetry.Span;
+import sh.basaltic.sdk.models.Telemetry.SpanListResponse;
 import sh.basaltic.sdk.models.Telemetry.TraceListResponse;
 import sh.basaltic.sdk.models.Telemetry.TraceResponse;
 import sh.basaltic.sdk.models.Telemetry.TraceSettingsResponse;
@@ -105,7 +108,7 @@ public final class TelemetryService {
       new Operation(
           "getRetainedTelemetryPresence",
           "GET",
-          "/v1/trace-settings/retained-data",
+          "/v1/retained-data",
           true,
           List.of(),
           List.of(),
@@ -187,7 +190,9 @@ public final class TelemetryService {
           List.of(),
           Map.ofEntries(
               Map.entry("start", new Operation.Encoding("form", true)),
-              Map.entry("end", new Operation.Encoding("form", true))),
+              Map.entry("end", new Operation.Encoding("form", true)),
+              Map.entry("limit", new Operation.Encoding("form", true)),
+              Map.entry("marker", new Operation.Encoding("form", true))),
           false,
           "",
           "application/json");
@@ -200,8 +205,8 @@ public final class TelemetryService {
           List.of(),
           List.of(),
           Map.ofEntries(),
-          false,
-          "application/x-www-form-urlencoded",
+          true,
+          "application/json",
           "application/json");
   private static final Operation OP_13 =
       new Operation(
@@ -214,7 +219,9 @@ public final class TelemetryService {
           Map.ofEntries(
               Map.entry("metric", new Operation.Encoding("form", true)),
               Map.entry("start", new Operation.Encoding("form", true)),
-              Map.entry("end", new Operation.Encoding("form", true))),
+              Map.entry("end", new Operation.Encoding("form", true)),
+              Map.entry("limit", new Operation.Encoding("form", true)),
+              Map.entry("marker", new Operation.Encoding("form", true))),
           false,
           "",
           "application/json");
@@ -227,20 +234,22 @@ public final class TelemetryService {
           List.of(),
           List.of(),
           Map.ofEntries(),
-          false,
-          "application/x-www-form-urlencoded",
+          true,
+          "application/json",
           "application/json");
   private static final Operation OP_15 =
       new Operation(
-          "putTraceSettings",
-          "PUT",
-          "/v1/trace-settings",
+          "listTraceSpans",
+          "GET",
+          "/v1/traces/{trace_id}/spans",
           true,
           List.of(),
           List.of(),
-          Map.ofEntries(),
-          true,
-          "application/json",
+          Map.ofEntries(
+              Map.entry("limit", new Operation.Encoding("form", true)),
+              Map.entry("marker", new Operation.Encoding("form", true))),
+          false,
+          "",
           "application/json");
   private static final Operation OP_16 =
       new Operation(
@@ -248,7 +257,7 @@ public final class TelemetryService {
           "GET",
           "/v1/metrics/query",
           true,
-          List.of("metric", "agg"),
+          List.of("metric"),
           List.of(),
           Map.ofEntries(
               Map.entry("metric", new Operation.Encoding("form", true)),
@@ -269,16 +278,16 @@ public final class TelemetryService {
           List.of(),
           List.of(),
           Map.ofEntries(),
-          false,
-          "application/x-www-form-urlencoded",
+          true,
+          "application/json",
           "application/json");
   private static final Operation OP_18 =
       new Operation(
           "queryMetricsRange",
           "GET",
-          "/v1/metrics/query_range",
+          "/v1/metrics/query-range",
           true,
-          List.of("metric", "agg", "start", "end"),
+          List.of("metric", "start", "end"),
           List.of(),
           Map.ofEntries(
               Map.entry("metric", new Operation.Encoding("form", true)),
@@ -295,13 +304,13 @@ public final class TelemetryService {
       new Operation(
           "queryMetricsRangePost",
           "POST",
-          "/v1/metrics/query_range",
+          "/v1/metrics/query-range",
           true,
           List.of(),
           List.of(),
           Map.ofEntries(),
-          false,
-          "application/x-www-form-urlencoded",
+          true,
+          "application/json",
           "application/json");
   private static final Operation OP_20 =
       new Operation(
@@ -358,6 +367,18 @@ public final class TelemetryService {
           "application/json",
           "application/json");
   private static final Operation OP_23 =
+      new Operation(
+          "updateTraceSettings",
+          "PATCH",
+          "/v1/trace-settings",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          true,
+          "application/json",
+          "application/json");
+  private static final Operation OP_24 =
       new Operation(
           "writeMetrics",
           "POST",
@@ -469,7 +490,7 @@ public final class TelemetryService {
   }
 
   /** Check retained telemetry presence */
-  public Request<GetRetainedTelemetryPresenceResponse> getRetainedTelemetryPresence() {
+  public Request<RetainedDataResponse> getRetainedTelemetryPresence() {
     return new Request<>(
         new Core(
             transport,
@@ -479,10 +500,10 @@ public final class TelemetryService {
             Map.ofEntries(),
             null,
             null),
-        new TypeReference<GetRetainedTelemetryPresenceResponse>() {});
+        new TypeReference<RetainedDataResponse>() {});
   }
 
-  /** Get all spans for a trace */
+  /** Get a trace */
   public Request<TraceResponse> getTrace(String trace_id) {
     return new Request<>(
         new Core(
@@ -511,7 +532,7 @@ public final class TelemetryService {
   }
 
   /** Ingest a batch of log records */
-  public Request<IngestResult> ingestLogs(IngestRequestInput body) {
+  public Request<IngestResponse> ingestLogs(IngestRequestInput body) {
     return new Request<>(
         new Core(
             transport,
@@ -521,11 +542,11 @@ public final class TelemetryService {
             Map.ofEntries(),
             body,
             null),
-        new TypeReference<IngestResult>() {});
+        new TypeReference<IngestResponse>() {});
   }
 
   /** Ingest a batch of trace spans */
-  public Request<IngestResult> ingestSpans(IngestSpansRequestInput body) {
+  public Request<IngestResponse> ingestSpans(IngestSpansRequestInput body) {
     return new Request<>(
         new Core(
             transport,
@@ -535,7 +556,7 @@ public final class TelemetryService {
             Map.ofEntries(),
             body,
             null),
-        new TypeReference<IngestResult>() {});
+        new TypeReference<IngestResponse>() {});
   }
 
   /** List log groups (or look up one by name) */
@@ -559,8 +580,8 @@ public final class TelemetryService {
     return listLogGroups(null);
   }
 
-  /** List the distinct metric names emitted in a time window */
-  public PagedRequest<ListMetricNamesResponse, String> listMetricNames(ListMetricNamesQuery query) {
+  /** List metric names */
+  public PagedRequest<MetricNamesResponse, String> listMetricNames(ListMetricNamesQuery query) {
     return new PagedRequest<>(
         new Core(
             transport,
@@ -570,13 +591,13 @@ public final class TelemetryService {
             Map.ofEntries(),
             null,
             query),
-        new TypeReference<ListMetricNamesResponse>() {},
+        new TypeReference<MetricNamesResponse>() {},
         new TypeReference<String>() {},
-        "data");
+        "metric_names");
   }
 
-  /** List the distinct metric names emitted in a time window (form body) */
-  public Request<ListMetricNamesPostResponse> listMetricNamesPost(ListMetricNamesPostBody body) {
+  /** List metric names (JSON) */
+  public Request<MetricNamesResponse> listMetricNamesPost(ListMetricNamesPostBody body) {
     return new Request<>(
         new Core(
             transport,
@@ -586,17 +607,13 @@ public final class TelemetryService {
             Map.ofEntries(),
             body,
             null),
-        new TypeReference<ListMetricNamesPostResponse>() {});
+        new TypeReference<MetricNamesResponse>() {});
   }
 
-  /** Execute with optional inputs omitted. */
-  public Request<ListMetricNamesPostResponse> listMetricNamesPost() {
-    return listMetricNamesPost(null);
-  }
-
-  /** List distinct label sets for a metric */
-  public Request<Map<String, JsonNode>> listMetricSeries(ListMetricSeriesQuery query) {
-    return new Request<>(
+  /** List metric series */
+  public PagedRequest<MetricSeriesResponse, Map<String, String>> listMetricSeries(
+      ListMetricSeriesQuery query) {
+    return new PagedRequest<>(
         new Core(
             transport,
             "telemetry",
@@ -605,11 +622,13 @@ public final class TelemetryService {
             Map.ofEntries(),
             null,
             query),
-        new TypeReference<Map<String, JsonNode>>() {});
+        new TypeReference<MetricSeriesResponse>() {},
+        new TypeReference<Map<String, String>>() {},
+        "series");
   }
 
-  /** List distinct label sets for a metric (form body) */
-  public Request<Map<String, JsonNode>> listMetricSeriesPost(ListMetricSeriesPostBody body) {
+  /** List metric series (JSON) */
+  public Request<MetricSeriesResponse> listMetricSeriesPost(ListMetricSeriesPostBody body) {
     return new Request<>(
         new Core(
             transport,
@@ -619,30 +638,33 @@ public final class TelemetryService {
             Map.ofEntries(),
             body,
             null),
-        new TypeReference<Map<String, JsonNode>>() {});
+        new TypeReference<MetricSeriesResponse>() {});
   }
 
-  /** Execute with optional inputs omitted. */
-  public Request<Map<String, JsonNode>> listMetricSeriesPost() {
-    return listMetricSeriesPost(null);
-  }
-
-  /** Update the caller account's trace settings */
-  public Request<TraceSettingsResponse> putTraceSettings(UpdateTraceSettingsRequestInput body) {
-    return new Request<>(
+  /** List spans in a trace */
+  public PagedRequest<SpanListResponse, Span> listTraceSpans(
+      String trace_id, ListTraceSpansQuery query) {
+    return new PagedRequest<>(
         new Core(
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
             OP_15,
-            Map.ofEntries(),
-            body,
-            null),
-        new TypeReference<TraceSettingsResponse>() {});
+            Map.ofEntries(Map.entry("trace_id", trace_id)),
+            null,
+            query),
+        new TypeReference<SpanListResponse>() {},
+        new TypeReference<Span>() {},
+        "spans");
   }
 
-  /** Instant structured metric query */
-  public Request<Map<String, JsonNode>> queryMetricsInstant(QueryMetricsInstantQuery query) {
+  /** Execute with optional inputs omitted. */
+  public PagedRequest<SpanListResponse, Span> listTraceSpans(String trace_id) {
+    return listTraceSpans(trace_id, null);
+  }
+
+  /** Run an instant metric query */
+  public Request<MetricQueryResponse> queryMetricsInstant(QueryMetricsInstantQuery query) {
     return new Request<>(
         new Core(
             transport,
@@ -652,11 +674,11 @@ public final class TelemetryService {
             Map.ofEntries(),
             null,
             query),
-        new TypeReference<Map<String, JsonNode>>() {});
+        new TypeReference<MetricQueryResponse>() {});
   }
 
-  /** Instant structured metric query (form body) */
-  public Request<Map<String, JsonNode>> queryMetricsInstantPost(QueryMetricsInstantPostBody body) {
+  /** Run an instant metric query (JSON) */
+  public Request<MetricQueryResponse> queryMetricsInstantPost(QueryMetricsInstantPostBody body) {
     return new Request<>(
         new Core(
             transport,
@@ -666,16 +688,11 @@ public final class TelemetryService {
             Map.ofEntries(),
             body,
             null),
-        new TypeReference<Map<String, JsonNode>>() {});
+        new TypeReference<MetricQueryResponse>() {});
   }
 
-  /** Execute with optional inputs omitted. */
-  public Request<Map<String, JsonNode>> queryMetricsInstantPost() {
-    return queryMetricsInstantPost(null);
-  }
-
-  /** Range structured metric query */
-  public Request<Map<String, JsonNode>> queryMetricsRange(QueryMetricsRangeQuery query) {
+  /** Run a range metric query */
+  public Request<MetricQueryResponse> queryMetricsRange(QueryMetricsRangeQuery query) {
     return new Request<>(
         new Core(
             transport,
@@ -685,11 +702,11 @@ public final class TelemetryService {
             Map.ofEntries(),
             null,
             query),
-        new TypeReference<Map<String, JsonNode>>() {});
+        new TypeReference<MetricQueryResponse>() {});
   }
 
-  /** Range structured metric query (form body) */
-  public Request<Map<String, JsonNode>> queryMetricsRangePost(QueryMetricsRangePostBody body) {
+  /** Run a range metric query (JSON) */
+  public Request<MetricQueryResponse> queryMetricsRangePost(QueryMetricsRangePostBody body) {
     return new Request<>(
         new Core(
             transport,
@@ -699,12 +716,7 @@ public final class TelemetryService {
             Map.ofEntries(),
             body,
             null),
-        new TypeReference<Map<String, JsonNode>>() {});
-  }
-
-  /** Execute with optional inputs omitted. */
-  public Request<Map<String, JsonNode>> queryMetricsRangePost() {
-    return queryMetricsRangePost(null);
+        new TypeReference<MetricQueryResponse>() {});
   }
 
   /** Search log records */
@@ -749,6 +761,20 @@ public final class TelemetryService {
         new TypeReference<LogGroupResponse>() {});
   }
 
+  /** Update the caller account's trace settings */
+  public Request<TraceSettingsResponse> updateTraceSettings(UpdateTraceSettingsRequestInput body) {
+    return new Request<>(
+        new Core(
+            transport,
+            "telemetry",
+            "https://telemetry.{region}.basaltic.sh",
+            OP_23,
+            Map.ofEntries(),
+            body,
+            null),
+        new TypeReference<TraceSettingsResponse>() {});
+  }
+
   /** Prometheus remote_write ingest */
   public EmptyRequest writeMetrics(BinaryBody body) {
     return new EmptyRequest(
@@ -756,7 +782,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_23,
+            OP_24,
             Map.ofEntries(),
             body,
             null));

@@ -221,7 +221,7 @@ public final class Dns {
   public static final class RecordResponse extends Model {
     public RecordResponse() {}
 
-    @JsonProperty(value = "record", required = false)
+    @JsonProperty(value = "record", required = true)
     private Record recordValue;
 
     @JsonProperty("record")
@@ -233,7 +233,7 @@ public final class Dns {
   public static final class Record extends Model {
     public Record() {}
 
-    @JsonProperty(value = "id", required = false)
+    @JsonProperty(value = "id", required = true)
     private String id;
 
     @JsonProperty("id")
@@ -242,7 +242,7 @@ public final class Dns {
     }
 
     /** Cloud Resource Name. */
-    @JsonProperty(value = "crn", required = false)
+    @JsonProperty(value = "crn", required = true)
     private String crn;
 
     @JsonProperty("crn")
@@ -250,16 +250,8 @@ public final class Dns {
       return crn;
     }
 
-    @JsonProperty(value = "zone_id", required = false)
-    private String zone_id;
-
-    @JsonProperty("zone_id")
-    public String getZoneId() {
-      return zone_id;
-    }
-
     /** Record name (FQDN). */
-    @JsonProperty(value = "name", required = false)
+    @JsonProperty(value = "name", required = true)
     private String name;
 
     @JsonProperty("name")
@@ -271,7 +263,7 @@ public final class Dns {
      * Record type. Customer records use one of the creatable RecordType values; reads also surface
      * the platform-managed apex/DNSSEC types (SOA, NS, DNSKEY, DS, NSEC, RRSIG).
      */
-    @JsonProperty(value = "type", required = false)
+    @JsonProperty(value = "type", required = true)
     private String type;
 
     @JsonProperty("type")
@@ -279,7 +271,7 @@ public final class Dns {
       return type;
     }
 
-    @JsonProperty(value = "ttl", required = false)
+    @JsonProperty(value = "ttl", required = true)
     private Long ttl;
 
     @JsonProperty("ttl")
@@ -299,7 +291,7 @@ public final class Dns {
       return managed;
     }
 
-    @JsonProperty(value = "values", required = false)
+    @JsonProperty(value = "values", required = true)
     private List<RecordValue> values;
 
     @JsonProperty("values")
@@ -1296,7 +1288,7 @@ public final class Dns {
   public static final class RecordListResponse extends Model {
     public RecordListResponse() {}
 
-    @JsonProperty(value = "records", required = false)
+    @JsonProperty(value = "records", required = true)
     private List<Record> records;
 
     @JsonProperty("records")
@@ -1304,7 +1296,7 @@ public final class Dns {
       return records;
     }
 
-    @JsonProperty(value = "meta", required = false)
+    @JsonProperty(value = "meta", required = true)
     private PaginationMeta meta;
 
     @JsonProperty("meta")
@@ -1389,12 +1381,107 @@ public final class Dns {
   public static final class VPCAssociationsResponse extends Model {
     public VPCAssociationsResponse() {}
 
-    @JsonProperty(value = "vpc_ids", required = true)
-    private List<String> vpc_ids;
+    @JsonProperty(value = "vpcs", required = true)
+    private List<Vpc> vpcs;
 
-    @JsonProperty("vpc_ids")
-    public List<String> getVpcIds() {
-      return vpc_ids;
+    @JsonProperty("vpcs")
+    public List<Vpc> getVpcs() {
+      return vpcs;
+    }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
+    }
+  }
+
+  public static final class Vpc extends Model {
+    public Vpc() {}
+
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
+    /** Cloud Resource Name (name-based, region+account-scoped). */
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    /**
+     * 1-63 chars, lowercase alphanumeric + hyphen Resource names must not start with the literal
+     * crn: prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
+     */
+    @JsonProperty(value = "name", required = true)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    @JsonProperty(value = "description", required = false)
+    private String description;
+
+    @JsonProperty("description")
+    public String getDescription() {
+      return description;
+    }
+
+    /**
+     * IPv4 CIDR block carved up by subnets. Must be private (RFC 1918): within 10.0.0.0/8,
+     * 172.16.0.0/12 or 192.168.0.0/16. Immutable after create.
+     */
+    @JsonProperty(value = "cidr_ipv4", required = true)
+    private String cidr_ipv4;
+
+    @JsonProperty("cidr_ipv4")
+    public String getCidrIpv4() {
+      return cidr_ipv4;
+    }
+
+    /** Associated regional GUA or private ULA prefix. */
+    @JsonProperty(value = "cidr_ipv6", required = false)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> cidr_ipv6 = JsonField.missing();
+
+    @JsonProperty("cidr_ipv6")
+    public JsonField<String> getCidrIpv6() {
+      return cidr_ipv6;
+    }
+
+    @JsonProperty(value = "tags", required = true)
+    private Map<String, String> tags;
+
+    @JsonProperty("tags")
+    public Map<String, String> getTags() {
+      return tags;
+    }
+
+    @JsonProperty(value = "created_at", required = true)
+    private String created_at;
+
+    @JsonProperty("created_at")
+    public String getCreatedAt() {
+      return created_at;
+    }
+
+    @JsonProperty(value = "updated_at", required = true)
+    private String updated_at;
+
+    @JsonProperty("updated_at")
+    public String getUpdatedAt() {
+      return updated_at;
     }
   }
 

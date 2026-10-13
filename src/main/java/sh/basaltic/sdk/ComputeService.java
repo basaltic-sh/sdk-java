@@ -2,10 +2,10 @@ package sh.basaltic.sdk;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.*;
-import sh.basaltic.sdk.models.Compute.AttachInstanceNICBody;
-import sh.basaltic.sdk.models.Compute.AttachInstanceNICResponse;
+import sh.basaltic.sdk.models.Compute.AttachInstanceInterfaceBody;
 import sh.basaltic.sdk.models.Compute.AttachInstanceVolumeBody;
-import sh.basaltic.sdk.models.Compute.AttachInstanceVolumeResponse;
+import sh.basaltic.sdk.models.Compute.AttachedInterface;
+import sh.basaltic.sdk.models.Compute.AttachedVolume;
 import sh.basaltic.sdk.models.Compute.CreateInstanceResponse;
 import sh.basaltic.sdk.models.Compute.Flavor;
 import sh.basaltic.sdk.models.Compute.FlavorListResponse;
@@ -28,6 +28,8 @@ import sh.basaltic.sdk.models.Compute.ImageResponse;
 import sh.basaltic.sdk.models.Compute.ImageUpdateRequestInput;
 import sh.basaltic.sdk.models.Compute.Instance;
 import sh.basaltic.sdk.models.Compute.InstanceCreateRequestInput;
+import sh.basaltic.sdk.models.Compute.InstanceInterfaceListResponse;
+import sh.basaltic.sdk.models.Compute.InstanceInterfaceResponse;
 import sh.basaltic.sdk.models.Compute.InstanceListResponse;
 import sh.basaltic.sdk.models.Compute.InstancePool;
 import sh.basaltic.sdk.models.Compute.InstancePoolCreateRequestInput;
@@ -38,17 +40,15 @@ import sh.basaltic.sdk.models.Compute.InstancePoolResponse;
 import sh.basaltic.sdk.models.Compute.InstancePoolUpdateRequestInput;
 import sh.basaltic.sdk.models.Compute.InstanceRebootRequestInput;
 import sh.basaltic.sdk.models.Compute.InstanceUpdateRequestInput;
+import sh.basaltic.sdk.models.Compute.InstanceVolumeListResponse;
+import sh.basaltic.sdk.models.Compute.InstanceVolumeResponse;
 import sh.basaltic.sdk.models.Compute.ListFlavorsQuery;
 import sh.basaltic.sdk.models.Compute.ListImageCatalogQuery;
 import sh.basaltic.sdk.models.Compute.ListImagesQuery;
-import sh.basaltic.sdk.models.Compute.ListInstanceNICsItem;
-import sh.basaltic.sdk.models.Compute.ListInstanceNICsQuery;
-import sh.basaltic.sdk.models.Compute.ListInstanceNICsResponse;
+import sh.basaltic.sdk.models.Compute.ListInstanceInterfacesQuery;
 import sh.basaltic.sdk.models.Compute.ListInstancePoolFloatingIpsQuery;
 import sh.basaltic.sdk.models.Compute.ListInstancePoolsQuery;
-import sh.basaltic.sdk.models.Compute.ListInstanceVolumesItem;
 import sh.basaltic.sdk.models.Compute.ListInstanceVolumesQuery;
-import sh.basaltic.sdk.models.Compute.ListInstanceVolumesResponse;
 import sh.basaltic.sdk.models.Compute.ListInstancesQuery;
 import sh.basaltic.sdk.models.Compute.ListPoolInstancesQuery;
 import sh.basaltic.sdk.models.Compute.ReinstallInstanceBody;
@@ -68,9 +68,9 @@ public final class ComputeService {
 
   private static final Operation OP_0 =
       new Operation(
-          "attachInstanceNIC",
+          "attachInstanceInterface",
           "POST",
-          "/v1/instances/{instance_id}/nics",
+          "/v1/instances/{instance_id}/interfaces",
           true,
           List.of(),
           List.of(),
@@ -188,9 +188,9 @@ public final class ComputeService {
           "application/json");
   private static final Operation OP_10 =
       new Operation(
-          "detachInstanceNIC",
+          "detachInstanceInterface",
           "DELETE",
-          "/v1/instances/{instance_id}/nics/{interface_id}",
+          "/v1/instances/{instance_id}/interfaces/{interface_id}",
           true,
           List.of(),
           List.of(),
@@ -348,9 +348,9 @@ public final class ComputeService {
           "application/json");
   private static final Operation OP_22 =
       new Operation(
-          "listInstanceNICs",
+          "listInstanceInterfaces",
           "GET",
-          "/v1/instances/{instance_id}/nics",
+          "/v1/instances/{instance_id}/interfaces",
           true,
           List.of(),
           List.of(),
@@ -578,8 +578,8 @@ public final class ComputeService {
           "application/json");
 
   /** Attach an existing NIC to an instance */
-  public Request<AttachInstanceNICResponse> attachInstanceNIC(
-      String instance_id, AttachInstanceNICBody body) {
+  public Request<InstanceInterfaceResponse> attachInstanceInterface(
+      String instance_id, AttachInstanceInterfaceBody body) {
     return new Request<>(
         new Core(
             transport,
@@ -589,7 +589,7 @@ public final class ComputeService {
             Map.ofEntries(Map.entry("instance_id", instance_id)),
             body,
             null),
-        new TypeReference<AttachInstanceNICResponse>() {});
+        new TypeReference<InstanceInterfaceResponse>() {});
   }
 
   /** Give the pool a shared public address */
@@ -608,7 +608,7 @@ public final class ComputeService {
   }
 
   /** Attach a data volume to an instance */
-  public Request<AttachInstanceVolumeResponse> attachInstanceVolume(
+  public Request<InstanceVolumeResponse> attachInstanceVolume(
       String instance_id, AttachInstanceVolumeBody body) {
     return new Request<>(
         new Core(
@@ -619,7 +619,7 @@ public final class ComputeService {
             Map.ofEntries(Map.entry("instance_id", instance_id)),
             body,
             null),
-        new TypeReference<AttachInstanceVolumeResponse>() {});
+        new TypeReference<InstanceVolumeResponse>() {});
   }
 
   /** Import an image from an object URL */
@@ -718,8 +718,8 @@ public final class ComputeService {
             null));
   }
 
-  /** Detach a NIC from a running instance */
-  public EmptyRequest detachInstanceNIC(String instance_id, String interface_id) {
+  /** Detach an interface from a running instance */
+  public EmptyRequest detachInstanceInterface(String instance_id, String interface_id) {
     return new EmptyRequest(
         new Core(
             transport,
@@ -1034,8 +1034,8 @@ public final class ComputeService {
   }
 
   /** List the instance's network interfaces */
-  public PagedRequest<ListInstanceNICsResponse, ListInstanceNICsItem> listInstanceNICs(
-      String instance_id, ListInstanceNICsQuery query) {
+  public PagedRequest<InstanceInterfaceListResponse, AttachedInterface> listInstanceInterfaces(
+      String instance_id, ListInstanceInterfacesQuery query) {
     return new PagedRequest<>(
         new Core(
             transport,
@@ -1045,15 +1045,15 @@ public final class ComputeService {
             Map.ofEntries(Map.entry("instance_id", instance_id)),
             null,
             query),
-        new TypeReference<ListInstanceNICsResponse>() {},
-        new TypeReference<ListInstanceNICsItem>() {},
-        "nics");
+        new TypeReference<InstanceInterfaceListResponse>() {},
+        new TypeReference<AttachedInterface>() {},
+        "interfaces");
   }
 
   /** Execute with optional inputs omitted. */
-  public PagedRequest<ListInstanceNICsResponse, ListInstanceNICsItem> listInstanceNICs(
+  public PagedRequest<InstanceInterfaceListResponse, AttachedInterface> listInstanceInterfaces(
       String instance_id) {
-    return listInstanceNICs(instance_id, null);
+    return listInstanceInterfaces(instance_id, null);
   }
 
   /** List the pool's shared public addresses */
@@ -1102,7 +1102,7 @@ public final class ComputeService {
   }
 
   /** List the instance's attached volumes */
-  public PagedRequest<ListInstanceVolumesResponse, ListInstanceVolumesItem> listInstanceVolumes(
+  public PagedRequest<InstanceVolumeListResponse, AttachedVolume> listInstanceVolumes(
       String instance_id, ListInstanceVolumesQuery query) {
     return new PagedRequest<>(
         new Core(
@@ -1113,13 +1113,13 @@ public final class ComputeService {
             Map.ofEntries(Map.entry("instance_id", instance_id)),
             null,
             query),
-        new TypeReference<ListInstanceVolumesResponse>() {},
-        new TypeReference<ListInstanceVolumesItem>() {},
-        "attachments");
+        new TypeReference<InstanceVolumeListResponse>() {},
+        new TypeReference<AttachedVolume>() {},
+        "volumes");
   }
 
   /** Execute with optional inputs omitted. */
-  public PagedRequest<ListInstanceVolumesResponse, ListInstanceVolumesItem> listInstanceVolumes(
+  public PagedRequest<InstanceVolumeListResponse, AttachedVolume> listInstanceVolumes(
       String instance_id) {
     return listInstanceVolumes(instance_id, null);
   }

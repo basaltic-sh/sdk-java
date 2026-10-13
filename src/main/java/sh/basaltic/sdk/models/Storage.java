@@ -354,7 +354,7 @@ public final class Storage {
   public static final class SnapshotResponse extends Model {
     public SnapshotResponse() {}
 
-    @JsonProperty(value = "snapshot", required = false)
+    @JsonProperty(value = "snapshot", required = true)
     private Snapshot snapshot;
 
     @JsonProperty("snapshot")
@@ -366,7 +366,7 @@ public final class Storage {
   public static final class Snapshot extends Model {
     public Snapshot() {}
 
-    @JsonProperty(value = "id", required = false)
+    @JsonProperty(value = "id", required = true)
     private String id;
 
     @JsonProperty("id")
@@ -375,7 +375,7 @@ public final class Storage {
     }
 
     /** Cloud Resource Name (name-based, region-scoped). */
-    @JsonProperty(value = "crn", required = false)
+    @JsonProperty(value = "crn", required = true)
     private String crn;
 
     @JsonProperty("crn")
@@ -383,33 +383,31 @@ public final class Storage {
       return crn;
     }
 
-    /** Source volume the snapshot was taken from. */
-    @JsonProperty(value = "volume_id", required = false)
-    private String volume_id;
+    @JsonProperty(value = "volume", required = true)
+    private ResourceRef volume;
 
-    @JsonProperty("volume_id")
-    public String getVolumeId() {
-      return volume_id;
+    @JsonProperty("volume")
+    public ResourceRef getVolume() {
+      return volume;
     }
 
     /**
-     * The snapshot policy that took this snapshot. Absent when a person did. This is also what
-     * retention matches on, so its presence is what makes a snapshot eligible for automatic
-     * deletion — snapshots taken by hand are never reaped.
+     * The schedule that created this snapshot. Absent for manual snapshots, which are never reaped
+     * by schedule retention.
      */
-    @JsonProperty(value = "snapshot_policy_id", required = false)
-    private String snapshot_policy_id;
+    @JsonProperty(value = "snapshot_policy", required = false)
+    private ResourceRef snapshot_policy;
 
-    @JsonProperty("snapshot_policy_id")
-    public String getSnapshotPolicyId() {
-      return snapshot_policy_id;
+    @JsonProperty("snapshot_policy")
+    public ResourceRef getSnapshotPolicy() {
+      return snapshot_policy;
     }
 
     /**
      * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
      * braced, or urn:uuid: forms, in either case).
      */
-    @JsonProperty(value = "name", required = false)
+    @JsonProperty(value = "name", required = true)
     private String name;
 
     @JsonProperty("name")
@@ -425,7 +423,7 @@ public final class Storage {
       return description;
     }
 
-    @JsonProperty(value = "tags", required = false)
+    @JsonProperty(value = "tags", required = true)
     private Map<String, String> tags;
 
     @JsonProperty("tags")
@@ -434,38 +432,18 @@ public final class Storage {
     }
 
     /**
-     * Frozen size of the source volume at the time the snapshot was taken — the volume may have
-     * been extended since.
+     * Frozen logical restore capacity in bytes, not measured written data. The source volume may
+     * have been extended since the snapshot was taken.
      */
-    @JsonProperty(value = "size_gb", required = false)
-    private Long size_gb;
+    @JsonProperty(value = "size_bytes", required = true)
+    private Long size_bytes;
 
-    @JsonProperty("size_gb")
-    public Long getSizeGb() {
-      return size_gb;
+    @JsonProperty("size_bytes")
+    public Long getSizeBytes() {
+      return size_bytes;
     }
 
-    /**
-     * Frozen logical restore capacity in bytes (size_gb multiplied by 2^30), not measured written
-     * data.
-     */
-    @JsonProperty(value = "logical_size_bytes", required = false)
-    private Long logical_size_bytes;
-
-    @JsonProperty("logical_size_bytes")
-    public Long getLogicalSizeBytes() {
-      return logical_size_bytes;
-    }
-
-    @JsonProperty(value = "snapshot_usage", required = false)
-    private SnapshotUsage snapshot_usage;
-
-    @JsonProperty("snapshot_usage")
-    public SnapshotUsage getSnapshotUsage() {
-      return snapshot_usage;
-    }
-
-    @JsonProperty(value = "status", required = false)
+    @JsonProperty(value = "status", required = true)
     private SnapshotStatus status;
 
     @JsonProperty("status")
@@ -485,7 +463,7 @@ public final class Storage {
       return faults;
     }
 
-    @JsonProperty(value = "created_at", required = false)
+    @JsonProperty(value = "created_at", required = true)
     private String created_at;
 
     @JsonProperty("created_at")
@@ -493,7 +471,7 @@ public final class Storage {
       return created_at;
     }
 
-    @JsonProperty(value = "updated_at", required = false)
+    @JsonProperty(value = "updated_at", required = true)
     private String updated_at;
 
     @JsonProperty("updated_at")
@@ -502,126 +480,37 @@ public final class Storage {
     }
   }
 
-  public static final class SnapshotUsage extends Model {
-    public SnapshotUsage() {}
+  public static final class ResourceRef extends Model {
+    public ResourceRef() {}
 
-    /**
-     * Measured means a complete observation with a matching current catalog generation and age at
-     * most 90 minutes. Stale means its generation changed or it expired. This is a last-observed
-     * value, not continuous backend verification. Unknown and stale never imply zero usage.
-     */
-    @JsonProperty(value = "state", required = true)
-    private SnapshotUsageState state;
+    @JsonProperty(value = "id", required = true)
+    private String id;
 
-    @JsonProperty("state")
-    public SnapshotUsageState getState() {
-      return state;
+    @JsonProperty("id")
+    public String getId() {
+      return id;
     }
 
-    @JsonProperty(value = "scope", required = true)
-    private SnapshotUsageScope scope;
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
 
-    @JsonProperty("scope")
-    public SnapshotUsageScope getScope() {
-      return scope;
-    }
-
-    /** These observations do not produce charges. */
-    @JsonProperty(value = "billable", required = true)
-    private Boolean billable;
-
-    @JsonProperty("billable")
-    public Boolean getBillable() {
-      return billable;
-    }
-
-    /** Observation timestamp for measured or stale data; null when unknown. */
-    @JsonProperty(value = "measured_at", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> measured_at = JsonField.missing();
-
-    @JsonProperty("measured_at")
-    public JsonField<String> getMeasuredAt() {
-      return measured_at;
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
     }
 
     /**
-     * Exact retained lineage bytes only when measured; null when unknown or stale. An explicit
-     * measured zero is distinct from unavailable data.
+     * Display label at response time — the resource's name where it has one, otherwise its human
+     * label (an invoice number, an account display name). Absent when the target is gone. Not a
+     * lookup key.
      */
-    @JsonProperty(value = "lineage_retained_bytes", required = true)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<Long> lineage_retained_bytes = JsonField.missing();
+    @JsonProperty(value = "name", required = false)
+    private String name;
 
-    @JsonProperty("lineage_retained_bytes")
-    public JsonField<Long> getLineageRetainedBytes() {
-      return lineage_retained_bytes;
+    @JsonProperty("name")
+    public String getName() {
+      return name;
     }
-  }
-
-  public static final class SnapshotUsageState {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public SnapshotUsageState(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof SnapshotUsageState v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final SnapshotUsageState UNKNOWN = new SnapshotUsageState("unknown");
-    public static final SnapshotUsageState STALE = new SnapshotUsageState("stale");
-    public static final SnapshotUsageState MEASURED = new SnapshotUsageState("measured");
-  }
-
-  public static final class SnapshotUsageScope {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public SnapshotUsageScope(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof SnapshotUsageScope v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final SnapshotUsageScope VOLUME_LINEAGE =
-        new SnapshotUsageScope("volume_lineage");
   }
 
   public static final class SnapshotStatus {
@@ -758,22 +647,8 @@ public final class Storage {
   public static final class SnapshotPolicyCreateRequestInput extends Model {
     public SnapshotPolicyCreateRequestInput() {}
 
-    /** Account-owned volume UUID, CRN, or exact name. */
-    @JsonProperty(value = "volume", required = true)
-    private String volume;
-
-    @JsonProperty("volume")
-    public String getVolume() {
-      return volume;
-    }
-
-    public SnapshotPolicyCreateRequestInput withVolume(String value) {
-      this.volume = value;
-      return this;
-    }
-
     /**
-     * Unique within the account — it names the policy in its CRN. Scheduled snapshots are named
+     * Unique within the volume — it names the policy in its CRN. Scheduled snapshots are named
      * `&lt;policy&gt;-&lt;UTC timestamp&gt;`. Resource names must not start with the literal crn:
      * prefix or be UUIDs (canonical, compact, braced, or urn:uuid: forms, in either case).
      */
@@ -877,7 +752,7 @@ public final class Storage {
   public static final class SnapshotPolicyResponse extends Model {
     public SnapshotPolicyResponse() {}
 
-    @JsonProperty(value = "snapshot_policy", required = false)
+    @JsonProperty(value = "snapshot_policy", required = true)
     private SnapshotPolicy snapshot_policy;
 
     @JsonProperty("snapshot_policy")
@@ -904,15 +779,6 @@ public final class Storage {
     @JsonProperty("crn")
     public String getCrn() {
       return crn;
-    }
-
-    /** The volume this schedule is attached to. A volume supports up to 16 independent policies. */
-    @JsonProperty(value = "volume_id", required = false)
-    private String volume_id;
-
-    @JsonProperty("volume_id")
-    public String getVolumeId() {
-      return volume_id;
     }
 
     /**
@@ -1251,7 +1117,7 @@ public final class Storage {
   public static final class VolumeResponse extends Model {
     public VolumeResponse() {}
 
-    @JsonProperty(value = "volume", required = false)
+    @JsonProperty(value = "volume", required = true)
     private Volume volume;
 
     @JsonProperty("volume")
@@ -1263,7 +1129,7 @@ public final class Storage {
   public static final class Volume extends Model {
     public Volume() {}
 
-    @JsonProperty(value = "id", required = false)
+    @JsonProperty(value = "id", required = true)
     private String id;
 
     @JsonProperty("id")
@@ -1272,7 +1138,7 @@ public final class Storage {
     }
 
     /** Cloud Resource Name (name-based, region-scoped). */
-    @JsonProperty(value = "crn", required = false)
+    @JsonProperty(value = "crn", required = true)
     private String crn;
 
     @JsonProperty("crn")
@@ -1284,7 +1150,7 @@ public final class Storage {
      * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
      * braced, or urn:uuid: forms, in either case).
      */
-    @JsonProperty(value = "name", required = false)
+    @JsonProperty(value = "name", required = true)
     private String name;
 
     @JsonProperty("name")
@@ -1300,7 +1166,7 @@ public final class Storage {
       return description;
     }
 
-    @JsonProperty(value = "tags", required = false)
+    @JsonProperty(value = "tags", required = true)
     private Map<String, String> tags;
 
     @JsonProperty("tags")
@@ -1308,7 +1174,7 @@ public final class Storage {
       return tags;
     }
 
-    @JsonProperty(value = "volume_type", required = false)
+    @JsonProperty(value = "volume_type", required = true)
     private VolumeTypeName volume_type;
 
     @JsonProperty("volume_type")
@@ -1316,7 +1182,7 @@ public final class Storage {
       return volume_type;
     }
 
-    @JsonProperty(value = "size_gb", required = false)
+    @JsonProperty(value = "size_gb", required = true)
     private Long size_gb;
 
     @JsonProperty("size_gb")
@@ -1324,7 +1190,7 @@ public final class Storage {
       return size_gb;
     }
 
-    @JsonProperty(value = "performance", required = false)
+    @JsonProperty(value = "performance", required = true)
     private VolumePerformance performance;
 
     @JsonProperty("performance")
@@ -1332,7 +1198,7 @@ public final class Storage {
       return performance;
     }
 
-    @JsonProperty(value = "included_io_limits", required = false)
+    @JsonProperty(value = "included_io_limits", required = true)
     private IncludedIOLimits included_io_limits;
 
     @JsonProperty("included_io_limits")
@@ -1340,7 +1206,7 @@ public final class Storage {
       return included_io_limits;
     }
 
-    @JsonProperty(value = "status", required = false)
+    @JsonProperty(value = "status", required = true)
     private VolumeStatus status;
 
     @JsonProperty("status")
@@ -1352,32 +1218,12 @@ public final class Storage {
      * Set at create time when the volume is provisioned from a bootable image. Immutable after
      * creation.
      */
-    @JsonProperty(value = "bootable", required = false)
+    @JsonProperty(value = "bootable", required = true)
     private Boolean bootable;
 
     @JsonProperty("bootable")
     public Boolean getBootable() {
       return bootable;
-    }
-
-    /** Image the volume was cloned from, when applicable. */
-    @JsonProperty(value = "source_image_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> source_image_id = JsonField.missing();
-
-    @JsonProperty("source_image_id")
-    public JsonField<String> getSourceImageId() {
-      return source_image_id;
-    }
-
-    /** Snapshot the volume was cloned from (restore path), when applicable. */
-    @JsonProperty(value = "source_snapshot_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> source_snapshot_id = JsonField.missing();
-
-    @JsonProperty("source_snapshot_id")
-    public JsonField<String> getSourceSnapshotId() {
-      return source_snapshot_id;
     }
 
     /**
@@ -1392,7 +1238,7 @@ public final class Storage {
       return faults;
     }
 
-    @JsonProperty(value = "created_at", required = false)
+    @JsonProperty(value = "created_at", required = true)
     private String created_at;
 
     @JsonProperty("created_at")
@@ -1400,12 +1246,30 @@ public final class Storage {
       return created_at;
     }
 
-    @JsonProperty(value = "updated_at", required = false)
+    @JsonProperty(value = "updated_at", required = true)
     private String updated_at;
 
     @JsonProperty("updated_at")
     public String getUpdatedAt() {
       return updated_at;
+    }
+
+    /** Source image identity, or null when this volume was not created from an image. */
+    @JsonProperty(value = "source_image", required = true)
+    private VolumeSourceImage source_image;
+
+    @JsonProperty("source_image")
+    public VolumeSourceImage getSourceImage() {
+      return source_image;
+    }
+
+    /** Source snapshot identity, or null when not created from a snapshot. */
+    @JsonProperty(value = "source_snapshot", required = true)
+    private VolumeSourceSnapshot source_snapshot;
+
+    @JsonProperty("source_snapshot")
+    public VolumeSourceSnapshot getSourceSnapshot() {
+      return source_snapshot;
     }
   }
 
@@ -1460,39 +1324,6 @@ public final class Storage {
     public IncludedIOLimits getApplied() {
       return applied;
     }
-
-    @JsonProperty(value = "state", required = true)
-    private VolumePerformanceState state;
-
-    @JsonProperty("state")
-    public VolumePerformanceState getState() {
-      return state;
-    }
-
-    @JsonProperty(value = "operation_id", required = false)
-    private String operation_id;
-
-    @JsonProperty("operation_id")
-    public String getOperationId() {
-      return operation_id;
-    }
-
-    @JsonProperty(value = "applied_at", required = false)
-    private String applied_at;
-
-    @JsonProperty("applied_at")
-    public String getAppliedAt() {
-      return applied_at;
-    }
-
-    /** Latest retryable failure; the accepted request remains durable. */
-    @JsonProperty(value = "last_error", required = false)
-    private String last_error;
-
-    @JsonProperty("last_error")
-    public String getLastError() {
-      return last_error;
-    }
   }
 
   public static final class IncludedIOLimits extends Model {
@@ -1542,39 +1373,6 @@ public final class Storage {
     }
   }
 
-  public static final class VolumePerformanceState {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public VolumePerformanceState(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof VolumePerformanceState v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final VolumePerformanceState CREATING = new VolumePerformanceState("creating");
-    public static final VolumePerformanceState PENDING = new VolumePerformanceState("pending");
-    public static final VolumePerformanceState APPLIED = new VolumePerformanceState("applied");
-  }
-
   public static final class VolumeStatus {
     private final String value;
 
@@ -1607,8 +1405,109 @@ public final class Storage {
     public static final VolumeStatus AVAILABLE = new VolumeStatus("available");
     public static final VolumeStatus IN_USE = new VolumeStatus("in_use");
     public static final VolumeStatus EXTENDING = new VolumeStatus("extending");
+    public static final VolumeStatus UPDATING = new VolumeStatus("updating");
     public static final VolumeStatus DELETING = new VolumeStatus("deleting");
     public static final VolumeStatus ERROR = new VolumeStatus("error");
+  }
+
+  public static final class VolumeSourceImage {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public VolumeSourceImage(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "VolumeSourceImage{[REDACTED]}";
+    }
+
+    public static VolumeSourceImage ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new VolumeSourceImage(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static VolumeSourceImage ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new VolumeSourceImage(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+  }
+
+  public static final class VolumeSourceSnapshot {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public VolumeSourceSnapshot(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "VolumeSourceSnapshot{[REDACTED]}";
+    }
+
+    public static VolumeSourceSnapshot ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new VolumeSourceSnapshot(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static VolumeSourceSnapshot ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new VolumeSourceSnapshot(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
   }
 
   public static final class DeleteBucketVariant1 extends Model {
@@ -1695,24 +1594,12 @@ public final class Storage {
   public static final class BucketCORSResponse extends Model {
     public BucketCORSResponse() {}
 
-    @JsonProperty(value = "cors", required = true)
-    private CORSConfig cors;
+    @JsonProperty(value = "cors_rules", required = true)
+    private List<CORSRule> cors_rules;
 
-    @JsonProperty("cors")
-    public CORSConfig getCors() {
-      return cors;
-    }
-  }
-
-  public static final class CORSConfig extends Model {
-    public CORSConfig() {}
-
-    @JsonProperty(value = "rules", required = true)
-    private List<CORSRule> rules;
-
-    @JsonProperty("rules")
-    public List<CORSRule> getRules() {
-      return rules;
+    @JsonProperty("cors_rules")
+    public List<CORSRule> getCorsRules() {
+      return cors_rules;
     }
   }
 
@@ -1807,24 +1694,12 @@ public final class Storage {
   public static final class BucketEncryptionResponse extends Model {
     public BucketEncryptionResponse() {}
 
-    @JsonProperty(value = "encryption", required = true)
-    private EncryptionConfig encryption;
+    @JsonProperty(value = "encryption_rules", required = true)
+    private List<EncryptionRule> encryption_rules;
 
-    @JsonProperty("encryption")
-    public EncryptionConfig getEncryption() {
-      return encryption;
-    }
-  }
-
-  public static final class EncryptionConfig extends Model {
-    public EncryptionConfig() {}
-
-    @JsonProperty(value = "rules", required = true)
-    private List<EncryptionRule> rules;
-
-    @JsonProperty("rules")
-    public List<EncryptionRule> getRules() {
-      return rules;
+    @JsonProperty("encryption_rules")
+    public List<EncryptionRule> getEncryptionRules() {
+      return encryption_rules;
     }
   }
 
@@ -1887,24 +1762,12 @@ public final class Storage {
       return revision;
     }
 
-    @JsonProperty(value = "lifecycle", required = true)
-    private LifecycleConfig lifecycle;
+    @JsonProperty(value = "lifecycle_rules", required = true)
+    private List<LifecycleRule> lifecycle_rules;
 
-    @JsonProperty("lifecycle")
-    public LifecycleConfig getLifecycle() {
-      return lifecycle;
-    }
-  }
-
-  public static final class LifecycleConfig extends Model {
-    public LifecycleConfig() {}
-
-    @JsonProperty(value = "rules", required = true)
-    private List<LifecycleRule> rules;
-
-    @JsonProperty("rules")
-    public List<LifecycleRule> getRules() {
-      return rules;
+    @JsonProperty("lifecycle_rules")
+    public List<LifecycleRule> getLifecycleRules() {
+      return lifecycle_rules;
     }
   }
 
@@ -2147,18 +2010,6 @@ public final class Storage {
     }
   }
 
-  public static final class BucketObjectLockResponse extends Model {
-    public BucketObjectLockResponse() {}
-
-    @JsonProperty(value = "object_lock", required = true)
-    private ObjectLockConfig object_lock;
-
-    @JsonProperty("object_lock")
-    public ObjectLockConfig getObjectLock() {
-      return object_lock;
-    }
-  }
-
   public static final class ObjectLockConfig extends Model {
     public ObjectLockConfig() {}
 
@@ -2170,35 +2021,35 @@ public final class Storage {
       return object_lock_enabled;
     }
 
-    @JsonProperty(value = "rule", required = false)
-    private ObjectLockConfigRule rule;
+    @JsonProperty(value = "object_lock_rule", required = false)
+    private ObjectLockConfigObjectLockRule object_lock_rule;
 
-    @JsonProperty("rule")
-    public ObjectLockConfigRule getRule() {
-      return rule;
+    @JsonProperty("object_lock_rule")
+    public ObjectLockConfigObjectLockRule getObjectLockRule() {
+      return object_lock_rule;
     }
   }
 
-  public static final class ObjectLockConfigRule extends Model {
-    public ObjectLockConfigRule() {}
+  public static final class ObjectLockConfigObjectLockRule extends Model {
+    public ObjectLockConfigObjectLockRule() {}
 
     @JsonProperty(value = "default_retention", required = false)
-    private ObjectLockConfigRuleDefaultRetention default_retention;
+    private ObjectLockConfigObjectLockRuleDefaultRetention default_retention;
 
     @JsonProperty("default_retention")
-    public ObjectLockConfigRuleDefaultRetention getDefaultRetention() {
+    public ObjectLockConfigObjectLockRuleDefaultRetention getDefaultRetention() {
       return default_retention;
     }
   }
 
-  public static final class ObjectLockConfigRuleDefaultRetention extends Model {
-    public ObjectLockConfigRuleDefaultRetention() {}
+  public static final class ObjectLockConfigObjectLockRuleDefaultRetention extends Model {
+    public ObjectLockConfigObjectLockRuleDefaultRetention() {}
 
     @JsonProperty(value = "mode", required = false)
-    private ObjectLockConfigRuleDefaultRetentionMode mode;
+    private ObjectLockConfigObjectLockRuleDefaultRetentionMode mode;
 
     @JsonProperty("mode")
-    public ObjectLockConfigRuleDefaultRetentionMode getMode() {
+    public ObjectLockConfigObjectLockRuleDefaultRetentionMode getMode() {
       return mode;
     }
 
@@ -2219,11 +2070,11 @@ public final class Storage {
     }
   }
 
-  public static final class ObjectLockConfigRuleDefaultRetentionMode {
+  public static final class ObjectLockConfigObjectLockRuleDefaultRetentionMode {
     private final String value;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public ObjectLockConfigRuleDefaultRetentionMode(String value) {
+    public ObjectLockConfigObjectLockRuleDefaultRetentionMode(String value) {
       this.value = Objects.requireNonNull(value);
     }
 
@@ -2239,7 +2090,8 @@ public final class Storage {
 
     @Override
     public boolean equals(Object other) {
-      return other instanceof ObjectLockConfigRuleDefaultRetentionMode v && value.equals(v.value);
+      return other instanceof ObjectLockConfigObjectLockRuleDefaultRetentionMode v
+          && value.equals(v.value);
     }
 
     @Override
@@ -2247,10 +2099,10 @@ public final class Storage {
       return value.hashCode();
     }
 
-    public static final ObjectLockConfigRuleDefaultRetentionMode GOVERNANCE =
-        new ObjectLockConfigRuleDefaultRetentionMode("GOVERNANCE");
-    public static final ObjectLockConfigRuleDefaultRetentionMode COMPLIANCE =
-        new ObjectLockConfigRuleDefaultRetentionMode("COMPLIANCE");
+    public static final ObjectLockConfigObjectLockRuleDefaultRetentionMode GOVERNANCE =
+        new ObjectLockConfigObjectLockRuleDefaultRetentionMode("GOVERNANCE");
+    public static final ObjectLockConfigObjectLockRuleDefaultRetentionMode COMPLIANCE =
+        new ObjectLockConfigObjectLockRuleDefaultRetentionMode("COMPLIANCE");
   }
 
   public static final class BucketPolicyResponse extends Model {
@@ -2431,19 +2283,6 @@ public final class Storage {
       return this;
     }
 
-    @JsonProperty(value = "volume", required = false)
-    private String volume;
-
-    @JsonProperty("volume")
-    public String getVolume() {
-      return volume;
-    }
-
-    public GetSnapshotPolicyScope withVolume(String value) {
-      this.volume = value;
-      return this;
-    }
-
     @JsonProperty(value = "enabled", required = false)
     private Boolean enabled;
 
@@ -2520,6 +2359,7 @@ public final class Storage {
     public static final VolumeStatusInput AVAILABLE = new VolumeStatusInput("available");
     public static final VolumeStatusInput IN_USE = new VolumeStatusInput("in_use");
     public static final VolumeStatusInput EXTENDING = new VolumeStatusInput("extending");
+    public static final VolumeStatusInput UPDATING = new VolumeStatusInput("updating");
     public static final VolumeStatusInput DELETING = new VolumeStatusInput("deleting");
     public static final VolumeStatusInput ERROR = new VolumeStatusInput("error");
   }
@@ -3194,19 +3034,6 @@ public final class Storage {
       return this;
     }
 
-    @JsonProperty(value = "volume", required = false)
-    private String volume;
-
-    @JsonProperty("volume")
-    public String getVolume() {
-      return volume;
-    }
-
-    public ListSnapshotPoliciesQuery withVolume(String value) {
-      this.volume = value;
-      return this;
-    }
-
     @JsonProperty(value = "enabled", required = false)
     private Boolean enabled;
 
@@ -3250,7 +3077,7 @@ public final class Storage {
   public static final class SnapshotPolicyListResponse extends Model {
     public SnapshotPolicyListResponse() {}
 
-    @JsonProperty(value = "snapshot_policies", required = false)
+    @JsonProperty(value = "snapshot_policies", required = true)
     private List<SnapshotPolicy> snapshot_policies;
 
     @JsonProperty("snapshot_policies")
@@ -3258,7 +3085,7 @@ public final class Storage {
       return snapshot_policies;
     }
 
-    @JsonProperty(value = "meta", required = false)
+    @JsonProperty(value = "meta", required = true)
     private PaginationMeta meta;
 
     @JsonProperty("meta")
@@ -3365,7 +3192,7 @@ public final class Storage {
   public static final class SnapshotListResponse extends Model {
     public SnapshotListResponse() {}
 
-    @JsonProperty(value = "snapshots", required = false)
+    @JsonProperty(value = "snapshots", required = true)
     private List<Snapshot> snapshots;
 
     @JsonProperty("snapshots")
@@ -3373,7 +3200,7 @@ public final class Storage {
       return snapshots;
     }
 
-    @JsonProperty(value = "meta", required = false)
+    @JsonProperty(value = "meta", required = true)
     private PaginationMeta meta;
 
     @JsonProperty("meta")
@@ -3570,7 +3397,7 @@ public final class Storage {
   public static final class VolumeListResponse extends Model {
     public VolumeListResponse() {}
 
-    @JsonProperty(value = "volumes", required = false)
+    @JsonProperty(value = "volumes", required = true)
     private List<Volume> volumes;
 
     @JsonProperty("volumes")
@@ -3578,7 +3405,7 @@ public final class Storage {
       return volumes;
     }
 
-    @JsonProperty(value = "meta", required = false)
+    @JsonProperty(value = "meta", required = true)
     private PaginationMeta meta;
 
     @JsonProperty("meta")
@@ -3590,33 +3417,16 @@ public final class Storage {
   public static final class PutBucketCORSRequestInput extends Model {
     public PutBucketCORSRequestInput() {}
 
-    @JsonProperty(value = "cors", required = true)
-    private CORSConfigInput cors;
+    @JsonProperty(value = "cors_rules", required = true)
+    private List<CORSRuleInput> cors_rules;
 
-    @JsonProperty("cors")
-    public CORSConfigInput getCors() {
-      return cors;
+    @JsonProperty("cors_rules")
+    public List<CORSRuleInput> getCorsRules() {
+      return cors_rules;
     }
 
-    public PutBucketCORSRequestInput withCors(CORSConfigInput value) {
-      this.cors = value;
-      return this;
-    }
-  }
-
-  public static final class CORSConfigInput extends Model {
-    public CORSConfigInput() {}
-
-    @JsonProperty(value = "rules", required = true)
-    private List<CORSRuleInput> rules;
-
-    @JsonProperty("rules")
-    public List<CORSRuleInput> getRules() {
-      return rules;
-    }
-
-    public CORSConfigInput withRules(List<CORSRuleInput> value) {
-      this.rules = value;
+    public PutBucketCORSRequestInput withCorsRules(List<CORSRuleInput> value) {
+      this.cors_rules = value;
       return this;
     }
   }
@@ -3781,33 +3591,16 @@ public final class Storage {
   public static final class PutBucketEncryptionRequestInput extends Model {
     public PutBucketEncryptionRequestInput() {}
 
-    @JsonProperty(value = "encryption", required = true)
-    private EncryptionConfigInput encryption;
+    @JsonProperty(value = "encryption_rules", required = true)
+    private List<EncryptionRuleInput> encryption_rules;
 
-    @JsonProperty("encryption")
-    public EncryptionConfigInput getEncryption() {
-      return encryption;
+    @JsonProperty("encryption_rules")
+    public List<EncryptionRuleInput> getEncryptionRules() {
+      return encryption_rules;
     }
 
-    public PutBucketEncryptionRequestInput withEncryption(EncryptionConfigInput value) {
-      this.encryption = value;
-      return this;
-    }
-  }
-
-  public static final class EncryptionConfigInput extends Model {
-    public EncryptionConfigInput() {}
-
-    @JsonProperty(value = "rules", required = true)
-    private List<EncryptionRuleInput> rules;
-
-    @JsonProperty("rules")
-    public List<EncryptionRuleInput> getRules() {
-      return rules;
-    }
-
-    public EncryptionConfigInput withRules(List<EncryptionRuleInput> value) {
-      this.rules = value;
+    public PutBucketEncryptionRequestInput withEncryptionRules(List<EncryptionRuleInput> value) {
+      this.encryption_rules = value;
       return this;
     }
   }
@@ -3879,33 +3672,16 @@ public final class Storage {
   public static final class PutBucketLifecycleRequestInput extends Model {
     public PutBucketLifecycleRequestInput() {}
 
-    @JsonProperty(value = "lifecycle", required = true)
-    private LifecycleConfigInput lifecycle;
+    @JsonProperty(value = "lifecycle_rules", required = true)
+    private List<LifecycleRuleInput> lifecycle_rules;
 
-    @JsonProperty("lifecycle")
-    public LifecycleConfigInput getLifecycle() {
-      return lifecycle;
+    @JsonProperty("lifecycle_rules")
+    public List<LifecycleRuleInput> getLifecycleRules() {
+      return lifecycle_rules;
     }
 
-    public PutBucketLifecycleRequestInput withLifecycle(LifecycleConfigInput value) {
-      this.lifecycle = value;
-      return this;
-    }
-  }
-
-  public static final class LifecycleConfigInput extends Model {
-    public LifecycleConfigInput() {}
-
-    @JsonProperty(value = "rules", required = true)
-    private List<LifecycleRuleInput> rules;
-
-    @JsonProperty("rules")
-    public List<LifecycleRuleInput> getRules() {
-      return rules;
-    }
-
-    public LifecycleConfigInput withRules(List<LifecycleRuleInput> value) {
-      this.rules = value;
+    public PutBucketLifecycleRequestInput withLifecycleRules(List<LifecycleRuleInput> value) {
+      this.lifecycle_rules = value;
       return this;
     }
   }
@@ -4233,23 +4009,6 @@ public final class Storage {
     }
   }
 
-  public static final class PutBucketObjectLockRequestInput extends Model {
-    public PutBucketObjectLockRequestInput() {}
-
-    @JsonProperty(value = "object_lock", required = true)
-    private ObjectLockConfigInput object_lock;
-
-    @JsonProperty("object_lock")
-    public ObjectLockConfigInput getObjectLock() {
-      return object_lock;
-    }
-
-    public PutBucketObjectLockRequestInput withObjectLock(ObjectLockConfigInput value) {
-      this.object_lock = value;
-      return this;
-    }
-  }
-
   public static final class ObjectLockConfigInput extends Model {
     public ObjectLockConfigInput() {}
 
@@ -4266,51 +4025,51 @@ public final class Storage {
       return this;
     }
 
-    @JsonProperty(value = "rule", required = false)
-    private ObjectLockConfigInputRule rule;
+    @JsonProperty(value = "object_lock_rule", required = false)
+    private ObjectLockConfigInputObjectLockRule object_lock_rule;
 
-    @JsonProperty("rule")
-    public ObjectLockConfigInputRule getRule() {
-      return rule;
+    @JsonProperty("object_lock_rule")
+    public ObjectLockConfigInputObjectLockRule getObjectLockRule() {
+      return object_lock_rule;
     }
 
-    public ObjectLockConfigInput withRule(ObjectLockConfigInputRule value) {
-      this.rule = value;
+    public ObjectLockConfigInput withObjectLockRule(ObjectLockConfigInputObjectLockRule value) {
+      this.object_lock_rule = value;
       return this;
     }
   }
 
-  public static final class ObjectLockConfigInputRule extends Model {
-    public ObjectLockConfigInputRule() {}
+  public static final class ObjectLockConfigInputObjectLockRule extends Model {
+    public ObjectLockConfigInputObjectLockRule() {}
 
     @JsonProperty(value = "default_retention", required = false)
-    private ObjectLockConfigInputRuleDefaultRetention default_retention;
+    private ObjectLockConfigInputObjectLockRuleDefaultRetention default_retention;
 
     @JsonProperty("default_retention")
-    public ObjectLockConfigInputRuleDefaultRetention getDefaultRetention() {
+    public ObjectLockConfigInputObjectLockRuleDefaultRetention getDefaultRetention() {
       return default_retention;
     }
 
-    public ObjectLockConfigInputRule withDefaultRetention(
-        ObjectLockConfigInputRuleDefaultRetention value) {
+    public ObjectLockConfigInputObjectLockRule withDefaultRetention(
+        ObjectLockConfigInputObjectLockRuleDefaultRetention value) {
       this.default_retention = value;
       return this;
     }
   }
 
-  public static final class ObjectLockConfigInputRuleDefaultRetention extends Model {
-    public ObjectLockConfigInputRuleDefaultRetention() {}
+  public static final class ObjectLockConfigInputObjectLockRuleDefaultRetention extends Model {
+    public ObjectLockConfigInputObjectLockRuleDefaultRetention() {}
 
     @JsonProperty(value = "mode", required = false)
-    private ObjectLockConfigInputRuleDefaultRetentionMode mode;
+    private ObjectLockConfigInputObjectLockRuleDefaultRetentionMode mode;
 
     @JsonProperty("mode")
-    public ObjectLockConfigInputRuleDefaultRetentionMode getMode() {
+    public ObjectLockConfigInputObjectLockRuleDefaultRetentionMode getMode() {
       return mode;
     }
 
-    public ObjectLockConfigInputRuleDefaultRetention withMode(
-        ObjectLockConfigInputRuleDefaultRetentionMode value) {
+    public ObjectLockConfigInputObjectLockRuleDefaultRetention withMode(
+        ObjectLockConfigInputObjectLockRuleDefaultRetentionMode value) {
       this.mode = value;
       return this;
     }
@@ -4323,7 +4082,7 @@ public final class Storage {
       return days;
     }
 
-    public ObjectLockConfigInputRuleDefaultRetention withDays(Long value) {
+    public ObjectLockConfigInputObjectLockRuleDefaultRetention withDays(Long value) {
       this.days = value;
       return this;
     }
@@ -4336,17 +4095,17 @@ public final class Storage {
       return years;
     }
 
-    public ObjectLockConfigInputRuleDefaultRetention withYears(Long value) {
+    public ObjectLockConfigInputObjectLockRuleDefaultRetention withYears(Long value) {
       this.years = value;
       return this;
     }
   }
 
-  public static final class ObjectLockConfigInputRuleDefaultRetentionMode {
+  public static final class ObjectLockConfigInputObjectLockRuleDefaultRetentionMode {
     private final String value;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public ObjectLockConfigInputRuleDefaultRetentionMode(String value) {
+    public ObjectLockConfigInputObjectLockRuleDefaultRetentionMode(String value) {
       this.value = Objects.requireNonNull(value);
     }
 
@@ -4362,7 +4121,7 @@ public final class Storage {
 
     @Override
     public boolean equals(Object other) {
-      return other instanceof ObjectLockConfigInputRuleDefaultRetentionMode v
+      return other instanceof ObjectLockConfigInputObjectLockRuleDefaultRetentionMode v
           && value.equals(v.value);
     }
 
@@ -4371,10 +4130,10 @@ public final class Storage {
       return value.hashCode();
     }
 
-    public static final ObjectLockConfigInputRuleDefaultRetentionMode GOVERNANCE =
-        new ObjectLockConfigInputRuleDefaultRetentionMode("GOVERNANCE");
-    public static final ObjectLockConfigInputRuleDefaultRetentionMode COMPLIANCE =
-        new ObjectLockConfigInputRuleDefaultRetentionMode("COMPLIANCE");
+    public static final ObjectLockConfigInputObjectLockRuleDefaultRetentionMode GOVERNANCE =
+        new ObjectLockConfigInputObjectLockRuleDefaultRetentionMode("GOVERNANCE");
+    public static final ObjectLockConfigInputObjectLockRuleDefaultRetentionMode COMPLIANCE =
+        new ObjectLockConfigInputObjectLockRuleDefaultRetentionMode("COMPLIANCE");
   }
 
   public static final class PutBucketPolicyRequestInput extends Model {

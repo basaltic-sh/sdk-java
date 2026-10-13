@@ -15,6 +15,7 @@ import sh.basaltic.sdk.models.Dns.RecordUpdateRequestInput;
 import sh.basaltic.sdk.models.Dns.VPCAssociationAccepted;
 import sh.basaltic.sdk.models.Dns.VPCAssociationRequestInput;
 import sh.basaltic.sdk.models.Dns.VPCAssociationsResponse;
+import sh.basaltic.sdk.models.Dns.Vpc;
 import sh.basaltic.sdk.models.Dns.Zone;
 import sh.basaltic.sdk.models.Dns.ZoneCreateRequestInput;
 import sh.basaltic.sdk.models.Dns.ZoneImportRequestInput;
@@ -495,7 +496,7 @@ public final class DnsService {
   }
 
   /** List VPC associations */
-  public PagedRequest<VPCAssociationsResponse, String> listZoneVPCAssociations(
+  public PagedRequest<VPCAssociationsResponse, Vpc> listZoneVPCAssociations(
       String zone_id, ListZoneVPCAssociationsQuery query) {
     return new PagedRequest<>(
         new Core(
@@ -507,12 +508,12 @@ public final class DnsService {
             null,
             query),
         new TypeReference<VPCAssociationsResponse>() {},
-        new TypeReference<String>() {},
-        "vpc_ids");
+        new TypeReference<Vpc>() {},
+        "vpcs");
   }
 
   /** Execute with optional inputs omitted. */
-  public PagedRequest<VPCAssociationsResponse, String> listZoneVPCAssociations(String zone_id) {
+  public PagedRequest<VPCAssociationsResponse, Vpc> listZoneVPCAssociations(String zone_id) {
     return listZoneVPCAssociations(zone_id, null);
   }
 

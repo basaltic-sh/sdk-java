@@ -338,9 +338,8 @@ public final class Iam {
     public AssumeRoleWithWebIdentityRequestInput() {}
 
     /**
-     * The identity token to exchange, as a signed JWT. It is verified before any role is read: the
-     * signature must chain to a key the trusted provider publishes, the audience must be the one
-     * this platform was configured to accept, and `exp` must be in the future.
+     * Signed OIDC JWT. The issuer must be registered in the role account; signature, expiry and an
+     * allowed audience are verified before evaluating role trust.
      */
     @JsonProperty(value = "web_identity_token", required = true)
     private String web_identity_token;
@@ -355,6 +354,7 @@ public final class Iam {
       return this;
     }
 
+    /** Full account-scoped role CRN. Bare UUIDs and names are not accepted. */
     @JsonProperty(value = "role", required = true)
     private String role;
 
@@ -365,19 +365,6 @@ public final class Iam {
 
     public AssumeRoleWithWebIdentityRequestInput withRole(String value) {
       this.role = value;
-      return this;
-    }
-
-    @JsonProperty(value = "account", required = true)
-    private String account;
-
-    @JsonProperty("account")
-    public String getAccount() {
-      return account;
-    }
-
-    public AssumeRoleWithWebIdentityRequestInput withAccount(String value) {
-      this.account = value;
       return this;
     }
 
@@ -618,6 +605,180 @@ public final class Iam {
     @JsonProperty("expires_in")
     public Long getExpiresIn() {
       return expires_in;
+    }
+  }
+
+  public static final class OIDCProviderCreateRequestInput extends Model {
+    public OIDCProviderCreateRequestInput() {}
+
+    @JsonProperty(value = "name", required = true)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    public OIDCProviderCreateRequestInput withName(String value) {
+      this.name = value;
+      return this;
+    }
+
+    @JsonProperty(value = "description", required = false)
+    private String description;
+
+    @JsonProperty("description")
+    public String getDescription() {
+      return description;
+    }
+
+    public OIDCProviderCreateRequestInput withDescription(String value) {
+      this.description = value;
+      return this;
+    }
+
+    /**
+     * Immutable HTTPS issuer URL. Public discovery and JWKS endpoints are required for customer
+     * providers.
+     */
+    @JsonProperty(value = "issuer", required = true)
+    private String issuer;
+
+    @JsonProperty("issuer")
+    public String getIssuer() {
+      return issuer;
+    }
+
+    public OIDCProviderCreateRequestInput withIssuer(String value) {
+      this.issuer = value;
+      return this;
+    }
+
+    @JsonProperty(value = "audiences", required = true)
+    private List<String> audiences;
+
+    @JsonProperty("audiences")
+    public List<String> getAudiences() {
+      return audiences;
+    }
+
+    public OIDCProviderCreateRequestInput withAudiences(List<String> value) {
+      this.audiences = value;
+      return this;
+    }
+
+    @JsonProperty(value = "tags", required = false)
+    private Map<String, String> tags;
+
+    @JsonProperty("tags")
+    public Map<String, String> getTags() {
+      return tags;
+    }
+
+    public OIDCProviderCreateRequestInput withTags(Map<String, String> value) {
+      this.tags = value;
+      return this;
+    }
+  }
+
+  public static final class OIDCProviderResponse extends Model {
+    public OIDCProviderResponse() {}
+
+    @JsonProperty(value = "oidc_provider", required = true)
+    private OIDCProvider oidc_provider;
+
+    @JsonProperty("oidc_provider")
+    public OIDCProvider getOidcProvider() {
+      return oidc_provider;
+    }
+  }
+
+  public static final class OIDCProvider extends Model {
+    public OIDCProvider() {}
+
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    @JsonProperty(value = "name", required = true)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    @JsonProperty(value = "description", required = false)
+    private String description;
+
+    @JsonProperty("description")
+    public String getDescription() {
+      return description;
+    }
+
+    /**
+     * Immutable HTTPS issuer URL. Public discovery and JWKS endpoints are required for customer
+     * providers.
+     */
+    @JsonProperty(value = "issuer", required = true)
+    private String issuer;
+
+    @JsonProperty("issuer")
+    public String getIssuer() {
+      return issuer;
+    }
+
+    @JsonProperty(value = "audiences", required = true)
+    private List<String> audiences;
+
+    @JsonProperty("audiences")
+    public List<String> getAudiences() {
+      return audiences;
+    }
+
+    /** Platform-managed providers cannot be edited or deleted. */
+    @JsonProperty(value = "is_system", required = true)
+    private Boolean is_system;
+
+    @JsonProperty("is_system")
+    public Boolean getIsSystem() {
+      return is_system;
+    }
+
+    @JsonProperty(value = "tags", required = true)
+    private Map<String, String> tags;
+
+    @JsonProperty("tags")
+    public Map<String, String> getTags() {
+      return tags;
+    }
+
+    @JsonProperty(value = "created_at", required = true)
+    private String created_at;
+
+    @JsonProperty("created_at")
+    public String getCreatedAt() {
+      return created_at;
+    }
+
+    @JsonProperty(value = "updated_at", required = true)
+    private String updated_at;
+
+    @JsonProperty("updated_at")
+    public String getUpdatedAt() {
+      return updated_at;
     }
   }
 
@@ -1273,24 +1434,6 @@ public final class Iam {
     public String getUpdatedAt() {
       return updated_at;
     }
-
-    /** Owning account UUID; absent for shared system policies. */
-    @JsonProperty(value = "account_id", required = false)
-    private String account_id;
-
-    @JsonProperty("account_id")
-    public String getAccountId() {
-      return account_id;
-    }
-
-    /** Immutable handle of the owning account. */
-    @JsonProperty(value = "account_handle", required = false)
-    private String account_handle;
-
-    @JsonProperty("account_handle")
-    public String getAccountHandle() {
-      return account_handle;
-    }
   }
 
   public static final class PolicyDocument extends Model {
@@ -1657,8 +1800,8 @@ public final class Iam {
      * crn:iam::&lt;account-handle&gt;:service-account/&lt;name&gt;. Human users use
      * crn:workspace:::user/&lt;username&gt; or crn:workspace:::user/* in the selected organization.
      * An instance presents its compute CRN through IMDS. A federated caller names the trusted
-     * provider as crn:iam:::oidc-provider/&lt;provider&gt; and uses conditions to restrict token
-     * claims.
+     * provider as crn:iam::&lt;account&gt;:oidc-provider/&lt;provider&gt; and uses conditions to
+     * restrict token claims.
      */
     @JsonProperty(value = "principals", required = false)
     private List<String> principals;
@@ -1772,24 +1915,6 @@ public final class Iam {
       return updated_at;
     }
 
-    /** Owning account UUID. */
-    @JsonProperty(value = "account_id", required = false)
-    private String account_id;
-
-    @JsonProperty("account_id")
-    public String getAccountId() {
-      return account_id;
-    }
-
-    /** Immutable handle of the owning account. */
-    @JsonProperty(value = "account_handle", required = false)
-    private String account_handle;
-
-    @JsonProperty("account_handle")
-    public String getAccountHandle() {
-      return account_handle;
-    }
-
     /** System roles cannot be changed or deleted. */
     @JsonProperty(value = "is_system", required = false)
     private Boolean is_system;
@@ -1797,19 +1922,6 @@ public final class Iam {
     @JsonProperty("is_system")
     public Boolean getIsSystem() {
       return is_system;
-    }
-
-    /**
-     * Present on the account's built-in Administrator and ReadOnly roles. These assignable roles
-     * are created with the account, do not consume custom-role quota, and do not block account
-     * deletion.
-     */
-    @JsonProperty(value = "builtin_kind", required = false)
-    private RoleBuiltinKind builtin_kind;
-
-    @JsonProperty("builtin_kind")
-    public RoleBuiltinKind getBuiltinKind() {
-      return builtin_kind;
     }
   }
 
@@ -1824,8 +1936,8 @@ public final class Iam {
      * crn:iam::&lt;account-handle&gt;:service-account/&lt;name&gt;. Human users use
      * crn:workspace:::user/&lt;username&gt; or crn:workspace:::user/* in the selected organization.
      * An instance presents its compute CRN through IMDS. A federated caller names the trusted
-     * provider as crn:iam:::oidc-provider/&lt;provider&gt; and uses conditions to restrict token
-     * claims.
+     * provider as crn:iam::&lt;account&gt;:oidc-provider/&lt;provider&gt; and uses conditions to
+     * restrict token claims.
      */
     @JsonProperty(value = "principals", required = false)
     private List<String> principals;
@@ -1843,38 +1955,6 @@ public final class Iam {
     public List<PolicyCondition> getConditions() {
       return conditions;
     }
-  }
-
-  public static final class RoleBuiltinKind {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public RoleBuiltinKind(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof RoleBuiltinKind v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final RoleBuiltinKind ADMINISTRATOR = new RoleBuiltinKind("administrator");
-    public static final RoleBuiltinKind READONLY = new RoleBuiltinKind("readonly");
   }
 
   public static final class ServiceAccountCreateRequestInput extends Model {
@@ -1964,15 +2044,6 @@ public final class Iam {
       return crn;
     }
 
-    /** Owning account UUID. */
-    @JsonProperty(value = "account_id", required = false)
-    private String account_id;
-
-    @JsonProperty("account_id")
-    public String getAccountId() {
-      return account_id;
-    }
-
     /**
      * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
      * braced, or urn:uuid: forms, in either case).
@@ -2023,15 +2094,6 @@ public final class Iam {
     @JsonProperty("updated_at")
     public String getUpdatedAt() {
       return updated_at;
-    }
-
-    /** Immutable handle of the owning account. */
-    @JsonProperty(value = "account_handle", required = false)
-    private String account_handle;
-
-    @JsonProperty("account_handle")
-    public String getAccountHandle() {
-      return account_handle;
     }
   }
 
@@ -2459,6 +2521,23 @@ public final class Iam {
         new OAuthTokenResponseTokenType("Bearer");
   }
 
+  public static final class GetOIDCProviderScope extends Model {
+    public GetOIDCProviderScope() {}
+
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
+
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
+    }
+
+    public GetOIDCProviderScope withLimit(Long value) {
+      this.limit = value;
+      return this;
+    }
+  }
+
   public static final class GetPersonalLinuxIdentityResponse extends Model {
     public GetPersonalLinuxIdentityResponse() {}
 
@@ -2561,22 +2640,6 @@ public final class Iam {
       return id;
     }
 
-    @JsonProperty(value = "principal_id", required = false)
-    private String principal_id;
-
-    @JsonProperty("principal_id")
-    public String getPrincipalId() {
-      return principal_id;
-    }
-
-    @JsonProperty(value = "principal_type", required = false)
-    private InlinePolicyPrincipalType principal_type;
-
-    @JsonProperty("principal_type")
-    public InlinePolicyPrincipalType getPrincipalType() {
-      return principal_type;
-    }
-
     /**
      * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
      * braced, or urn:uuid: forms, in either case).
@@ -2614,39 +2677,6 @@ public final class Iam {
     }
   }
 
-  public static final class InlinePolicyPrincipalType {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public InlinePolicyPrincipalType(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof InlinePolicyPrincipalType v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final InlinePolicyPrincipalType SERVICE_ACCOUNT =
-        new InlinePolicyPrincipalType("service_account");
-    public static final InlinePolicyPrincipalType ROLE = new InlinePolicyPrincipalType("role");
-  }
-
   public static final class GetRoleInlinePolicyScope extends Model {
     public GetRoleInlinePolicyScope() {}
   }
@@ -2654,97 +2684,19 @@ public final class Iam {
   public static final class PermissionBoundaryResponse extends Model {
     public PermissionBoundaryResponse() {}
 
-    @JsonProperty(value = "permission_boundary", required = false)
-    private PermissionBoundary permission_boundary;
+    @JsonProperty(value = "policy", required = true)
+    private Policy policy;
 
-    @JsonProperty("permission_boundary")
-    public PermissionBoundary getPermissionBoundary() {
-      return permission_boundary;
+    @JsonProperty("policy")
+    public Policy getPolicy() {
+      return policy;
     }
-  }
-
-  public static final class PermissionBoundary extends Model {
-    public PermissionBoundary() {}
-
-    @JsonProperty(value = "principal_id", required = false)
-    private String principal_id;
-
-    @JsonProperty("principal_id")
-    public String getPrincipalId() {
-      return principal_id;
-    }
-
-    @JsonProperty(value = "principal_type", required = false)
-    private PermissionBoundaryPrincipalType principal_type;
-
-    @JsonProperty("principal_type")
-    public PermissionBoundaryPrincipalType getPrincipalType() {
-      return principal_type;
-    }
-
-    @JsonProperty(value = "policy_id", required = false)
-    private String policy_id;
-
-    @JsonProperty("policy_id")
-    public String getPolicyId() {
-      return policy_id;
-    }
-
-    @JsonProperty(value = "policy_name", required = false)
-    private String policy_name;
-
-    @JsonProperty("policy_name")
-    public String getPolicyName() {
-      return policy_name;
-    }
-
-    @JsonProperty(value = "created_at", required = false)
-    private String created_at;
-
-    @JsonProperty("created_at")
-    public String getCreatedAt() {
-      return created_at;
-    }
-  }
-
-  public static final class PermissionBoundaryPrincipalType {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public PermissionBoundaryPrincipalType(String value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @JsonValue
-    public String value() {
-      return value;
-    }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof PermissionBoundaryPrincipalType v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final PermissionBoundaryPrincipalType SERVICE_ACCOUNT =
-        new PermissionBoundaryPrincipalType("service_account");
-    public static final PermissionBoundaryPrincipalType ROLE =
-        new PermissionBoundaryPrincipalType("role");
   }
 
   public static final class STSSessionResponse extends Model {
     public STSSessionResponse() {}
 
-    @JsonProperty(value = "sts_session", required = false)
+    @JsonProperty(value = "sts_session", required = true)
     private STSSession sts_session;
 
     @JsonProperty("sts_session")
@@ -2756,40 +2708,12 @@ public final class Iam {
   public static final class STSSession extends Model {
     public STSSession() {}
 
-    @JsonProperty(value = "id", required = false)
+    @JsonProperty(value = "id", required = true)
     private String id;
 
     @JsonProperty("id")
     public String getId() {
       return id;
-    }
-
-    /**
-     * The assumed role UUID; absent on service-account OAuth sessions that do not assume a role.
-     */
-    @JsonProperty(value = "role_id", required = false)
-    private String role_id;
-
-    @JsonProperty("role_id")
-    public String getRoleId() {
-      return role_id;
-    }
-
-    /** ID of the principal assuming the role (the source identity) */
-    @JsonProperty(value = "principal_id", required = false)
-    private String principal_id;
-
-    @JsonProperty("principal_id")
-    public String getPrincipalId() {
-      return principal_id;
-    }
-
-    @JsonProperty(value = "principal_type", required = false)
-    private STSSessionPrincipalType principal_type;
-
-    @JsonProperty("principal_type")
-    public STSSessionPrincipalType getPrincipalType() {
-      return principal_type;
     }
 
     /** Optional session identifier */
@@ -2802,7 +2726,7 @@ public final class Iam {
       return session_name;
     }
 
-    @JsonProperty(value = "created_at", required = false)
+    @JsonProperty(value = "created_at", required = true)
     private String created_at;
 
     @JsonProperty("created_at")
@@ -2810,7 +2734,7 @@ public final class Iam {
       return created_at;
     }
 
-    @JsonProperty(value = "expires_at", required = false)
+    @JsonProperty(value = "expires_at", required = true)
     private String expires_at;
 
     @JsonProperty("expires_at")
@@ -2828,7 +2752,7 @@ public final class Iam {
     }
 
     /** Whether the session has been revoked */
-    @JsonProperty(value = "revoked", required = false)
+    @JsonProperty(value = "revoked", required = true)
     private Boolean revoked;
 
     @JsonProperty("revoked")
@@ -2874,58 +2798,6 @@ public final class Iam {
       return user_agent;
     }
 
-    @JsonProperty(value = "account_id", required = false)
-    private String account_id;
-
-    @JsonProperty("account_id")
-    public String getAccountId() {
-      return account_id;
-    }
-
-    @JsonProperty(value = "account_handle", required = false)
-    private String account_handle;
-
-    @JsonProperty("account_handle")
-    public String getAccountHandle() {
-      return account_handle;
-    }
-
-    @JsonProperty(value = "source_account_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> source_account_id = JsonField.missing();
-
-    @JsonProperty("source_account_id")
-    public JsonField<String> getSourceAccountId() {
-      return source_account_id;
-    }
-
-    @JsonProperty(value = "source_principal_type", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> source_principal_type = JsonField.missing();
-
-    @JsonProperty("source_principal_type")
-    public JsonField<String> getSourcePrincipalType() {
-      return source_principal_type;
-    }
-
-    @JsonProperty(value = "source_principal_crn", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> source_principal_crn = JsonField.missing();
-
-    @JsonProperty("source_principal_crn")
-    public JsonField<String> getSourcePrincipalCrn() {
-      return source_principal_crn;
-    }
-
-    @JsonProperty(value = "parent_session_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> parent_session_id = JsonField.missing();
-
-    @JsonProperty("parent_session_id")
-    public JsonField<String> getParentSessionId() {
-      return parent_session_id;
-    }
-
     @JsonProperty(value = "grant_type", required = false)
     private String grant_type;
 
@@ -2934,48 +2806,103 @@ public final class Iam {
       return grant_type;
     }
 
-    @JsonProperty(value = "crn", required = false)
+    @JsonProperty(value = "crn", required = true)
     private String crn;
 
     @JsonProperty("crn")
     public String getCrn() {
       return crn;
     }
+
+    /** Assumed role. Absent for service-account OAuth sessions that do not assume a role. */
+    @JsonProperty(value = "role", required = false)
+    private ResourceRef role;
+
+    @JsonProperty("role")
+    public ResourceRef getRole() {
+      return role;
+    }
+
+    /**
+     * Source user, service account, role or instance. Absent for web identity; use
+     * identity_provider and subject instead.
+     */
+    @JsonProperty(value = "source_principal", required = false)
+    private ResourceRef source_principal;
+
+    @JsonProperty("source_principal")
+    public ResourceRef getSourcePrincipal() {
+      return source_principal;
+    }
+
+    /** Account of the source resource, when applicable. */
+    @JsonProperty(value = "source_account", required = false)
+    private ResourceRef source_account;
+
+    @JsonProperty("source_account")
+    public ResourceRef getSourceAccount() {
+      return source_account;
+    }
+
+    /** Session used to assume this role, when the session is chained. */
+    @JsonProperty(value = "parent_session", required = false)
+    private ResourceRef parent_session;
+
+    @JsonProperty("parent_session")
+    public ResourceRef getParentSession() {
+      return parent_session;
+    }
+
+    /** Account-owned OIDC provider that verified the web-identity token. */
+    @JsonProperty(value = "identity_provider", required = false)
+    private ResourceRef identity_provider;
+
+    @JsonProperty("identity_provider")
+    public ResourceRef getIdentityProvider() {
+      return identity_provider;
+    }
+
+    /** Verified subject (sub) from the web-identity token, independent of the session name. */
+    @JsonProperty(value = "subject", required = false)
+    private String subject;
+
+    @JsonProperty("subject")
+    public String getSubject() {
+      return subject;
+    }
   }
 
-  public static final class STSSessionPrincipalType {
-    private final String value;
+  public static final class ResourceRef extends Model {
+    public ResourceRef() {}
 
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public STSSessionPrincipalType(String value) {
-      this.value = Objects.requireNonNull(value);
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
     }
 
-    @JsonValue
-    public String value() {
-      return value;
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
     }
 
-    @Override
-    public String toString() {
-      return value;
-    }
+    /**
+     * Display label at response time — the resource's name where it has one, otherwise its human
+     * label (an invoice number, an account display name). Absent when the target is gone. Not a
+     * lookup key.
+     */
+    @JsonProperty(value = "name", required = false)
+    private String name;
 
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof STSSessionPrincipalType v && value.equals(v.value);
+    @JsonProperty("name")
+    public String getName() {
+      return name;
     }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final STSSessionPrincipalType USER = new STSSessionPrincipalType("user");
-    public static final STSSessionPrincipalType SERVICE_ACCOUNT =
-        new STSSessionPrincipalType("service_account");
-    public static final STSSessionPrincipalType ASSUMED_ROLE =
-        new STSSessionPrincipalType("assumed_role");
   }
 
   public static final class GetSTSSessionScope extends Model {
@@ -3130,6 +3057,125 @@ public final class Iam {
     }
   }
 
+  public static final class ListOIDCProvidersQuery extends Model {
+    public ListOIDCProvidersQuery() {}
+
+    @JsonProperty(value = "name", required = false)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    public ListOIDCProvidersQuery withName(String value) {
+      this.name = value;
+      return this;
+    }
+
+    @JsonProperty(value = "crn", required = false)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    public ListOIDCProvidersQuery withCrn(String value) {
+      this.crn = value;
+      return this;
+    }
+
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
+
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
+    }
+
+    public ListOIDCProvidersQuery withLimit(Long value) {
+      this.limit = value;
+      return this;
+    }
+
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    public ListOIDCProvidersQuery withMarker(String value) {
+      this.marker = value;
+      return this;
+    }
+  }
+
+  public static final class OIDCProviderListResponse extends Model {
+    public OIDCProviderListResponse() {}
+
+    @JsonProperty(value = "oidc_providers", required = true)
+    private List<OIDCProvider> oidc_providers;
+
+    @JsonProperty("oidc_providers")
+    public List<OIDCProvider> getOidcProviders() {
+      return oidc_providers;
+    }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
+    }
+  }
+
+  public static final class PaginationMeta extends Model {
+    public PaginationMeta() {}
+
+    /** Total number of items */
+    @JsonProperty(value = "total", required = false)
+    private Long total;
+
+    @JsonProperty("total")
+    public Long getTotal() {
+      return total;
+    }
+
+    /** Number of items per page */
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
+
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
+    }
+
+    /**
+     * Opaque cursor for the next page. Pass it back as the `marker` query parameter; treat it as a
+     * token, not a value to parse.
+     */
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    /** Whether there are more items */
+    @JsonProperty(value = "has_more", required = false)
+    private Boolean has_more;
+
+    @JsonProperty("has_more")
+    public Boolean getHasMore() {
+      return has_more;
+    }
+  }
+
   public static final class ListPersonalSSHKeysResponse extends Model {
     public ListPersonalSSHKeysResponse() {}
 
@@ -3218,49 +3264,6 @@ public final class Iam {
     }
   }
 
-  public static final class PaginationMeta extends Model {
-    public PaginationMeta() {}
-
-    /** Total number of items */
-    @JsonProperty(value = "total", required = false)
-    private Long total;
-
-    @JsonProperty("total")
-    public Long getTotal() {
-      return total;
-    }
-
-    /** Number of items per page */
-    @JsonProperty(value = "limit", required = false)
-    private Long limit;
-
-    @JsonProperty("limit")
-    public Long getLimit() {
-      return limit;
-    }
-
-    /**
-     * Opaque cursor for the next page. Pass it back as the `marker` query parameter; treat it as a
-     * token, not a value to parse.
-     */
-    @JsonProperty(value = "marker", required = false)
-    private String marker;
-
-    @JsonProperty("marker")
-    public String getMarker() {
-      return marker;
-    }
-
-    /** Whether there are more items */
-    @JsonProperty(value = "has_more", required = false)
-    private Boolean has_more;
-
-    @JsonProperty("has_more")
-    public Boolean getHasMore() {
-      return has_more;
-    }
-  }
-
   public static final class ListPolicyRolesQuery extends Model {
     public ListPolicyRolesQuery() {}
 
@@ -3320,7 +3323,7 @@ public final class Iam {
   public static final class PolicyRolesListResponse extends Model {
     public PolicyRolesListResponse() {}
 
-    @JsonProperty(value = "roles", required = false)
+    @JsonProperty(value = "roles", required = true)
     private List<Role> roles;
 
     @JsonProperty("roles")
@@ -3328,7 +3331,7 @@ public final class Iam {
       return roles;
     }
 
-    @JsonProperty(value = "meta", required = false)
+    @JsonProperty(value = "meta", required = true)
     private PaginationMeta meta;
 
     @JsonProperty("meta")
@@ -3396,7 +3399,7 @@ public final class Iam {
   public static final class PolicyServiceAccountsListResponse extends Model {
     public PolicyServiceAccountsListResponse() {}
 
-    @JsonProperty(value = "service_accounts", required = false)
+    @JsonProperty(value = "service_accounts", required = true)
     private List<ServiceAccount> service_accounts;
 
     @JsonProperty("service_accounts")
@@ -3404,131 +3407,12 @@ public final class Iam {
       return service_accounts;
     }
 
-    @JsonProperty(value = "meta", required = false)
+    @JsonProperty(value = "meta", required = true)
     private PaginationMeta meta;
 
     @JsonProperty("meta")
     public PaginationMeta getMeta() {
       return meta;
-    }
-  }
-
-  public static final class ListRegionsQuery extends Model {
-    public ListRegionsQuery() {}
-
-    @JsonProperty(value = "name", required = false)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    public ListRegionsQuery withName(String value) {
-      this.name = value;
-      return this;
-    }
-
-    @JsonProperty(value = "crn", required = false)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    public ListRegionsQuery withCrn(String value) {
-      this.crn = value;
-      return this;
-    }
-  }
-
-  public static final class ListRegionsResponse extends Model {
-    public ListRegionsResponse() {}
-
-    /** List of available regions */
-    @JsonProperty(value = "regions", required = true)
-    private List<Region> regions;
-
-    @JsonProperty("regions")
-    public List<Region> getRegions() {
-      return regions;
-    }
-
-    /** The default region code */
-    @JsonProperty(value = "default", required = true)
-    private String defaultValue;
-
-    @JsonProperty("default")
-    public String getDefaultValue() {
-      return defaultValue;
-    }
-  }
-
-  public static final class Region extends Model {
-    public Region() {}
-
-    /** Platform-owned global region identity, using the immutable region code. */
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
-    }
-
-    /** Unique region code used in API calls and CRNs */
-    @JsonProperty(value = "code", required = true)
-    private String code;
-
-    @JsonProperty("code")
-    public String getCode() {
-      return code;
-    }
-
-    /** Human-readable region name */
-    @JsonProperty(value = "name", required = true)
-    private String name;
-
-    @JsonProperty("name")
-    public String getName() {
-      return name;
-    }
-
-    /** Geographic location of the region */
-    @JsonProperty(value = "location", required = true)
-    private String location;
-
-    @JsonProperty("location")
-    public String getLocation() {
-      return location;
-    }
-
-    /** ISO 3166-1 alpha-2 country code (used to display flag in UI) */
-    @JsonProperty(value = "country_code", required = true)
-    private String country_code;
-
-    @JsonProperty("country_code")
-    public String getCountryCode() {
-      return country_code;
-    }
-
-    /** Whether the region is currently available for use */
-    @JsonProperty(value = "available", required = true)
-    private Boolean available;
-
-    @JsonProperty("available")
-    public Boolean getAvailable() {
-      return available;
-    }
-
-    /** Whether the region is announced but not yet available */
-    @JsonProperty(value = "coming_soon", required = true)
-    private Boolean coming_soon;
-
-    @JsonProperty("coming_soon")
-    public Boolean getComingSoon() {
-      return coming_soon;
     }
   }
 
@@ -3841,7 +3725,7 @@ public final class Iam {
   public static final class STSSessionListResponse extends Model {
     public STSSessionListResponse() {}
 
-    @JsonProperty(value = "sts_sessions", required = false)
+    @JsonProperty(value = "sts_sessions", required = true)
     private List<STSSession> sts_sessions;
 
     @JsonProperty("sts_sessions")
@@ -3849,7 +3733,7 @@ public final class Iam {
       return sts_sessions;
     }
 
-    @JsonProperty(value = "meta", required = false)
+    @JsonProperty(value = "meta", required = true)
     private PaginationMeta meta;
 
     @JsonProperty("meta")
@@ -4142,6 +4026,49 @@ public final class Iam {
 
     public SetBoundaryRequestInput withPolicy(String value) {
       this.policy = value;
+      return this;
+    }
+  }
+
+  public static final class OIDCProviderUpdateRequestInput extends Model {
+    public OIDCProviderUpdateRequestInput() {}
+
+    @JsonProperty(value = "description", required = false)
+    private String description;
+
+    @JsonProperty("description")
+    public String getDescription() {
+      return description;
+    }
+
+    public OIDCProviderUpdateRequestInput withDescription(String value) {
+      this.description = value;
+      return this;
+    }
+
+    @JsonProperty(value = "audiences", required = false)
+    private List<String> audiences;
+
+    @JsonProperty("audiences")
+    public List<String> getAudiences() {
+      return audiences;
+    }
+
+    public OIDCProviderUpdateRequestInput withAudiences(List<String> value) {
+      this.audiences = value;
+      return this;
+    }
+
+    @JsonProperty(value = "tags", required = false)
+    private Map<String, String> tags;
+
+    @JsonProperty("tags")
+    public Map<String, String> getTags() {
+      return tags;
+    }
+
+    public OIDCProviderUpdateRequestInput withTags(Map<String, String> value) {
+      this.tags = value;
       return this;
     }
   }

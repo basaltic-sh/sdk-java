@@ -13,6 +13,18 @@ public final class Billing {
 
   private Billing() {}
 
+  public static final class BillingProfileResponse extends Model {
+    public BillingProfileResponse() {}
+
+    @JsonProperty(value = "billing_profile", required = true)
+    private BillingProfile billing_profile;
+
+    @JsonProperty("billing_profile")
+    public BillingProfile getBillingProfile() {
+      return billing_profile;
+    }
+  }
+
   public static final class BillingProfile extends Model {
     public BillingProfile() {}
 
@@ -46,8 +58,8 @@ public final class Billing {
     }
 
     /**
-     * The country rule the identifier satisfied, from `CountryRules.tax_ids`. Empty when there is
-     * no identifier.
+     * The country rule the identifier satisfied, such as `br_cpf`, `br_cnpj`, `us_ein` or `other`.
+     * Empty when there is no identifier.
      */
     @JsonProperty(value = "tax_id_kind", required = true)
     private String tax_id_kind;
@@ -450,6 +462,18 @@ public final class Billing {
     @JsonProperty("amount")
     public String getAmount() {
       return amount;
+    }
+  }
+
+  public static final class InvoiceResponse extends Model {
+    public InvoiceResponse() {}
+
+    @JsonProperty(value = "invoice", required = true)
+    private Invoice invoice;
+
+    @JsonProperty("invoice")
+    public Invoice getInvoice() {
+      return invoice;
     }
   }
 
@@ -986,17 +1010,51 @@ public final class Billing {
       this.invoice = value;
       return this;
     }
+
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
+
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
+    }
+
+    public ListFiscalInvoicesQuery withLimit(Long value) {
+      this.limit = value;
+      return this;
+    }
+
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    public ListFiscalInvoicesQuery withMarker(String value) {
+      this.marker = value;
+      return this;
+    }
   }
 
-  public static final class ListFiscalInvoicesResponse extends Model {
-    public ListFiscalInvoicesResponse() {}
+  public static final class FiscalInvoiceListResponse extends Model {
+    public FiscalInvoiceListResponse() {}
 
-    @JsonProperty(value = "fiscal_documents", required = true)
-    private List<FiscalInvoice> fiscal_documents;
+    @JsonProperty(value = "fiscal_invoices", required = true)
+    private List<FiscalInvoice> fiscal_invoices;
 
-    @JsonProperty("fiscal_documents")
-    public List<FiscalInvoice> getFiscalDocuments() {
-      return fiscal_documents;
+    @JsonProperty("fiscal_invoices")
+    public List<FiscalInvoice> getFiscalInvoices() {
+      return fiscal_invoices;
+    }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
     }
   }
 
@@ -1011,31 +1069,6 @@ public final class Billing {
       return id;
     }
 
-    @JsonProperty(value = "organization_id", required = true)
-    private String organization_id;
-
-    @JsonProperty("organization_id")
-    public String getOrganizationId() {
-      return organization_id;
-    }
-
-    @JsonProperty(value = "payment_id", required = true)
-    private String payment_id;
-
-    @JsonProperty("payment_id")
-    public String getPaymentId() {
-      return payment_id;
-    }
-
-    @JsonProperty(value = "invoice_id", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> invoice_id = JsonField.missing();
-
-    @JsonProperty("invoice_id")
-    public JsonField<String> getInvoiceId() {
-      return invoice_id;
-    }
-
     /** Actual amount received in BRL, not the billing invoice total. */
     @JsonProperty(value = "amount", required = true)
     private String amount;
@@ -1045,44 +1078,7 @@ public final class Billing {
       return amount;
     }
 
-    @JsonProperty(value = "status", required = true)
-    private FiscalInvoiceStatus status;
-
-    @JsonProperty("status")
-    public FiscalInvoiceStatus getStatus() {
-      return status;
-    }
-
-    /**
-     * Separate delivery state. Queued means durably accepted by the internal email service; it does
-     * not assert recipient delivery.
-     */
-    @JsonProperty(value = "email_status", required = true)
-    private FiscalInvoiceEmailStatus email_status;
-
-    @JsonProperty("email_status")
-    public FiscalInvoiceEmailStatus getEmailStatus() {
-      return email_status;
-    }
-
-    /** Sanitized operational error or municipal rejection codes. */
-    @JsonProperty(value = "last_error", required = false)
-    private String last_error;
-
-    @JsonProperty("last_error")
-    public String getLastError() {
-      return last_error;
-    }
-
-    @JsonProperty(value = "attempts", required = true)
-    private Long attempts;
-
-    @JsonProperty("attempts")
-    public Long getAttempts() {
-      return attempts;
-    }
-
-    @JsonProperty(value = "number", required = false)
+    @JsonProperty(value = "number", required = true)
     private String number;
 
     @JsonProperty("number")
@@ -1090,7 +1086,7 @@ public final class Billing {
       return number;
     }
 
-    @JsonProperty(value = "verification_code", required = false)
+    @JsonProperty(value = "verification_code", required = true)
     private String verification_code;
 
     @JsonProperty("verification_code")
@@ -1099,7 +1095,7 @@ public final class Billing {
     }
 
     /** Municipal view/print link available after issuance. */
-    @JsonProperty(value = "url", required = false)
+    @JsonProperty(value = "url", required = true)
     private String url;
 
     @JsonProperty("url")
@@ -1107,24 +1103,13 @@ public final class Billing {
       return url;
     }
 
-    @JsonProperty(value = "issued_at", required = false)
-    private String issued_at;
+    @JsonProperty(value = "issued_at", required = true)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> issued_at = JsonField.missing();
 
     @JsonProperty("issued_at")
-    public String getIssuedAt() {
+    public JsonField<String> getIssuedAt() {
       return issued_at;
-    }
-
-    /**
-     * Refunds preserve the fiscal document and require operator review; cancellation is never
-     * inferred automatically.
-     */
-    @JsonProperty(value = "requires_review", required = true)
-    private Boolean requires_review;
-
-    @JsonProperty("requires_review")
-    public Boolean getRequiresReview() {
-      return requires_review;
     }
 
     @JsonProperty(value = "created_at", required = true)
@@ -1134,76 +1119,85 @@ public final class Billing {
     public String getCreatedAt() {
       return created_at;
     }
+
+    /** Global organization-scoped fiscal invoice identity. */
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    @JsonProperty(value = "payment", required = true)
+    private ResourceRef payment;
+
+    @JsonProperty("payment")
+    public ResourceRef getPayment() {
+      return payment;
+    }
+
+    /**
+     * Related billing invoice, or null for a payment without an invoice. Deleted invoices retain
+     * their identity without a name.
+     */
+    @JsonProperty(value = "invoice", required = true)
+    private FiscalInvoiceInvoice invoice;
+
+    @JsonProperty("invoice")
+    public FiscalInvoiceInvoice getInvoice() {
+      return invoice;
+    }
   }
 
-  public static final class FiscalInvoiceStatus {
-    private final String value;
+  public static final class FiscalInvoiceInvoice {
+    private final JsonNode value;
 
     @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FiscalInvoiceStatus(String value) {
-      this.value = Objects.requireNonNull(value);
+    public FiscalInvoiceInvoice(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
     }
 
     @JsonValue
-    public String value() {
-      return value;
+    public JsonNode json() {
+      return value.deepCopy();
     }
 
     @Override
     public String toString() {
-      return value;
+      return "FiscalInvoiceInvoice{[REDACTED]}";
     }
 
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof FiscalInvoiceStatus v && value.equals(v.value);
+    public static FiscalInvoiceInvoice ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new FiscalInvoiceInvoice(Json.tree(value));
     }
 
-    @Override
-    public int hashCode() {
-      return value.hashCode();
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
     }
 
-    public static final FiscalInvoiceStatus QUEUED = new FiscalInvoiceStatus("queued");
-    public static final FiscalInvoiceStatus WAITING_DETAILS =
-        new FiscalInvoiceStatus("waiting_details");
-    public static final FiscalInvoiceStatus RETRYING = new FiscalInvoiceStatus("retrying");
-    public static final FiscalInvoiceStatus REJECTED = new FiscalInvoiceStatus("rejected");
-    public static final FiscalInvoiceStatus ISSUED = new FiscalInvoiceStatus("issued");
-    public static final FiscalInvoiceStatus REVIEW_REQUIRED =
-        new FiscalInvoiceStatus("review_required");
-  }
-
-  public static final class FiscalInvoiceEmailStatus {
-    private final String value;
-
-    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
-    public FiscalInvoiceEmailStatus(String value) {
-      this.value = Objects.requireNonNull(value);
+    public static FiscalInvoiceInvoice ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new FiscalInvoiceInvoice(Json.tree(value));
     }
 
-    @JsonValue
-    public String value() {
-      return value;
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
     }
-
-    @Override
-    public String toString() {
-      return value;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-      return other instanceof FiscalInvoiceEmailStatus v && value.equals(v.value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    public static final FiscalInvoiceEmailStatus PENDING = new FiscalInvoiceEmailStatus("pending");
-    public static final FiscalInvoiceEmailStatus QUEUED = new FiscalInvoiceEmailStatus("queued");
   }
 
   public static final class ListInvoicesQuery extends Model {
@@ -1352,7 +1346,10 @@ public final class Billing {
       return id;
     }
 
-    /** Current invoice list shape, without items; null when the invoice has been deleted. */
+    /**
+     * Related invoice. Null only when the payment has no invoice; a deleted invoice retains id and
+     * crn without name.
+     */
     @JsonProperty(value = "invoice", required = true)
     private PaymentInvoice invoice;
 
@@ -1453,14 +1450,14 @@ public final class Billing {
       return "PaymentInvoice{[REDACTED]}";
     }
 
-    public static PaymentInvoice ofVariant1(Invoice value) {
+    public static PaymentInvoice ofVariant1(ResourceRef value) {
       Model.validate(value);
       return new PaymentInvoice(Json.tree(value));
     }
 
-    public Optional<Invoice> asVariant1() {
+    public Optional<ResourceRef> asVariant1() {
       try {
-        Invoice result = Json.convert(value, new TypeReference<Invoice>() {});
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
         Model.validate(result);
         return Optional.ofNullable(result);
       } catch (sh.basaltic.sdk.SdkException e) {
@@ -1814,17 +1811,15 @@ public final class Billing {
     }
 
     /**
-     * Organization-scoped reference to the ledger entry's target: crn:billing:::invoice/&lt;id&gt;,
-     * crn:billing:::payment/&lt;id&gt;, or crn:billing:::credit/&lt;id&gt; for a credit grant. Pass
-     * this CRN to the corresponding collection's crn filter within the authenticated organization.
-     * Null for manual entries, unsupported reference types, or missing references.
+     * Organization-scoped invoice, payment, or credit related to this ledger entry. Null for manual
+     * entries, unsupported types, or absent identities. Deleted targets retain id and crn without
+     * name.
      */
-    @JsonProperty(value = "reference", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> reference = JsonField.missing();
+    @JsonProperty(value = "reference", required = true)
+    private TransactionReference reference;
 
     @JsonProperty("reference")
-    public JsonField<String> getReference() {
+    public TransactionReference getReference() {
       return reference;
     }
 
@@ -1873,6 +1868,56 @@ public final class Billing {
     public static final TransactionType ADJUSTMENT = new TransactionType("adjustment");
     public static final TransactionType CREDIT_GRANT = new TransactionType("credit_grant");
     public static final TransactionType CREDIT_APPLIED = new TransactionType("credit_applied");
+  }
+
+  public static final class TransactionReference {
+    private final JsonNode value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public TransactionReference(JsonNode value) {
+      this.value = Objects.requireNonNull(value).deepCopy();
+    }
+
+    @JsonValue
+    public JsonNode json() {
+      return value.deepCopy();
+    }
+
+    @Override
+    public String toString() {
+      return "TransactionReference{[REDACTED]}";
+    }
+
+    public static TransactionReference ofVariant1(ResourceRef value) {
+      Model.validate(value);
+      return new TransactionReference(Json.tree(value));
+    }
+
+    public Optional<ResourceRef> asVariant1() {
+      try {
+        ResourceRef result = Json.convert(value, new TypeReference<ResourceRef>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
+
+    public static TransactionReference ofVariant2(Map<String, JsonNode> value) {
+      Model.validate(value);
+      return new TransactionReference(Json.tree(value));
+    }
+
+    public Optional<Map<String, JsonNode>> asVariant2() {
+      try {
+        Map<String, JsonNode> result =
+            Json.convert(value, new TypeReference<Map<String, JsonNode>>() {});
+        Model.validate(result);
+        return Optional.ofNullable(result);
+      } catch (sh.basaltic.sdk.SdkException e) {
+        return Optional.empty();
+      }
+    }
   }
 
   public static final class BillingProfileUpdateInput extends Model {

@@ -161,30 +161,13 @@ public final class Secrets {
       return crn;
     }
 
-    /**
-     * True when the bound key has been deleted. The CRN is omitted, but the binding remains
-     * encrypted under its original key identity; this does not select platform encryption or
-     * plaintext.
-     */
-    @JsonProperty(value = "kms_key_unavailable", required = false)
-    private Boolean kms_key_unavailable;
+    /** Customer-managed encryption key. Omitted for platform encryption. */
+    @JsonProperty(value = "kms_key", required = false)
+    private ResourceRef kms_key;
 
-    @JsonProperty("kms_key_unavailable")
-    public Boolean getKmsKeyUnavailable() {
-      return kms_key_unavailable;
-    }
-
-    /**
-     * Customer-managed KMS key the secret is encrypted under. Omitted for platform encryption or
-     * when kms_key_unavailable is true.
-     */
-    @JsonProperty(value = "kms_key_crn", required = false)
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private JsonField<String> kms_key_crn = JsonField.missing();
-
-    @JsonProperty("kms_key_crn")
-    public JsonField<String> getKmsKeyCrn() {
-      return kms_key_crn;
+    @JsonProperty("kms_key")
+    public ResourceRef getKmsKey() {
+      return kms_key;
     }
 
     /**
@@ -253,6 +236,39 @@ public final class Secrets {
     }
   }
 
+  public static final class ResourceRef extends Model {
+    public ResourceRef() {}
+
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    /**
+     * Display label at response time — the resource's name where it has one, otherwise its human
+     * label (an invoice number, an account display name). Absent when the target is gone. Not a
+     * lookup key.
+     */
+    @JsonProperty(value = "name", required = false)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+  }
+
   public static final class DeleteSecretRequestInput extends Model {
     public DeleteSecretRequestInput() {}
 
@@ -302,14 +318,6 @@ public final class Secrets {
 
   public static final class SecretValue extends Model {
     public SecretValue() {}
-
-    @JsonProperty(value = "secret_id", required = true)
-    private String secret_id;
-
-    @JsonProperty("secret_id")
-    public String getSecretId() {
-      return secret_id;
-    }
 
     /**
      * Resource names must not start with the literal crn: prefix or be UUIDs (canonical, compact,
@@ -577,18 +585,6 @@ public final class Secrets {
     @JsonProperty("is_current")
     public Boolean getIsCurrent() {
       return is_current;
-    }
-
-    /**
-     * CRN of the principal that created this version (e.g. crn:iam:::user/&lt;id&gt;,
-     * crn:iam:::service-account/&lt;id&gt;).
-     */
-    @JsonProperty(value = "created_by", required = false)
-    private String created_by;
-
-    @JsonProperty("created_by")
-    public String getCreatedBy() {
-      return created_by;
     }
 
     @JsonProperty(value = "created_at", required = true)
