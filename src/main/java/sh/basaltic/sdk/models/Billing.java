@@ -418,6 +418,15 @@ public final class Billing {
     public List<UsageLine> getItems() {
       return items;
     }
+
+    /** Independent organization-wide monthly allowance pools; empty before activation. */
+    @JsonProperty(value = "included_usage", required = true)
+    private List<IncludedUsage> included_usage;
+
+    @JsonProperty("included_usage")
+    public List<IncludedUsage> getIncludedUsage() {
+      return included_usage;
+    }
   }
 
   public static final class UsageLine extends Model {
@@ -439,6 +448,7 @@ public final class Billing {
       return description;
     }
 
+    /** Billable quantity after included usage; may be zero. */
     @JsonProperty(value = "quantity", required = true)
     private String quantity;
 
@@ -462,6 +472,126 @@ public final class Billing {
     @JsonProperty("amount")
     public String getAmount() {
       return amount;
+    }
+  }
+
+  public static final class IncludedUsage extends Model {
+    public IncludedUsage() {}
+
+    @JsonProperty(value = "code", required = true)
+    private String code;
+
+    @JsonProperty("code")
+    public String getCode() {
+      return code;
+    }
+
+    @JsonProperty(value = "name", required = true)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    @JsonProperty(value = "unit", required = true)
+    private String unit;
+
+    @JsonProperty("unit")
+    public String getUnit() {
+      return unit;
+    }
+
+    @JsonProperty(value = "period_start", required = true)
+    private String period_start;
+
+    @JsonProperty("period_start")
+    public String getPeriodStart() {
+      return period_start;
+    }
+
+    /** Exclusive UTC month end. Unused allowance does not roll over. */
+    @JsonProperty(value = "period_end", required = true)
+    private String period_end;
+
+    @JsonProperty("period_end")
+    public String getPeriodEnd() {
+      return period_end;
+    }
+
+    /** Later of month start and policy activation. Earlier usage retains its original charges. */
+    @JsonProperty(value = "counted_from", required = true)
+    private String counted_from;
+
+    @JsonProperty("counted_from")
+    public String getCountedFrom() {
+      return counted_from;
+    }
+
+    /** Monthly organization grant. */
+    @JsonProperty(value = "base", required = true)
+    private String base;
+
+    @JsonProperty("base")
+    public String getBase() {
+      return base;
+    }
+
+    /** Allowance earned by rated instance-hours, prorated by this UTC month's actual hour count. */
+    @JsonProperty(value = "contributed", required = true)
+    private String contributed;
+
+    @JsonProperty("contributed")
+    public String getContributed() {
+      return contributed;
+    }
+
+    /** Base plus earned contributions. */
+    @JsonProperty(value = "total", required = true)
+    private String total;
+
+    @JsonProperty("total")
+    public String getTotal() {
+      return total;
+    }
+
+    /** Gross eligible usage since counted_from; excludes inbound and unmetered private traffic. */
+    @JsonProperty(value = "used", required = true)
+    private String used;
+
+    @JsonProperty("used")
+    public String getUsed() {
+      return used;
+    }
+
+    /** Persisted allowance allocations, including any already invoiced. */
+    @JsonProperty(value = "included_used", required = true)
+    private String included_used;
+
+    @JsonProperty("included_used")
+    public String getIncludedUsed() {
+      return included_used;
+    }
+
+    /** Nonnegative unused allowance. */
+    @JsonProperty(value = "remaining", required = true)
+    private String remaining;
+
+    @JsonProperty("remaining")
+    public String getRemaining() {
+      return remaining;
+    }
+
+    /**
+     * Usage exceeding included allocations, before money credits. Can fall as instance allowance
+     * accrues.
+     */
+    @JsonProperty(value = "overage", required = true)
+    private String overage;
+
+    @JsonProperty("overage")
+    public String getOverage() {
+      return overage;
     }
   }
 
@@ -1697,6 +1827,55 @@ public final class Billing {
     @JsonProperty("metadata")
     public Map<String, JsonNode> getMetadata() {
       return metadata;
+    }
+
+    /** Active allowance contributions for this plan, omitted when none apply. */
+    @JsonProperty(value = "included_usage", required = false)
+    private List<CatalogAllowance> included_usage;
+
+    @JsonProperty("included_usage")
+    public List<CatalogAllowance> getIncludedUsage() {
+      return included_usage;
+    }
+  }
+
+  public static final class CatalogAllowance extends Model {
+    public CatalogAllowance() {}
+
+    @JsonProperty(value = "policy_code", required = true)
+    private String policy_code;
+
+    @JsonProperty("policy_code")
+    public String getPolicyCode() {
+      return policy_code;
+    }
+
+    @JsonProperty(value = "unit", required = true)
+    private String unit;
+
+    @JsonProperty("unit")
+    public String getUnit() {
+      return unit;
+    }
+
+    /**
+     * Full-month contribution per instance; prorated by billed hours in the actual calendar month.
+     */
+    @JsonProperty(value = "monthly_quantity", required = true)
+    private String monthly_quantity;
+
+    @JsonProperty("monthly_quantity")
+    public String getMonthlyQuantity() {
+      return monthly_quantity;
+    }
+
+    /** One grant per billing organization, not per instance, account region or bucket. */
+    @JsonProperty(value = "monthly_base", required = true)
+    private String monthly_base;
+
+    @JsonProperty("monthly_base")
+    public String getMonthlyBase() {
+      return monthly_base;
     }
   }
 

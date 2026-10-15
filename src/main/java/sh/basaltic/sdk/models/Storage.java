@@ -432,15 +432,52 @@ public final class Storage {
     }
 
     /**
-     * Frozen logical restore capacity in bytes, not measured written data. The source volume may
-     * have been extended since the snapshot was taken.
+     * Measured retained logical bytes attributed to this snapshot, before replication and
+     * compression. Shared extents are counted once across the volume's snapshot chain. Attribution
+     * can move when another snapshot is deleted. Null when usage is unknown or stale; zero is a
+     * measured empty attribution.
      */
     @JsonProperty(value = "size_bytes", required = true)
-    private Long size_bytes;
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<Long> size_bytes = JsonField.missing();
 
     @JsonProperty("size_bytes")
-    public Long getSizeBytes() {
+    public JsonField<Long> getSizeBytes() {
       return size_bytes;
+    }
+
+    /**
+     * Minimum restore volume capacity, frozen when this snapshot was created. Independent of
+     * consumed storage and later source-volume expansion.
+     */
+    @JsonProperty(value = "restore_size_bytes", required = true)
+    private Long restore_size_bytes;
+
+    @JsonProperty("restore_size_bytes")
+    public Long getRestoreSizeBytes() {
+      return restore_size_bytes;
+    }
+
+    /**
+     * Freshness of size_bytes. Unknown or stale measurements are never substituted with provisioned
+     * capacity.
+     */
+    @JsonProperty(value = "usage_state", required = true)
+    private SnapshotUsageState usage_state;
+
+    @JsonProperty("usage_state")
+    public SnapshotUsageState getUsageState() {
+      return usage_state;
+    }
+
+    /** Time of the last observation. Null before the first observation. */
+    @JsonProperty(value = "usage_measured_at", required = true)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> usage_measured_at = JsonField.missing();
+
+    @JsonProperty("usage_measured_at")
+    public JsonField<String> getUsageMeasuredAt() {
+      return usage_measured_at;
     }
 
     @JsonProperty(value = "status", required = true)
@@ -511,6 +548,39 @@ public final class Storage {
     public String getName() {
       return name;
     }
+  }
+
+  public static final class SnapshotUsageState {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public SnapshotUsageState(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof SnapshotUsageState v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final SnapshotUsageState UNKNOWN = new SnapshotUsageState("unknown");
+    public static final SnapshotUsageState STALE = new SnapshotUsageState("stale");
+    public static final SnapshotUsageState MEASURED = new SnapshotUsageState("measured");
   }
 
   public static final class SnapshotStatus {

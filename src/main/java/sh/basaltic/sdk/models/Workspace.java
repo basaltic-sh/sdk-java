@@ -1709,6 +1709,229 @@ public final class Workspace {
     }
   }
 
+  public static final class AccountOnboardingResponse extends Model {
+    public AccountOnboardingResponse() {}
+
+    @JsonProperty(value = "onboarding", required = true)
+    private AccountOnboarding onboarding;
+
+    @JsonProperty("onboarding")
+    public AccountOnboarding getOnboarding() {
+      return onboarding;
+    }
+  }
+
+  public static final class AccountOnboarding extends Model {
+    public AccountOnboarding() {}
+
+    @JsonProperty(value = "account_id", required = true)
+    private String account_id;
+
+    @JsonProperty("account_id")
+    public String getAccountId() {
+      return account_id;
+    }
+
+    @JsonProperty(value = "region", required = true)
+    private String region;
+
+    @JsonProperty("region")
+    public String getRegion() {
+      return region;
+    }
+
+    @JsonProperty(value = "provisioning_status", required = true)
+    private AccountOnboardingProvisioningStatus provisioning_status;
+
+    @JsonProperty("provisioning_status")
+    public AccountOnboardingProvisioningStatus getProvisioningStatus() {
+      return provisioning_status;
+    }
+
+    @JsonProperty(value = "provisioning_step", required = true)
+    private String provisioning_step;
+
+    @JsonProperty("provisioning_step")
+    public String getProvisioningStep() {
+      return provisioning_step;
+    }
+
+    @JsonProperty(value = "error_code", required = false)
+    private String error_code;
+
+    @JsonProperty("error_code")
+    public String getErrorCode() {
+      return error_code;
+    }
+
+    @JsonProperty(value = "dismissed", required = true)
+    private Boolean dismissed;
+
+    @JsonProperty("dismissed")
+    public Boolean getDismissed() {
+      return dismissed;
+    }
+
+    @JsonProperty(value = "welcome_seen", required = true)
+    private Boolean welcome_seen;
+
+    @JsonProperty("welcome_seen")
+    public Boolean getWelcomeSeen() {
+      return welcome_seen;
+    }
+
+    @JsonProperty(value = "connection_recorded", required = true)
+    private Boolean connection_recorded;
+
+    @JsonProperty("connection_recorded")
+    public Boolean getConnectionRecorded() {
+      return connection_recorded;
+    }
+
+    @JsonProperty(value = "steps", required = true)
+    private List<AccountOnboardingStepsItem> steps;
+
+    @JsonProperty("steps")
+    public List<AccountOnboardingStepsItem> getSteps() {
+      return steps;
+    }
+
+    @JsonProperty(value = "vpc_id", required = false)
+    private String vpc_id;
+
+    @JsonProperty("vpc_id")
+    public String getVpcId() {
+      return vpc_id;
+    }
+
+    @JsonProperty(value = "subnet_id", required = false)
+    private String subnet_id;
+
+    @JsonProperty("subnet_id")
+    public String getSubnetId() {
+      return subnet_id;
+    }
+
+    @JsonProperty(value = "security_group_id", required = false)
+    private String security_group_id;
+
+    @JsonProperty("security_group_id")
+    public String getSecurityGroupId() {
+      return security_group_id;
+    }
+
+    @JsonProperty(value = "instance_id", required = false)
+    private String instance_id;
+
+    @JsonProperty("instance_id")
+    public String getInstanceId() {
+      return instance_id;
+    }
+
+    @JsonProperty(value = "confirmed_instance_id", required = false)
+    private String confirmed_instance_id;
+
+    @JsonProperty("confirmed_instance_id")
+    public String getConfirmedInstanceId() {
+      return confirmed_instance_id;
+    }
+  }
+
+  public static final class AccountOnboardingProvisioningStatus {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public AccountOnboardingProvisioningStatus(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof AccountOnboardingProvisioningStatus v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final AccountOnboardingProvisioningStatus PENDING =
+        new AccountOnboardingProvisioningStatus("pending");
+    public static final AccountOnboardingProvisioningStatus PROVISIONING =
+        new AccountOnboardingProvisioningStatus("provisioning");
+    public static final AccountOnboardingProvisioningStatus READY =
+        new AccountOnboardingProvisioningStatus("ready");
+    public static final AccountOnboardingProvisioningStatus FAILED =
+        new AccountOnboardingProvisioningStatus("failed");
+    public static final AccountOnboardingProvisioningStatus EXISTING =
+        new AccountOnboardingProvisioningStatus("existing");
+  }
+
+  public static final class AccountOnboardingStepsItem extends Model {
+    public AccountOnboardingStepsItem() {}
+
+    @JsonProperty(value = "id", required = true)
+    private AccountOnboardingStepsItemId id;
+
+    @JsonProperty("id")
+    public AccountOnboardingStepsItemId getId() {
+      return id;
+    }
+
+    @JsonProperty(value = "complete", required = true)
+    private Boolean complete;
+
+    @JsonProperty("complete")
+    public Boolean getComplete() {
+      return complete;
+    }
+  }
+
+  public static final class AccountOnboardingStepsItemId {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public AccountOnboardingStepsItemId(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof AccountOnboardingStepsItemId v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final AccountOnboardingStepsItemId SSH = new AccountOnboardingStepsItemId("ssh");
+    public static final AccountOnboardingStepsItemId LAUNCH =
+        new AccountOnboardingStepsItemId("launch");
+    public static final AccountOnboardingStepsItemId CONNECT =
+        new AccountOnboardingStepsItemId("connect");
+  }
+
   public static final class GetAccountResourcesResponse extends Model {
     public GetAccountResourcesResponse() {}
 
@@ -3851,6 +4074,62 @@ public final class Workspace {
 
     public UpdateAccountRequestInput withDescription(String value) {
       this.description = value;
+      return this;
+    }
+  }
+
+  public static final class AccountOnboardingUpdateRequestInput extends Model {
+    public AccountOnboardingUpdateRequestInput() {}
+
+    @JsonProperty(value = "dismissed", required = false)
+    private Boolean dismissed;
+
+    @JsonProperty("dismissed")
+    public Boolean getDismissed() {
+      return dismissed;
+    }
+
+    public AccountOnboardingUpdateRequestInput withDismissed(Boolean value) {
+      this.dismissed = value;
+      return this;
+    }
+
+    @JsonProperty(value = "welcome_seen", required = false)
+    private Boolean welcome_seen;
+
+    @JsonProperty("welcome_seen")
+    public Boolean getWelcomeSeen() {
+      return welcome_seen;
+    }
+
+    public AccountOnboardingUpdateRequestInput withWelcomeSeen(Boolean value) {
+      this.welcome_seen = value;
+      return this;
+    }
+
+    @JsonProperty(value = "instance_id", required = false)
+    private String instance_id;
+
+    @JsonProperty("instance_id")
+    public String getInstanceId() {
+      return instance_id;
+    }
+
+    public AccountOnboardingUpdateRequestInput withInstanceId(String value) {
+      this.instance_id = value;
+      return this;
+    }
+
+    @JsonProperty(value = "confirmed_instance_id", required = false)
+    private String confirmed_instance_id;
+
+    @JsonProperty("confirmed_instance_id")
+    public String getConfirmedInstanceId() {
+      return confirmed_instance_id;
+    }
+
+    public AccountOnboardingUpdateRequestInput withConfirmedInstanceId(String value) {
+      this.confirmed_instance_id = value;
       return this;
     }
   }

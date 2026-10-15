@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.*;
 import sh.basaltic.sdk.models.Workspace.Account;
 import sh.basaltic.sdk.models.Workspace.AccountListResponse;
+import sh.basaltic.sdk.models.Workspace.AccountOnboardingResponse;
+import sh.basaltic.sdk.models.Workspace.AccountOnboardingUpdateRequestInput;
 import sh.basaltic.sdk.models.Workspace.AccountPrincipalReference;
 import sh.basaltic.sdk.models.Workspace.AccountResponse;
 import sh.basaltic.sdk.models.Workspace.AccountRole;
@@ -360,6 +362,18 @@ public final class WorkspaceService {
           "application/json");
   private static final Operation OP_22 =
       new Operation(
+          "getAccountOnboarding",
+          "GET",
+          "/v1/accounts/{account_id}/onboarding",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          false,
+          "",
+          "application/json");
+  private static final Operation OP_23 =
+      new Operation(
           "getAccountResources",
           "GET",
           "/v1/accounts/{account_id}/resources",
@@ -370,7 +384,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_23 =
+  private static final Operation OP_24 =
       new Operation(
           "getGroup",
           "GET",
@@ -382,7 +396,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_24 =
+  private static final Operation OP_25 =
       new Operation(
           "getGroupInlinePolicy",
           "GET",
@@ -394,7 +408,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_25 =
+  private static final Operation OP_26 =
       new Operation(
           "getInvitation",
           "GET",
@@ -406,7 +420,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_26 =
+  private static final Operation OP_27 =
       new Operation(
           "getOrganization",
           "GET",
@@ -418,7 +432,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_27 =
+  private static final Operation OP_28 =
       new Operation(
           "getPolicy",
           "GET",
@@ -430,7 +444,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_28 =
+  private static final Operation OP_29 =
       new Operation(
           "getUser",
           "GET",
@@ -442,7 +456,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_29 =
+  private static final Operation OP_30 =
       new Operation(
           "getUserInlinePolicy",
           "GET",
@@ -454,7 +468,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_30 =
+  private static final Operation OP_31 =
       new Operation(
           "getUserPermissionBoundary",
           "GET",
@@ -466,7 +480,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_31 =
+  private static final Operation OP_32 =
       new Operation(
           "listAccountRoleAssignments",
           "GET",
@@ -478,7 +492,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_32 =
+  private static final Operation OP_33 =
       new Operation(
           "listAccountRoles",
           "GET",
@@ -490,7 +504,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_33 =
+  private static final Operation OP_34 =
       new Operation(
           "listAccounts",
           "GET",
@@ -506,7 +520,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_34 =
+  private static final Operation OP_35 =
       new Operation(
           "listGroupInlinePolicies",
           "GET",
@@ -520,7 +534,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_35 =
+  private static final Operation OP_36 =
       new Operation(
           "listGroupPolicies",
           "GET",
@@ -534,7 +548,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_36 =
+  private static final Operation OP_37 =
       new Operation(
           "listGroupUsers",
           "GET",
@@ -550,7 +564,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_37 =
+  private static final Operation OP_38 =
       new Operation(
           "listGroups",
           "GET",
@@ -566,7 +580,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_38 =
+  private static final Operation OP_39 =
       new Operation(
           "listInvitations",
           "GET",
@@ -582,7 +596,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_39 =
+  private static final Operation OP_40 =
       new Operation(
           "listOrganizations",
           "GET",
@@ -598,7 +612,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_40 =
+  private static final Operation OP_41 =
       new Operation(
           "listPolicies",
           "GET",
@@ -614,7 +628,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_41 =
+  private static final Operation OP_42 =
       new Operation(
           "listPolicyGroups",
           "GET",
@@ -630,7 +644,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_42 =
+  private static final Operation OP_43 =
       new Operation(
           "listPolicyRoles",
           "GET",
@@ -646,7 +660,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_43 =
+  private static final Operation OP_44 =
       new Operation(
           "listPolicyServiceAccounts",
           "GET",
@@ -662,7 +676,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_44 =
+  private static final Operation OP_45 =
       new Operation(
           "listPolicyUsers",
           "GET",
@@ -678,7 +692,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_45 =
+  private static final Operation OP_46 =
       new Operation(
           "listRolePolicies",
           "GET",
@@ -692,7 +706,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_46 =
+  private static final Operation OP_47 =
       new Operation(
           "listServiceAccountPolicies",
           "GET",
@@ -706,7 +720,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_47 =
+  private static final Operation OP_48 =
       new Operation(
           "listUserGroups",
           "GET",
@@ -720,7 +734,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_48 =
+  private static final Operation OP_49 =
       new Operation(
           "listUserInlinePolicies",
           "GET",
@@ -734,7 +748,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_49 =
+  private static final Operation OP_50 =
       new Operation(
           "listUserPolicies",
           "GET",
@@ -748,7 +762,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_50 =
+  private static final Operation OP_51 =
       new Operation(
           "listUsers",
           "GET",
@@ -764,7 +778,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_51 =
+  private static final Operation OP_52 =
       new Operation(
           "putGroupInlinePolicy",
           "PUT",
@@ -776,7 +790,7 @@ public final class WorkspaceService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_52 =
+  private static final Operation OP_53 =
       new Operation(
           "putUserInlinePolicy",
           "PUT",
@@ -788,7 +802,7 @@ public final class WorkspaceService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_53 =
+  private static final Operation OP_54 =
       new Operation(
           "removeAccountRoleAssignment",
           "DELETE",
@@ -800,7 +814,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_54 =
+  private static final Operation OP_55 =
       new Operation(
           "removeUser",
           "DELETE",
@@ -812,7 +826,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_55 =
+  private static final Operation OP_56 =
       new Operation(
           "removeUserFromGroup",
           "DELETE",
@@ -824,7 +838,7 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_56 =
+  private static final Operation OP_57 =
       new Operation(
           "removeUserPermissionBoundary",
           "DELETE",
@@ -836,7 +850,19 @@ public final class WorkspaceService {
           false,
           "",
           "application/json");
-  private static final Operation OP_57 =
+  private static final Operation OP_58 =
+      new Operation(
+          "retryAccountProvisioning",
+          "POST",
+          "/v1/accounts/{account_id}/onboarding/retry",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          false,
+          "",
+          "application/json");
+  private static final Operation OP_59 =
       new Operation(
           "setUserPermissionBoundary",
           "PUT",
@@ -848,7 +874,7 @@ public final class WorkspaceService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_58 =
+  private static final Operation OP_60 =
       new Operation(
           "updateAccount",
           "PATCH",
@@ -860,7 +886,19 @@ public final class WorkspaceService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_59 =
+  private static final Operation OP_61 =
+      new Operation(
+          "updateAccountOnboarding",
+          "PATCH",
+          "/v1/accounts/{account_id}/onboarding",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          true,
+          "application/json",
+          "application/json");
+  private static final Operation OP_62 =
       new Operation(
           "updateGroup",
           "PATCH",
@@ -872,7 +910,7 @@ public final class WorkspaceService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_60 =
+  private static final Operation OP_63 =
       new Operation(
           "updateOrganization",
           "PATCH",
@@ -884,7 +922,7 @@ public final class WorkspaceService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_61 =
+  private static final Operation OP_64 =
       new Operation(
           "updatePolicy",
           "PATCH",
@@ -1208,7 +1246,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_33,
+            OP_34,
             Map.ofEntries(),
             null,
             scope),
@@ -1223,6 +1261,20 @@ public final class WorkspaceService {
     return getAccountByReference(reference, null);
   }
 
+  /** Get shared account setup progress */
+  public Request<AccountOnboardingResponse> getAccountOnboarding(String account_id) {
+    return new Request<>(
+        new Core(
+            transport,
+            "workspace",
+            "https://workspace.basaltic.sh",
+            OP_22,
+            Map.ofEntries(Map.entry("account_id", account_id)),
+            null,
+            null),
+        new TypeReference<AccountOnboardingResponse>() {});
+  }
+
   /** Check account resource presence */
   public Request<GetAccountResourcesResponse> getAccountResources(String account_id) {
     return new Request<>(
@@ -1230,7 +1282,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_22,
+            OP_23,
             Map.ofEntries(Map.entry("account_id", account_id)),
             null,
             null),
@@ -1244,7 +1296,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_23,
+            OP_24,
             Map.ofEntries(Map.entry("group_id", group_id)),
             null,
             null),
@@ -1258,7 +1310,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_23,
+            OP_24,
             Map.ofEntries(Map.entry("group_id", reference)),
             null,
             null),
@@ -1266,7 +1318,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_37,
+            OP_38,
             Map.ofEntries(),
             null,
             scope),
@@ -1288,7 +1340,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_24,
+            OP_25,
             Map.ofEntries(Map.entry("group_id", group_id), Map.entry("policy_name", policy_name)),
             null,
             null),
@@ -1303,7 +1355,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_24,
+            OP_25,
             Map.ofEntries(Map.entry("group_id", group_id), Map.entry("policy_name", reference)),
             null,
             null),
@@ -1311,7 +1363,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_34,
+            OP_35,
             Map.ofEntries(Map.entry("group_id", group_id)),
             null,
             scope),
@@ -1333,7 +1385,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_25,
+            OP_26,
             Map.ofEntries(Map.entry("invitation_id", invitation_id)),
             null,
             null),
@@ -1347,7 +1399,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_25,
+            OP_26,
             Map.ofEntries(Map.entry("invitation_id", reference)),
             null,
             null),
@@ -1355,7 +1407,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_38,
+            OP_39,
             Map.ofEntries(),
             null,
             scope),
@@ -1377,7 +1429,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_26,
+            OP_27,
             Map.ofEntries(Map.entry("organization_id", organization_id)),
             null,
             null),
@@ -1392,7 +1444,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_26,
+            OP_27,
             Map.ofEntries(Map.entry("organization_id", reference)),
             null,
             null),
@@ -1400,7 +1452,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_39,
+            OP_40,
             Map.ofEntries(),
             null,
             scope),
@@ -1422,7 +1474,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_27,
+            OP_28,
             Map.ofEntries(Map.entry("policy_id", policy_id)),
             null,
             null),
@@ -1436,7 +1488,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_27,
+            OP_28,
             Map.ofEntries(Map.entry("policy_id", reference)),
             null,
             null),
@@ -1444,7 +1496,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_40,
+            OP_41,
             Map.ofEntries(),
             null,
             scope),
@@ -1466,7 +1518,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_28,
+            OP_29,
             Map.ofEntries(Map.entry("user_id", user_id)),
             null,
             null),
@@ -1480,7 +1532,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_28,
+            OP_29,
             Map.ofEntries(Map.entry("user_id", reference)),
             null,
             null),
@@ -1488,7 +1540,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_50,
+            OP_51,
             Map.ofEntries(),
             null,
             scope),
@@ -1510,7 +1562,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_29,
+            OP_30,
             Map.ofEntries(Map.entry("user_id", user_id), Map.entry("policy_name", policy_name)),
             null,
             null),
@@ -1525,7 +1577,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_29,
+            OP_30,
             Map.ofEntries(Map.entry("user_id", user_id), Map.entry("policy_name", reference)),
             null,
             null),
@@ -1533,7 +1585,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_48,
+            OP_49,
             Map.ofEntries(Map.entry("user_id", user_id)),
             null,
             scope),
@@ -1555,7 +1607,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_30,
+            OP_31,
             Map.ofEntries(Map.entry("user_id", user_id)),
             null,
             null),
@@ -1570,7 +1622,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_31,
+            OP_32,
             Map.ofEntries(Map.entry("account_id", account_id)),
             null,
             null),
@@ -1586,7 +1638,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_32,
+            OP_33,
             Map.ofEntries(),
             null,
             null),
@@ -1602,7 +1654,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_33,
+            OP_34,
             Map.ofEntries(),
             null,
             query),
@@ -1624,7 +1676,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_34,
+            OP_35,
             Map.ofEntries(Map.entry("group_id", group_id)),
             null,
             query),
@@ -1647,7 +1699,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_35,
+            OP_36,
             Map.ofEntries(Map.entry("group_id", group_id)),
             null,
             query),
@@ -1669,7 +1721,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_36,
+            OP_37,
             Map.ofEntries(Map.entry("group_id", group_id)),
             null,
             query),
@@ -1690,7 +1742,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_37,
+            OP_38,
             Map.ofEntries(),
             null,
             query),
@@ -1712,7 +1764,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_38,
+            OP_39,
             Map.ofEntries(),
             null,
             query),
@@ -1734,7 +1786,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_39,
+            OP_40,
             Map.ofEntries(),
             null,
             query),
@@ -1755,7 +1807,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_40,
+            OP_41,
             Map.ofEntries(),
             null,
             query),
@@ -1777,7 +1829,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_41,
+            OP_42,
             Map.ofEntries(Map.entry("policy_id", policy_id)),
             null,
             query),
@@ -1799,7 +1851,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_42,
+            OP_43,
             Map.ofEntries(Map.entry("policy_id", policy_id)),
             null,
             query),
@@ -1822,7 +1874,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_43,
+            OP_44,
             Map.ofEntries(Map.entry("policy_id", policy_id)),
             null,
             query),
@@ -1845,7 +1897,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_44,
+            OP_45,
             Map.ofEntries(Map.entry("policy_id", policy_id)),
             null,
             query),
@@ -1867,7 +1919,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_45,
+            OP_46,
             Map.ofEntries(Map.entry("role_id", role_id)),
             null,
             query),
@@ -1889,7 +1941,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_46,
+            OP_47,
             Map.ofEntries(Map.entry("service_account_id", service_account_id)),
             null,
             query),
@@ -1912,7 +1964,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_47,
+            OP_48,
             Map.ofEntries(Map.entry("user_id", user_id)),
             null,
             query),
@@ -1934,7 +1986,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_48,
+            OP_49,
             Map.ofEntries(Map.entry("user_id", user_id)),
             null,
             query),
@@ -1957,7 +2009,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_49,
+            OP_50,
             Map.ofEntries(Map.entry("user_id", user_id)),
             null,
             query),
@@ -1978,7 +2030,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_50,
+            OP_51,
             Map.ofEntries(),
             null,
             query),
@@ -2000,7 +2052,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_51,
+            OP_52,
             Map.ofEntries(Map.entry("group_id", group_id), Map.entry("policy_name", policy_name)),
             body,
             null),
@@ -2015,7 +2067,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_52,
+            OP_53,
             Map.ofEntries(Map.entry("user_id", user_id), Map.entry("policy_name", policy_name)),
             body,
             null),
@@ -2029,7 +2081,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_53,
+            OP_54,
             Map.ofEntries(
                 Map.entry("account_id", account_id), Map.entry("assignment_id", assignment_id)),
             null,
@@ -2043,7 +2095,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_54,
+            OP_55,
             Map.ofEntries(Map.entry("user_id", user_id)),
             null,
             null));
@@ -2056,7 +2108,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_55,
+            OP_56,
             Map.ofEntries(Map.entry("user_id", user_id), Map.entry("group_id", group_id)),
             null,
             null));
@@ -2069,10 +2121,24 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_56,
+            OP_57,
             Map.ofEntries(Map.entry("user_id", user_id)),
             null,
             null));
+  }
+
+  /** Resume failed default network provisioning */
+  public Request<AccountOnboardingResponse> retryAccountProvisioning(String account_id) {
+    return new Request<>(
+        new Core(
+            transport,
+            "workspace",
+            "https://workspace.basaltic.sh",
+            OP_58,
+            Map.ofEntries(Map.entry("account_id", account_id)),
+            null,
+            null),
+        new TypeReference<AccountOnboardingResponse>() {});
   }
 
   /** Set a user's permission boundary */
@@ -2082,7 +2148,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_57,
+            OP_59,
             Map.ofEntries(Map.entry("user_id", user_id)),
             body,
             null));
@@ -2095,11 +2161,26 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_58,
+            OP_60,
             Map.ofEntries(Map.entry("account_id", account_id)),
             body,
             null),
         new TypeReference<AccountResponse>() {});
+  }
+
+  /** Update shared account guide preferences */
+  public Request<AccountOnboardingResponse> updateAccountOnboarding(
+      String account_id, AccountOnboardingUpdateRequestInput body) {
+    return new Request<>(
+        new Core(
+            transport,
+            "workspace",
+            "https://workspace.basaltic.sh",
+            OP_61,
+            Map.ofEntries(Map.entry("account_id", account_id)),
+            body,
+            null),
+        new TypeReference<AccountOnboardingResponse>() {});
   }
 
   /** Update group */
@@ -2109,7 +2190,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_59,
+            OP_62,
             Map.ofEntries(Map.entry("group_id", group_id)),
             body,
             null),
@@ -2124,7 +2205,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_60,
+            OP_63,
             Map.ofEntries(Map.entry("organization_id", organization_id)),
             body,
             null),
@@ -2139,7 +2220,7 @@ public final class WorkspaceService {
             transport,
             "workspace",
             "https://workspace.basaltic.sh",
-            OP_61,
+            OP_64,
             Map.ofEntries(Map.entry("policy_id", policy_id)),
             body,
             null),

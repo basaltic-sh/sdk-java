@@ -3772,6 +3772,16 @@ Get account
 public Request<AccountResponse> getAccount(String account_id)
 ```
 
+## `workspace.getAccountOnboarding`
+
+Get shared account setup progress
+
+`GET /v1/accounts/{account_id}/onboarding`
+
+```java
+public Request<AccountOnboardingResponse> getAccountOnboarding(String account_id)
+```
+
 ## `workspace.getAccountResources`
 
 Check account resource presence
@@ -4122,6 +4132,16 @@ Remove a user's permission boundary
 public EmptyRequest removeUserPermissionBoundary(String user_id)
 ```
 
+## `workspace.retryAccountProvisioning`
+
+Resume failed default network provisioning
+
+`POST /v1/accounts/{account_id}/onboarding/retry`
+
+```java
+public Request<AccountOnboardingResponse> retryAccountProvisioning(String account_id)
+```
+
 ## `workspace.setUserPermissionBoundary`
 
 Set a user's permission boundary
@@ -4140,6 +4160,16 @@ Update account
 
 ```java
 public Request<AccountResponse> updateAccount(String account_id,UpdateAccountRequestInput body)
+```
+
+## `workspace.updateAccountOnboarding`
+
+Update shared account guide preferences
+
+`PATCH /v1/accounts/{account_id}/onboarding`
+
+```java
+public Request<AccountOnboardingResponse> updateAccountOnboarding(String account_id,AccountOnboardingUpdateRequestInput body)
 ```
 
 ## `workspace.updateGroup`

@@ -30,8 +30,26 @@ import org.junit.jupiter.api.Test;
 import sh.basaltic.sdk.internal.Json;
 import sh.basaltic.sdk.models.Compute;
 import sh.basaltic.sdk.models.Iam;
+import sh.basaltic.sdk.models.Storage;
 
 final class ClientTest {
+  @Test
+  void snapshotUsagePreservesUnknownZeroAndRestoreCapacity() {
+    for (String size : List.of("null", "0", "4096")) {
+      var snapshot =
+          Json.convert(
+              Json.parse(
+                  bytes(
+                      "{\"size_bytes\":"
+                          + size
+                          + ",\"restore_size_bytes\":107374182400,\"usage_state\":\"unknown\",\"usage_measured_at\":null}")),
+              new TypeReference<Storage.Snapshot>() {});
+      assertEquals(107374182400L, snapshot.getRestoreSizeBytes());
+      if (size.equals("null")) assertTrue(snapshot.getSizeBytes().isNull());
+      else assertEquals(Long.valueOf(size), snapshot.getSizeBytes().value());
+    }
+  }
+
   private static byte[] bytes(String value) {
     return value.getBytes(StandardCharsets.UTF_8);
   }
