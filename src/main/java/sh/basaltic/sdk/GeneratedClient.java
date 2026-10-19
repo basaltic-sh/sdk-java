@@ -36,6 +36,11 @@ public abstract class GeneratedClient {
     return new DnsService(transport());
   }
 
+  /** Access the email API. */
+  public final EmailService email() {
+    return new EmailService(transport());
+  }
+
   /** Access the iam API. */
   public final IamService iam() {
     return new IamService(transport());
@@ -56,9 +61,24 @@ public abstract class GeneratedClient {
     return new NetworkService(transport());
   }
 
+  /** Access the notifications API. */
+  public final NotificationsService notifications() {
+    return new NotificationsService(transport());
+  }
+
+  /** Access the queue API. */
+  public final QueueService queue() {
+    return new QueueService(transport());
+  }
+
   /** Access the quota API. */
   public final QuotaService quota() {
     return new QuotaService(transport());
+  }
+
+  /** Access the registry API. */
+  public final RegistryService registry() {
+    return new RegistryService(transport());
   }
 
   /** Access the secrets API. */

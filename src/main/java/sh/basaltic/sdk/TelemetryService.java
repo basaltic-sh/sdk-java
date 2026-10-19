@@ -2,11 +2,17 @@ package sh.basaltic.sdk;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.util.*;
+import sh.basaltic.sdk.models.Telemetry.Alert;
+import sh.basaltic.sdk.models.Telemetry.AlertListResponse;
+import sh.basaltic.sdk.models.Telemetry.AlertResponse;
+import sh.basaltic.sdk.models.Telemetry.CreateAlertRequestInput;
 import sh.basaltic.sdk.models.Telemetry.CreateLogGroupRequestInput;
+import sh.basaltic.sdk.models.Telemetry.GetAlertScope;
 import sh.basaltic.sdk.models.Telemetry.GetLogGroupScope;
 import sh.basaltic.sdk.models.Telemetry.IngestRequestInput;
 import sh.basaltic.sdk.models.Telemetry.IngestResponse;
 import sh.basaltic.sdk.models.Telemetry.IngestSpansRequestInput;
+import sh.basaltic.sdk.models.Telemetry.ListAlertsQuery;
 import sh.basaltic.sdk.models.Telemetry.ListLogGroupsQuery;
 import sh.basaltic.sdk.models.Telemetry.ListMetricNamesPostBody;
 import sh.basaltic.sdk.models.Telemetry.ListMetricNamesQuery;
@@ -33,6 +39,7 @@ import sh.basaltic.sdk.models.Telemetry.SpanListResponse;
 import sh.basaltic.sdk.models.Telemetry.TraceListResponse;
 import sh.basaltic.sdk.models.Telemetry.TraceResponse;
 import sh.basaltic.sdk.models.Telemetry.TraceSettingsResponse;
+import sh.basaltic.sdk.models.Telemetry.UpdateAlertRequestInput;
 import sh.basaltic.sdk.models.Telemetry.UpdateLogGroupRequestInput;
 import sh.basaltic.sdk.models.Telemetry.UpdateTraceSettingsRequestInput;
 
@@ -46,6 +53,18 @@ public final class TelemetryService {
 
   private static final Operation OP_0 =
       new Operation(
+          "createAlert",
+          "POST",
+          "/v1/alerts",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          true,
+          "application/json",
+          "application/json");
+  private static final Operation OP_1 =
+      new Operation(
           "createLogGroup",
           "POST",
           "/v1/log-groups",
@@ -56,7 +75,19 @@ public final class TelemetryService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_1 =
+  private static final Operation OP_2 =
+      new Operation(
+          "deleteAlert",
+          "DELETE",
+          "/v1/alerts/{id}",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          false,
+          "",
+          "application/json");
+  private static final Operation OP_3 =
       new Operation(
           "deleteLogGroup",
           "DELETE",
@@ -68,7 +99,7 @@ public final class TelemetryService {
           false,
           "",
           "application/json");
-  private static final Operation OP_2 =
+  private static final Operation OP_4 =
       new Operation(
           "deleteTraceSettings",
           "DELETE",
@@ -80,7 +111,19 @@ public final class TelemetryService {
           false,
           "",
           "application/json");
-  private static final Operation OP_3 =
+  private static final Operation OP_5 =
+      new Operation(
+          "getAlert",
+          "GET",
+          "/v1/alerts/{id}",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          false,
+          "",
+          "application/json");
+  private static final Operation OP_6 =
       new Operation(
           "getLog",
           "GET",
@@ -92,7 +135,7 @@ public final class TelemetryService {
           false,
           "",
           "application/json");
-  private static final Operation OP_4 =
+  private static final Operation OP_7 =
       new Operation(
           "getLogGroup",
           "GET",
@@ -104,7 +147,7 @@ public final class TelemetryService {
           false,
           "",
           "application/json");
-  private static final Operation OP_5 =
+  private static final Operation OP_8 =
       new Operation(
           "getRetainedTelemetryPresence",
           "GET",
@@ -116,7 +159,7 @@ public final class TelemetryService {
           false,
           "",
           "application/json");
-  private static final Operation OP_6 =
+  private static final Operation OP_9 =
       new Operation(
           "getTrace",
           "GET",
@@ -128,7 +171,7 @@ public final class TelemetryService {
           false,
           "",
           "application/json");
-  private static final Operation OP_7 =
+  private static final Operation OP_10 =
       new Operation(
           "getTraceSettings",
           "GET",
@@ -140,7 +183,7 @@ public final class TelemetryService {
           false,
           "",
           "application/json");
-  private static final Operation OP_8 =
+  private static final Operation OP_11 =
       new Operation(
           "ingestLogs",
           "POST",
@@ -152,7 +195,7 @@ public final class TelemetryService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_9 =
+  private static final Operation OP_12 =
       new Operation(
           "ingestSpans",
           "POST",
@@ -164,7 +207,24 @@ public final class TelemetryService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_10 =
+  private static final Operation OP_13 =
+      new Operation(
+          "listAlerts",
+          "GET",
+          "/v1/alerts",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(
+              Map.entry("name", new Operation.Encoding("form", true)),
+              Map.entry("crn", new Operation.Encoding("form", true)),
+              Map.entry("state", new Operation.Encoding("form", true)),
+              Map.entry("limit", new Operation.Encoding("form", true)),
+              Map.entry("marker", new Operation.Encoding("form", true))),
+          false,
+          "",
+          "application/json");
+  private static final Operation OP_14 =
       new Operation(
           "listLogGroups",
           "GET",
@@ -180,7 +240,7 @@ public final class TelemetryService {
           false,
           "",
           "application/json");
-  private static final Operation OP_11 =
+  private static final Operation OP_15 =
       new Operation(
           "listMetricNames",
           "GET",
@@ -196,7 +256,7 @@ public final class TelemetryService {
           false,
           "",
           "application/json");
-  private static final Operation OP_12 =
+  private static final Operation OP_16 =
       new Operation(
           "listMetricNamesPost",
           "POST",
@@ -208,7 +268,7 @@ public final class TelemetryService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_13 =
+  private static final Operation OP_17 =
       new Operation(
           "listMetricSeries",
           "GET",
@@ -225,7 +285,7 @@ public final class TelemetryService {
           false,
           "",
           "application/json");
-  private static final Operation OP_14 =
+  private static final Operation OP_18 =
       new Operation(
           "listMetricSeriesPost",
           "POST",
@@ -237,7 +297,7 @@ public final class TelemetryService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_15 =
+  private static final Operation OP_19 =
       new Operation(
           "listTraceSpans",
           "GET",
@@ -251,7 +311,7 @@ public final class TelemetryService {
           false,
           "",
           "application/json");
-  private static final Operation OP_16 =
+  private static final Operation OP_20 =
       new Operation(
           "queryMetricsInstant",
           "GET",
@@ -269,7 +329,7 @@ public final class TelemetryService {
           false,
           "",
           "application/json");
-  private static final Operation OP_17 =
+  private static final Operation OP_21 =
       new Operation(
           "queryMetricsInstantPost",
           "POST",
@@ -281,7 +341,7 @@ public final class TelemetryService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_18 =
+  private static final Operation OP_22 =
       new Operation(
           "queryMetricsRange",
           "GET",
@@ -300,7 +360,7 @@ public final class TelemetryService {
           false,
           "",
           "application/json");
-  private static final Operation OP_19 =
+  private static final Operation OP_23 =
       new Operation(
           "queryMetricsRangePost",
           "POST",
@@ -312,7 +372,7 @@ public final class TelemetryService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_20 =
+  private static final Operation OP_24 =
       new Operation(
           "searchLogs",
           "GET",
@@ -334,7 +394,7 @@ public final class TelemetryService {
           false,
           "",
           "application/json");
-  private static final Operation OP_21 =
+  private static final Operation OP_25 =
       new Operation(
           "searchTraces",
           "GET",
@@ -354,7 +414,19 @@ public final class TelemetryService {
           false,
           "",
           "application/json");
-  private static final Operation OP_22 =
+  private static final Operation OP_26 =
+      new Operation(
+          "updateAlert",
+          "PATCH",
+          "/v1/alerts/{id}",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          true,
+          "application/json",
+          "application/json");
+  private static final Operation OP_27 =
       new Operation(
           "updateLogGroup",
           "PATCH",
@@ -366,7 +438,7 @@ public final class TelemetryService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_23 =
+  private static final Operation OP_28 =
       new Operation(
           "updateTraceSettings",
           "PATCH",
@@ -378,7 +450,7 @@ public final class TelemetryService {
           true,
           "application/json",
           "application/json");
-  private static final Operation OP_24 =
+  private static final Operation OP_29 =
       new Operation(
           "writeMetrics",
           "POST",
@@ -391,8 +463,8 @@ public final class TelemetryService {
           "application/x-protobuf",
           "application/json");
 
-  /** Create a log group */
-  public Request<LogGroupResponse> createLogGroup(CreateLogGroupRequestInput body) {
+  /** Create a metric alert */
+  public Request<AlertResponse> createAlert(CreateAlertRequestInput body) {
     return new Request<>(
         new Core(
             transport,
@@ -402,7 +474,34 @@ public final class TelemetryService {
             Map.ofEntries(),
             body,
             null),
+        new TypeReference<AlertResponse>() {});
+  }
+
+  /** Create a log group */
+  public Request<LogGroupResponse> createLogGroup(CreateLogGroupRequestInput body) {
+    return new Request<>(
+        new Core(
+            transport,
+            "telemetry",
+            "https://telemetry.{region}.basaltic.sh",
+            OP_1,
+            Map.ofEntries(),
+            body,
+            null),
         new TypeReference<LogGroupResponse>() {});
+  }
+
+  /** Delete a metric alert */
+  public EmptyRequest deleteAlert(String id) {
+    return new EmptyRequest(
+        new Core(
+            transport,
+            "telemetry",
+            "https://telemetry.{region}.basaltic.sh",
+            OP_2,
+            Map.ofEntries(Map.entry("id", id)),
+            null,
+            null));
   }
 
   /** Delete a log group */
@@ -412,7 +511,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_1,
+            OP_3,
             Map.ofEntries(Map.entry("id", id)),
             null,
             null));
@@ -425,10 +524,54 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_2,
+            OP_4,
             Map.ofEntries(),
             null,
             null));
+  }
+
+  /** Get a metric alert */
+  public Request<AlertResponse> getAlert(String id) {
+    return new Request<>(
+        new Core(
+            transport,
+            "telemetry",
+            "https://telemetry.{region}.basaltic.sh",
+            OP_5,
+            Map.ofEntries(Map.entry("id", id)),
+            null,
+            null),
+        new TypeReference<AlertResponse>() {});
+  }
+
+  /** Resolve by UUID, CRN, or an unambiguous name. */
+  public Request<Alert> getAlertByReference(String reference, GetAlertScope scope) {
+    return Request.reference(
+        new Core(
+            transport,
+            "telemetry",
+            "https://telemetry.{region}.basaltic.sh",
+            OP_5,
+            Map.ofEntries(Map.entry("id", reference)),
+            null,
+            null),
+        new Core(
+            transport,
+            "telemetry",
+            "https://telemetry.{region}.basaltic.sh",
+            OP_13,
+            Map.ofEntries(),
+            null,
+            scope),
+        reference,
+        true,
+        "alert",
+        "alerts",
+        new TypeReference<Alert>() {});
+  }
+
+  public Request<Alert> getAlertByReference(String reference) {
+    return getAlertByReference(reference, null);
   }
 
   /** Get a single log record by id */
@@ -438,7 +581,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_3,
+            OP_6,
             Map.ofEntries(Map.entry("log_id", log_id)),
             null,
             null),
@@ -452,7 +595,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_4,
+            OP_7,
             Map.ofEntries(Map.entry("id", id)),
             null,
             null),
@@ -466,7 +609,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_4,
+            OP_7,
             Map.ofEntries(Map.entry("id", reference)),
             null,
             null),
@@ -474,7 +617,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_10,
+            OP_14,
             Map.ofEntries(),
             null,
             scope),
@@ -496,7 +639,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_5,
+            OP_8,
             Map.ofEntries(),
             null,
             null),
@@ -510,7 +653,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_6,
+            OP_9,
             Map.ofEntries(Map.entry("trace_id", trace_id)),
             null,
             null),
@@ -524,7 +667,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_7,
+            OP_10,
             Map.ofEntries(),
             null,
             null),
@@ -538,7 +681,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_8,
+            OP_11,
             Map.ofEntries(),
             body,
             null),
@@ -552,11 +695,32 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_9,
+            OP_12,
             Map.ofEntries(),
             body,
             null),
         new TypeReference<IngestResponse>() {});
+  }
+
+  /** List metric alerts */
+  public PagedRequest<AlertListResponse, Alert> listAlerts(ListAlertsQuery query) {
+    return new PagedRequest<>(
+        new Core(
+            transport,
+            "telemetry",
+            "https://telemetry.{region}.basaltic.sh",
+            OP_13,
+            Map.ofEntries(),
+            null,
+            query),
+        new TypeReference<AlertListResponse>() {},
+        new TypeReference<Alert>() {},
+        "alerts");
+  }
+
+  /** Execute with optional inputs omitted. */
+  public PagedRequest<AlertListResponse, Alert> listAlerts() {
+    return listAlerts(null);
   }
 
   /** List log groups (or look up one by name) */
@@ -566,7 +730,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_10,
+            OP_14,
             Map.ofEntries(),
             null,
             query),
@@ -587,7 +751,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_11,
+            OP_15,
             Map.ofEntries(),
             null,
             query),
@@ -603,7 +767,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_12,
+            OP_16,
             Map.ofEntries(),
             body,
             null),
@@ -618,7 +782,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_13,
+            OP_17,
             Map.ofEntries(),
             null,
             query),
@@ -634,7 +798,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_14,
+            OP_18,
             Map.ofEntries(),
             body,
             null),
@@ -649,7 +813,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_15,
+            OP_19,
             Map.ofEntries(Map.entry("trace_id", trace_id)),
             null,
             query),
@@ -670,7 +834,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_16,
+            OP_20,
             Map.ofEntries(),
             null,
             query),
@@ -684,7 +848,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_17,
+            OP_21,
             Map.ofEntries(),
             body,
             null),
@@ -698,7 +862,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_18,
+            OP_22,
             Map.ofEntries(),
             null,
             query),
@@ -712,7 +876,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_19,
+            OP_23,
             Map.ofEntries(),
             body,
             null),
@@ -726,7 +890,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_20,
+            OP_24,
             Map.ofEntries(),
             null,
             query),
@@ -740,11 +904,25 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_21,
+            OP_25,
             Map.ofEntries(),
             null,
             query),
         new TypeReference<TraceListResponse>() {});
+  }
+
+  /** Update a metric alert */
+  public Request<AlertResponse> updateAlert(String id, UpdateAlertRequestInput body) {
+    return new Request<>(
+        new Core(
+            transport,
+            "telemetry",
+            "https://telemetry.{region}.basaltic.sh",
+            OP_26,
+            Map.ofEntries(Map.entry("id", id)),
+            body,
+            null),
+        new TypeReference<AlertResponse>() {});
   }
 
   /** Update a log group */
@@ -754,7 +932,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_22,
+            OP_27,
             Map.ofEntries(Map.entry("id", id)),
             body,
             null),
@@ -768,7 +946,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_23,
+            OP_28,
             Map.ofEntries(),
             body,
             null),
@@ -782,7 +960,7 @@ public final class TelemetryService {
             transport,
             "telemetry",
             "https://telemetry.{region}.basaltic.sh",
-            OP_24,
+            OP_29,
             Map.ofEntries(),
             body,
             null));

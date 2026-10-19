@@ -11,6 +11,898 @@ public final class Telemetry {
 
   private Telemetry() {}
 
+  public static final class CreateAlertRequestInput extends Model {
+    public CreateAlertRequestInput() {}
+
+    /** Immutable account-unique name. UUID names and the crn: prefix are reserved. */
+    @JsonProperty(value = "name", required = true)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    public CreateAlertRequestInput withName(String value) {
+      this.name = value;
+      return this;
+    }
+
+    /**
+     * Required same-account, same-region notification topic reference: UUID, canonical CRN or exact
+     * name, classified by syntax. Multiple alerts may share a topic. Binding requires
+     * notifications:Publish and respects explicit topic-policy denies.
+     */
+    @JsonProperty(value = "topic", required = true)
+    private String topic;
+
+    @JsonProperty("topic")
+    public String getTopic() {
+      return topic;
+    }
+
+    public CreateAlertRequestInput withTopic(String value) {
+      this.topic = value;
+      return this;
+    }
+
+    @JsonProperty(value = "expression", required = true)
+    private AlertExpressionInput expression;
+
+    @JsonProperty("expression")
+    public AlertExpressionInput getExpression() {
+      return expression;
+    }
+
+    public CreateAlertRequestInput withExpression(AlertExpressionInput value) {
+      this.expression = value;
+      return this;
+    }
+
+    @JsonProperty(value = "operator", required = true)
+    private CreateAlertRequestInputOperator operator;
+
+    @JsonProperty("operator")
+    public CreateAlertRequestInputOperator getOperator() {
+      return operator;
+    }
+
+    public CreateAlertRequestInput withOperator(CreateAlertRequestInputOperator value) {
+      this.operator = value;
+      return this;
+    }
+
+    @JsonProperty(value = "threshold", required = true)
+    private BigDecimal threshold;
+
+    @JsonProperty("threshold")
+    public BigDecimal getThreshold() {
+      return threshold;
+    }
+
+    public CreateAlertRequestInput withThreshold(BigDecimal value) {
+      this.threshold = value;
+      return this;
+    }
+
+    /** Whole-minute window. Evaluated every minute against the last complete UTC-aligned window. */
+    @JsonProperty(value = "window_seconds", required = true)
+    private Long window_seconds;
+
+    @JsonProperty("window_seconds")
+    public Long getWindowSeconds() {
+      return window_seconds;
+    }
+
+    public CreateAlertRequestInput withWindowSeconds(Long value) {
+      this.window_seconds = value;
+      return this;
+    }
+
+    /**
+     * Continuous breach duration before firing; 0 fires immediately. Missing data, query failures
+     * and scheduling gaps reset a pending duration.
+     */
+    @JsonProperty(value = "for_seconds", required = true)
+    private Long for_seconds;
+
+    @JsonProperty("for_seconds")
+    public Long getForSeconds() {
+      return for_seconds;
+    }
+
+    public CreateAlertRequestInput withForSeconds(Long value) {
+      this.for_seconds = value;
+      return this;
+    }
+
+    @JsonProperty(value = "enabled", required = false)
+    private Boolean enabled;
+
+    @JsonProperty("enabled")
+    public Boolean getEnabled() {
+      return enabled;
+    }
+
+    public CreateAlertRequestInput withEnabled(Boolean value) {
+      this.enabled = value;
+      return this;
+    }
+
+    /**
+     * Mute notifications until this instant (at most 30 days ahead). Evaluation continues; null
+     * removes silence. An active alert notifies on the next evaluation after silence expires.
+     */
+    @JsonProperty(value = "silenced_until", required = false)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> silenced_until = JsonField.missing();
+
+    @JsonProperty("silenced_until")
+    public JsonField<String> getSilencedUntil() {
+      return silenced_until;
+    }
+
+    public CreateAlertRequestInput withSilencedUntil(JsonField<String> value) {
+      this.silenced_until = value;
+      return this;
+    }
+  }
+
+  public static final class AlertExpressionInput extends Model {
+    public AlertExpressionInput() {}
+
+    @JsonProperty(value = "metric", required = true)
+    private String metric;
+
+    @JsonProperty("metric")
+    public String getMetric() {
+      return metric;
+    }
+
+    public AlertExpressionInput withMetric(String value) {
+      this.metric = value;
+      return this;
+    }
+
+    @JsonProperty(value = "agg", required = true)
+    private AlertExpressionInputAgg agg;
+
+    @JsonProperty("agg")
+    public AlertExpressionInputAgg getAgg() {
+      return agg;
+    }
+
+    public AlertExpressionInput withAgg(AlertExpressionInputAgg value) {
+      this.agg = value;
+      return this;
+    }
+
+    /**
+     * Label matchers (label=value, label!=value, label=~regex, label!~regex). Tenant scope is
+     * always applied independently.
+     */
+    @JsonProperty(value = "match", required = false)
+    private List<String> match;
+
+    @JsonProperty("match")
+    public List<String> getMatch() {
+      return match;
+    }
+
+    public AlertExpressionInput withMatch(List<String> value) {
+      this.match = value;
+      return this;
+    }
+
+    /** Grouping labels; the resulting series are summed to match the console metric card. */
+    @JsonProperty(value = "by", required = false)
+    private List<String> by;
+
+    @JsonProperty("by")
+    public List<String> getBy() {
+      return by;
+    }
+
+    public AlertExpressionInput withBy(List<String> value) {
+      this.by = value;
+      return this;
+    }
+
+    @JsonProperty(value = "denominator", required = false)
+    private AlertQueryInput denominator;
+
+    @JsonProperty("denominator")
+    public AlertQueryInput getDenominator() {
+      return denominator;
+    }
+
+    public AlertExpressionInput withDenominator(AlertQueryInput value) {
+      this.denominator = value;
+      return this;
+    }
+
+    /** Multiplier after optional division, e.g. 100 for a percentage or 1/1048576 for MiB/s. */
+    @JsonProperty(value = "scale", required = true)
+    private BigDecimal scale;
+
+    @JsonProperty("scale")
+    public BigDecimal getScale() {
+      return scale;
+    }
+
+    public AlertExpressionInput withScale(BigDecimal value) {
+      this.scale = value;
+      return this;
+    }
+
+    /** Display unit for the scaled threshold and value. */
+    @JsonProperty(value = "unit", required = false)
+    private String unit;
+
+    @JsonProperty("unit")
+    public String getUnit() {
+      return unit;
+    }
+
+    public AlertExpressionInput withUnit(String value) {
+      this.unit = value;
+      return this;
+    }
+  }
+
+  public static final class AlertExpressionInputAgg {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public AlertExpressionInputAgg(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof AlertExpressionInputAgg v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final AlertExpressionInputAgg AVG = new AlertExpressionInputAgg("avg");
+    public static final AlertExpressionInputAgg MIN = new AlertExpressionInputAgg("min");
+    public static final AlertExpressionInputAgg MAX = new AlertExpressionInputAgg("max");
+    public static final AlertExpressionInputAgg SUM = new AlertExpressionInputAgg("sum");
+    public static final AlertExpressionInputAgg LAST = new AlertExpressionInputAgg("last");
+    public static final AlertExpressionInputAgg COUNT = new AlertExpressionInputAgg("count");
+    public static final AlertExpressionInputAgg RATE = new AlertExpressionInputAgg("rate");
+    public static final AlertExpressionInputAgg INCREASE = new AlertExpressionInputAgg("increase");
+  }
+
+  public static final class AlertQueryInput extends Model {
+    public AlertQueryInput() {}
+
+    @JsonProperty(value = "metric", required = true)
+    private String metric;
+
+    @JsonProperty("metric")
+    public String getMetric() {
+      return metric;
+    }
+
+    public AlertQueryInput withMetric(String value) {
+      this.metric = value;
+      return this;
+    }
+
+    @JsonProperty(value = "agg", required = true)
+    private AlertQueryInputAgg agg;
+
+    @JsonProperty("agg")
+    public AlertQueryInputAgg getAgg() {
+      return agg;
+    }
+
+    public AlertQueryInput withAgg(AlertQueryInputAgg value) {
+      this.agg = value;
+      return this;
+    }
+
+    /**
+     * Label matchers (label=value, label!=value, label=~regex, label!~regex). Tenant scope is
+     * always applied independently.
+     */
+    @JsonProperty(value = "match", required = false)
+    private List<String> match;
+
+    @JsonProperty("match")
+    public List<String> getMatch() {
+      return match;
+    }
+
+    public AlertQueryInput withMatch(List<String> value) {
+      this.match = value;
+      return this;
+    }
+
+    /** Grouping labels; the resulting series are summed to match the console metric card. */
+    @JsonProperty(value = "by", required = false)
+    private List<String> by;
+
+    @JsonProperty("by")
+    public List<String> getBy() {
+      return by;
+    }
+
+    public AlertQueryInput withBy(List<String> value) {
+      this.by = value;
+      return this;
+    }
+  }
+
+  public static final class AlertQueryInputAgg {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public AlertQueryInputAgg(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof AlertQueryInputAgg v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final AlertQueryInputAgg AVG = new AlertQueryInputAgg("avg");
+    public static final AlertQueryInputAgg MIN = new AlertQueryInputAgg("min");
+    public static final AlertQueryInputAgg MAX = new AlertQueryInputAgg("max");
+    public static final AlertQueryInputAgg SUM = new AlertQueryInputAgg("sum");
+    public static final AlertQueryInputAgg LAST = new AlertQueryInputAgg("last");
+    public static final AlertQueryInputAgg COUNT = new AlertQueryInputAgg("count");
+    public static final AlertQueryInputAgg RATE = new AlertQueryInputAgg("rate");
+    public static final AlertQueryInputAgg INCREASE = new AlertQueryInputAgg("increase");
+  }
+
+  public static final class CreateAlertRequestInputOperator {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public CreateAlertRequestInputOperator(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof CreateAlertRequestInputOperator v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final CreateAlertRequestInputOperator GT =
+        new CreateAlertRequestInputOperator("gt");
+    public static final CreateAlertRequestInputOperator GTE =
+        new CreateAlertRequestInputOperator("gte");
+    public static final CreateAlertRequestInputOperator LT =
+        new CreateAlertRequestInputOperator("lt");
+    public static final CreateAlertRequestInputOperator LTE =
+        new CreateAlertRequestInputOperator("lte");
+  }
+
+  public static final class AlertResponse extends Model {
+    public AlertResponse() {}
+
+    @JsonProperty(value = "alert", required = true)
+    private Alert alert;
+
+    @JsonProperty("alert")
+    public Alert getAlert() {
+      return alert;
+    }
+  }
+
+  public static final class Alert extends Model {
+    public Alert() {}
+
+    @JsonProperty(value = "expression", required = true)
+    private AlertExpression expression;
+
+    @JsonProperty("expression")
+    public AlertExpression getExpression() {
+      return expression;
+    }
+
+    @JsonProperty(value = "operator", required = true)
+    private AlertOperator operator;
+
+    @JsonProperty("operator")
+    public AlertOperator getOperator() {
+      return operator;
+    }
+
+    @JsonProperty(value = "threshold", required = true)
+    private BigDecimal threshold;
+
+    @JsonProperty("threshold")
+    public BigDecimal getThreshold() {
+      return threshold;
+    }
+
+    /** Whole-minute window. Evaluated every minute against the last complete UTC-aligned window. */
+    @JsonProperty(value = "window_seconds", required = true)
+    private Long window_seconds;
+
+    @JsonProperty("window_seconds")
+    public Long getWindowSeconds() {
+      return window_seconds;
+    }
+
+    /**
+     * Continuous breach duration before firing; 0 fires immediately. Missing data, query failures
+     * and scheduling gaps reset a pending duration.
+     */
+    @JsonProperty(value = "for_seconds", required = true)
+    private Long for_seconds;
+
+    @JsonProperty("for_seconds")
+    public Long getForSeconds() {
+      return for_seconds;
+    }
+
+    @JsonProperty(value = "enabled", required = true)
+    private Boolean enabled;
+
+    @JsonProperty("enabled")
+    public Boolean getEnabled() {
+      return enabled;
+    }
+
+    /**
+     * Mute notifications until this instant (at most 30 days ahead). Evaluation continues; null
+     * removes silence. An active alert notifies on the next evaluation after silence expires.
+     */
+    @JsonProperty(value = "silenced_until", required = true)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> silenced_until = JsonField.missing();
+
+    @JsonProperty("silenced_until")
+    public JsonField<String> getSilencedUntil() {
+      return silenced_until;
+    }
+
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    @JsonProperty(value = "name", required = true)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    @JsonProperty(value = "topic", required = true)
+    private ResourceRef topic;
+
+    @JsonProperty("topic")
+    public ResourceRef getTopic() {
+      return topic;
+    }
+
+    /**
+     * Evaluation state, independent of enabled and silenced_until. Missing data/errors do not
+     * resolve an open incident.
+     */
+    @JsonProperty(value = "state", required = true)
+    private AlertState state;
+
+    @JsonProperty("state")
+    public AlertState getState() {
+      return state;
+    }
+
+    @JsonProperty(value = "last_value", required = true)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<BigDecimal> last_value = JsonField.missing();
+
+    @JsonProperty("last_value")
+    public JsonField<BigDecimal> getLastValue() {
+      return last_value;
+    }
+
+    @JsonProperty(value = "evaluated_at", required = false)
+    private String evaluated_at;
+
+    @JsonProperty("evaluated_at")
+    public String getEvaluatedAt() {
+      return evaluated_at;
+    }
+
+    @JsonProperty(value = "state_changed_at", required = false)
+    private String state_changed_at;
+
+    @JsonProperty("state_changed_at")
+    public String getStateChangedAt() {
+      return state_changed_at;
+    }
+
+    @JsonProperty(value = "pending_since", required = false)
+    private String pending_since;
+
+    @JsonProperty("pending_since")
+    public String getPendingSince() {
+      return pending_since;
+    }
+
+    @JsonProperty(value = "evaluation_error", required = false)
+    private String evaluation_error;
+
+    @JsonProperty("evaluation_error")
+    public String getEvaluationError() {
+      return evaluation_error;
+    }
+
+    /** Notification remains queued for retry; metric evaluation continues. */
+    @JsonProperty(value = "delivery_error", required = false)
+    private String delivery_error;
+
+    @JsonProperty("delivery_error")
+    public String getDeliveryError() {
+      return delivery_error;
+    }
+
+    @JsonProperty(value = "created_at", required = true)
+    private String created_at;
+
+    @JsonProperty("created_at")
+    public String getCreatedAt() {
+      return created_at;
+    }
+
+    @JsonProperty(value = "updated_at", required = true)
+    private String updated_at;
+
+    @JsonProperty("updated_at")
+    public String getUpdatedAt() {
+      return updated_at;
+    }
+  }
+
+  public static final class AlertExpression extends Model {
+    public AlertExpression() {}
+
+    @JsonProperty(value = "metric", required = true)
+    private String metric;
+
+    @JsonProperty("metric")
+    public String getMetric() {
+      return metric;
+    }
+
+    @JsonProperty(value = "agg", required = true)
+    private AlertExpressionAgg agg;
+
+    @JsonProperty("agg")
+    public AlertExpressionAgg getAgg() {
+      return agg;
+    }
+
+    /**
+     * Label matchers (label=value, label!=value, label=~regex, label!~regex). Tenant scope is
+     * always applied independently.
+     */
+    @JsonProperty(value = "match", required = false)
+    private List<String> match;
+
+    @JsonProperty("match")
+    public List<String> getMatch() {
+      return match;
+    }
+
+    /** Grouping labels; the resulting series are summed to match the console metric card. */
+    @JsonProperty(value = "by", required = false)
+    private List<String> by;
+
+    @JsonProperty("by")
+    public List<String> getBy() {
+      return by;
+    }
+
+    @JsonProperty(value = "denominator", required = false)
+    private AlertQuery denominator;
+
+    @JsonProperty("denominator")
+    public AlertQuery getDenominator() {
+      return denominator;
+    }
+
+    /** Multiplier after optional division, e.g. 100 for a percentage or 1/1048576 for MiB/s. */
+    @JsonProperty(value = "scale", required = true)
+    private BigDecimal scale;
+
+    @JsonProperty("scale")
+    public BigDecimal getScale() {
+      return scale;
+    }
+
+    /** Display unit for the scaled threshold and value. */
+    @JsonProperty(value = "unit", required = false)
+    private String unit;
+
+    @JsonProperty("unit")
+    public String getUnit() {
+      return unit;
+    }
+  }
+
+  public static final class AlertExpressionAgg {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public AlertExpressionAgg(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof AlertExpressionAgg v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final AlertExpressionAgg AVG = new AlertExpressionAgg("avg");
+    public static final AlertExpressionAgg MIN = new AlertExpressionAgg("min");
+    public static final AlertExpressionAgg MAX = new AlertExpressionAgg("max");
+    public static final AlertExpressionAgg SUM = new AlertExpressionAgg("sum");
+    public static final AlertExpressionAgg LAST = new AlertExpressionAgg("last");
+    public static final AlertExpressionAgg COUNT = new AlertExpressionAgg("count");
+    public static final AlertExpressionAgg RATE = new AlertExpressionAgg("rate");
+    public static final AlertExpressionAgg INCREASE = new AlertExpressionAgg("increase");
+  }
+
+  public static final class AlertQuery extends Model {
+    public AlertQuery() {}
+
+    @JsonProperty(value = "metric", required = true)
+    private String metric;
+
+    @JsonProperty("metric")
+    public String getMetric() {
+      return metric;
+    }
+
+    @JsonProperty(value = "agg", required = true)
+    private AlertQueryAgg agg;
+
+    @JsonProperty("agg")
+    public AlertQueryAgg getAgg() {
+      return agg;
+    }
+
+    /**
+     * Label matchers (label=value, label!=value, label=~regex, label!~regex). Tenant scope is
+     * always applied independently.
+     */
+    @JsonProperty(value = "match", required = false)
+    private List<String> match;
+
+    @JsonProperty("match")
+    public List<String> getMatch() {
+      return match;
+    }
+
+    /** Grouping labels; the resulting series are summed to match the console metric card. */
+    @JsonProperty(value = "by", required = false)
+    private List<String> by;
+
+    @JsonProperty("by")
+    public List<String> getBy() {
+      return by;
+    }
+  }
+
+  public static final class AlertQueryAgg {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public AlertQueryAgg(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof AlertQueryAgg v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final AlertQueryAgg AVG = new AlertQueryAgg("avg");
+    public static final AlertQueryAgg MIN = new AlertQueryAgg("min");
+    public static final AlertQueryAgg MAX = new AlertQueryAgg("max");
+    public static final AlertQueryAgg SUM = new AlertQueryAgg("sum");
+    public static final AlertQueryAgg LAST = new AlertQueryAgg("last");
+    public static final AlertQueryAgg COUNT = new AlertQueryAgg("count");
+    public static final AlertQueryAgg RATE = new AlertQueryAgg("rate");
+    public static final AlertQueryAgg INCREASE = new AlertQueryAgg("increase");
+  }
+
+  public static final class AlertOperator {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public AlertOperator(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof AlertOperator v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final AlertOperator GT = new AlertOperator("gt");
+    public static final AlertOperator GTE = new AlertOperator("gte");
+    public static final AlertOperator LT = new AlertOperator("lt");
+    public static final AlertOperator LTE = new AlertOperator("lte");
+  }
+
+  public static final class ResourceRef extends Model {
+    public ResourceRef() {}
+
+    @JsonProperty(value = "id", required = true)
+    private String id;
+
+    @JsonProperty("id")
+    public String getId() {
+      return id;
+    }
+
+    @JsonProperty(value = "crn", required = true)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    /**
+     * Display label at response time — the resource's name where it has one, otherwise its human
+     * label (an invoice number, an account display name). Absent when the target is gone. Not a
+     * lookup key.
+     */
+    @JsonProperty(value = "name", required = false)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+  }
+
+  public static final class AlertState {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public AlertState(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof AlertState v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final AlertState OK = new AlertState("ok");
+    public static final AlertState PENDING = new AlertState("pending");
+    public static final AlertState FIRING = new AlertState("firing");
+    public static final AlertState NO_DATA = new AlertState("no_data");
+    public static final AlertState ERROR = new AlertState("error");
+  }
+
   public static final class CreateLogGroupRequestInput extends Model {
     public CreateLogGroupRequestInput() {}
 
@@ -187,37 +1079,71 @@ public final class Telemetry {
     }
   }
 
-  public static final class ResourceRef extends Model {
-    public ResourceRef() {}
+  public static final class GetAlertScope extends Model {
+    public GetAlertScope() {}
 
-    @JsonProperty(value = "id", required = true)
-    private String id;
+    @JsonProperty(value = "state", required = false)
+    private GetAlertScopeState state;
 
-    @JsonProperty("id")
-    public String getId() {
-      return id;
+    @JsonProperty("state")
+    public GetAlertScopeState getState() {
+      return state;
     }
 
-    @JsonProperty(value = "crn", required = true)
-    private String crn;
-
-    @JsonProperty("crn")
-    public String getCrn() {
-      return crn;
+    public GetAlertScope withState(GetAlertScopeState value) {
+      this.state = value;
+      return this;
     }
 
-    /**
-     * Display label at response time — the resource's name where it has one, otherwise its human
-     * label (an invoice number, an account display name). Absent when the target is gone. Not a
-     * lookup key.
-     */
-    @JsonProperty(value = "name", required = false)
-    private String name;
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
 
-    @JsonProperty("name")
-    public String getName() {
-      return name;
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
     }
+
+    public GetAlertScope withLimit(Long value) {
+      this.limit = value;
+      return this;
+    }
+  }
+
+  public static final class GetAlertScopeState {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public GetAlertScopeState(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof GetAlertScopeState v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final GetAlertScopeState OK = new GetAlertScopeState("ok");
+    public static final GetAlertScopeState PENDING = new GetAlertScopeState("pending");
+    public static final GetAlertScopeState FIRING = new GetAlertScopeState("firing");
+    public static final GetAlertScopeState NO_DATA = new GetAlertScopeState("no_data");
+    public static final GetAlertScopeState ERROR = new GetAlertScopeState("error");
+    public static final GetAlertScopeState SILENCED = new GetAlertScopeState("silenced");
+    public static final GetAlertScopeState DISABLED = new GetAlertScopeState("disabled");
   }
 
   public static final class LogResponse extends Model {
@@ -401,6 +1327,19 @@ public final class Telemetry {
     @JsonProperty("has_data")
     public Boolean getHasData() {
       return has_data;
+    }
+
+    /**
+     * True when retained logs, spans or their storage rollups still block account deletion. Metric
+     * samples alone do not block account soft-deletion and expire through normal retention. Clients
+     * talking to older servers that omit this field must fall back to has_data.
+     */
+    @JsonProperty(value = "blocks_deletion", required = false)
+    private Boolean blocks_deletion;
+
+    @JsonProperty("blocks_deletion")
+    public Boolean getBlocksDeletion() {
+      return blocks_deletion;
     }
   }
 
@@ -1112,6 +2051,175 @@ public final class Telemetry {
     }
   }
 
+  public static final class ListAlertsQuery extends Model {
+    public ListAlertsQuery() {}
+
+    @JsonProperty(value = "name", required = false)
+    private String name;
+
+    @JsonProperty("name")
+    public String getName() {
+      return name;
+    }
+
+    public ListAlertsQuery withName(String value) {
+      this.name = value;
+      return this;
+    }
+
+    @JsonProperty(value = "crn", required = false)
+    private String crn;
+
+    @JsonProperty("crn")
+    public String getCrn() {
+      return crn;
+    }
+
+    public ListAlertsQuery withCrn(String value) {
+      this.crn = value;
+      return this;
+    }
+
+    @JsonProperty(value = "state", required = false)
+    private ListAlertsQueryState state;
+
+    @JsonProperty("state")
+    public ListAlertsQueryState getState() {
+      return state;
+    }
+
+    public ListAlertsQuery withState(ListAlertsQueryState value) {
+      this.state = value;
+      return this;
+    }
+
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
+
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
+    }
+
+    public ListAlertsQuery withLimit(Long value) {
+      this.limit = value;
+      return this;
+    }
+
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    public ListAlertsQuery withMarker(String value) {
+      this.marker = value;
+      return this;
+    }
+  }
+
+  public static final class ListAlertsQueryState {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public ListAlertsQueryState(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof ListAlertsQueryState v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final ListAlertsQueryState OK = new ListAlertsQueryState("ok");
+    public static final ListAlertsQueryState PENDING = new ListAlertsQueryState("pending");
+    public static final ListAlertsQueryState FIRING = new ListAlertsQueryState("firing");
+    public static final ListAlertsQueryState NO_DATA = new ListAlertsQueryState("no_data");
+    public static final ListAlertsQueryState ERROR = new ListAlertsQueryState("error");
+    public static final ListAlertsQueryState SILENCED = new ListAlertsQueryState("silenced");
+    public static final ListAlertsQueryState DISABLED = new ListAlertsQueryState("disabled");
+  }
+
+  public static final class AlertListResponse extends Model {
+    public AlertListResponse() {}
+
+    @JsonProperty(value = "alerts", required = true)
+    private List<Alert> alerts;
+
+    @JsonProperty("alerts")
+    public List<Alert> getAlerts() {
+      return alerts;
+    }
+
+    @JsonProperty(value = "meta", required = true)
+    private PaginationMeta meta;
+
+    @JsonProperty("meta")
+    public PaginationMeta getMeta() {
+      return meta;
+    }
+  }
+
+  public static final class PaginationMeta extends Model {
+    public PaginationMeta() {}
+
+    /** Total number of items */
+    @JsonProperty(value = "total", required = false)
+    private Long total;
+
+    @JsonProperty("total")
+    public Long getTotal() {
+      return total;
+    }
+
+    /** Number of items per page */
+    @JsonProperty(value = "limit", required = false)
+    private Long limit;
+
+    @JsonProperty("limit")
+    public Long getLimit() {
+      return limit;
+    }
+
+    /**
+     * Opaque cursor for the next page. Pass it back as the `marker` query parameter; treat it as a
+     * token, not a value to parse.
+     */
+    @JsonProperty(value = "marker", required = false)
+    private String marker;
+
+    @JsonProperty("marker")
+    public String getMarker() {
+      return marker;
+    }
+
+    /** Whether there are more items */
+    @JsonProperty(value = "has_more", required = false)
+    private Boolean has_more;
+
+    @JsonProperty("has_more")
+    public Boolean getHasMore() {
+      return has_more;
+    }
+  }
+
   public static final class ListLogGroupsQuery extends Model {
     public ListLogGroupsQuery() {}
 
@@ -1185,49 +2293,6 @@ public final class Telemetry {
     @JsonProperty("meta")
     public PaginationMeta getMeta() {
       return meta;
-    }
-  }
-
-  public static final class PaginationMeta extends Model {
-    public PaginationMeta() {}
-
-    /** Total number of items */
-    @JsonProperty(value = "total", required = false)
-    private Long total;
-
-    @JsonProperty("total")
-    public Long getTotal() {
-      return total;
-    }
-
-    /** Number of items per page */
-    @JsonProperty(value = "limit", required = false)
-    private Long limit;
-
-    @JsonProperty("limit")
-    public Long getLimit() {
-      return limit;
-    }
-
-    /**
-     * Opaque cursor for the next page. Pass it back as the `marker` query parameter; treat it as a
-     * token, not a value to parse.
-     */
-    @JsonProperty(value = "marker", required = false)
-    private String marker;
-
-    @JsonProperty("marker")
-    public String getMarker() {
-      return marker;
-    }
-
-    /** Whether there are more items */
-    @JsonProperty(value = "has_more", required = false)
-    private Boolean has_more;
-
-    @JsonProperty("has_more")
-    public Boolean getHasMore() {
-      return has_more;
     }
   }
 
@@ -2757,6 +3822,167 @@ public final class Telemetry {
     public PaginationMeta getMeta() {
       return meta;
     }
+  }
+
+  public static final class UpdateAlertRequestInput extends Model {
+    public UpdateAlertRequestInput() {}
+
+    /**
+     * Required same-account, same-region notification topic reference: UUID, canonical CRN or exact
+     * name, classified by syntax. Multiple alerts may share a topic. Binding requires
+     * notifications:Publish and respects explicit topic-policy denies.
+     */
+    @JsonProperty(value = "topic", required = false)
+    private String topic;
+
+    @JsonProperty("topic")
+    public String getTopic() {
+      return topic;
+    }
+
+    public UpdateAlertRequestInput withTopic(String value) {
+      this.topic = value;
+      return this;
+    }
+
+    @JsonProperty(value = "expression", required = false)
+    private AlertExpressionInput expression;
+
+    @JsonProperty("expression")
+    public AlertExpressionInput getExpression() {
+      return expression;
+    }
+
+    public UpdateAlertRequestInput withExpression(AlertExpressionInput value) {
+      this.expression = value;
+      return this;
+    }
+
+    @JsonProperty(value = "operator", required = false)
+    private UpdateAlertRequestInputOperator operator;
+
+    @JsonProperty("operator")
+    public UpdateAlertRequestInputOperator getOperator() {
+      return operator;
+    }
+
+    public UpdateAlertRequestInput withOperator(UpdateAlertRequestInputOperator value) {
+      this.operator = value;
+      return this;
+    }
+
+    @JsonProperty(value = "threshold", required = false)
+    private BigDecimal threshold;
+
+    @JsonProperty("threshold")
+    public BigDecimal getThreshold() {
+      return threshold;
+    }
+
+    public UpdateAlertRequestInput withThreshold(BigDecimal value) {
+      this.threshold = value;
+      return this;
+    }
+
+    /** Whole-minute window. Evaluated every minute against the last complete UTC-aligned window. */
+    @JsonProperty(value = "window_seconds", required = false)
+    private Long window_seconds;
+
+    @JsonProperty("window_seconds")
+    public Long getWindowSeconds() {
+      return window_seconds;
+    }
+
+    public UpdateAlertRequestInput withWindowSeconds(Long value) {
+      this.window_seconds = value;
+      return this;
+    }
+
+    /**
+     * Continuous breach duration before firing; 0 fires immediately. Missing data, query failures
+     * and scheduling gaps reset a pending duration.
+     */
+    @JsonProperty(value = "for_seconds", required = false)
+    private Long for_seconds;
+
+    @JsonProperty("for_seconds")
+    public Long getForSeconds() {
+      return for_seconds;
+    }
+
+    public UpdateAlertRequestInput withForSeconds(Long value) {
+      this.for_seconds = value;
+      return this;
+    }
+
+    @JsonProperty(value = "enabled", required = false)
+    private Boolean enabled;
+
+    @JsonProperty("enabled")
+    public Boolean getEnabled() {
+      return enabled;
+    }
+
+    public UpdateAlertRequestInput withEnabled(Boolean value) {
+      this.enabled = value;
+      return this;
+    }
+
+    /**
+     * Mute notifications until this instant (at most 30 days ahead). Evaluation continues; null
+     * removes silence. An active alert notifies on the next evaluation after silence expires.
+     */
+    @JsonProperty(value = "silenced_until", required = false)
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    private JsonField<String> silenced_until = JsonField.missing();
+
+    @JsonProperty("silenced_until")
+    public JsonField<String> getSilencedUntil() {
+      return silenced_until;
+    }
+
+    public UpdateAlertRequestInput withSilencedUntil(JsonField<String> value) {
+      this.silenced_until = value;
+      return this;
+    }
+  }
+
+  public static final class UpdateAlertRequestInputOperator {
+    private final String value;
+
+    @JsonCreator(mode = JsonCreator.Mode.DELEGATING)
+    public UpdateAlertRequestInputOperator(String value) {
+      this.value = Objects.requireNonNull(value);
+    }
+
+    @JsonValue
+    public String value() {
+      return value;
+    }
+
+    @Override
+    public String toString() {
+      return value;
+    }
+
+    @Override
+    public boolean equals(Object other) {
+      return other instanceof UpdateAlertRequestInputOperator v && value.equals(v.value);
+    }
+
+    @Override
+    public int hashCode() {
+      return value.hashCode();
+    }
+
+    public static final UpdateAlertRequestInputOperator GT =
+        new UpdateAlertRequestInputOperator("gt");
+    public static final UpdateAlertRequestInputOperator GTE =
+        new UpdateAlertRequestInputOperator("gte");
+    public static final UpdateAlertRequestInputOperator LT =
+        new UpdateAlertRequestInputOperator("lt");
+    public static final UpdateAlertRequestInputOperator LTE =
+        new UpdateAlertRequestInputOperator("lte");
   }
 
   public static final class UpdateLogGroupRequestInput extends Model {

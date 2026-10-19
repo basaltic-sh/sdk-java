@@ -1,23 +1,23 @@
 # Basaltic Java SDK
 
-Typed Java 17+ client for the Basaltic Cloud API: 15 services and 401 operations.
+Typed Java 17+ client for the Basaltic Cloud API: 19 services and 547 operations.
 Uses the JDK HTTP client and Jackson. Synchronous calls, asynchronous calls and
 backpressure-aware pagination share the same request builders and models.
 
-Maven coordinates: `sh.basaltic:sdk-java:0.6.0`.
+Maven coordinates: `sh.basaltic:sdk-java:0.7.0`.
 
 ```xml
 <dependency>
   <groupId>sh.basaltic</groupId>
   <artifactId>sdk-java</artifactId>
-  <version>0.6.0</version>
+  <version>0.7.0</version>
 </dependency>
 ```
 
 Gradle:
 
 ```kotlin
-implementation("sh.basaltic:sdk-java:0.6.0")
+implementation("sh.basaltic:sdk-java:0.7.0")
 ```
 
 You can also build and install a source checkout with `mvn -B -ntp install`.

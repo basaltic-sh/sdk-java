@@ -792,6 +792,626 @@ Verify zone ownership
 public Request<ZoneResponse> verifyZoneOwnership(String zone_id)
 ```
 
+## `email.addSuppressionOverride`
+
+Add a suppression override address
+
+`POST /v1/configuration-sets/{configuration_set_id}/suppression-overrides`
+
+```java
+public Request<ConfigurationSetResponse> addSuppressionOverride(String configuration_set_id,SuppressionOverrideRequestInput body)
+```
+
+## `email.beginDKIMRotation`
+
+Begin DKIM key rotation
+
+`POST /v1/identities/{identity_id}/dkim/rotate`
+
+```java
+public Request<IdentityResponse> beginDKIMRotation(String identity_id)
+```
+
+## `email.cancelDKIMRotation`
+
+Cancel in-progress DKIM rotation
+
+`DELETE /v1/identities/{identity_id}/dkim/rotate`
+
+```java
+public Request<IdentityResponse> cancelDKIMRotation(String identity_id)
+```
+
+## `email.createConfigurationSet`
+
+Create a configuration set
+
+`POST /v1/configuration-sets`
+
+```java
+public Request<ConfigurationSetResponse> createConfigurationSet(CreateConfigurationSetRequestInput body)
+```
+
+## `email.createIPPool`
+
+Create an IP pool
+
+`POST /v1/ip-pools`
+
+```java
+public Request<IPPoolResponse> createIPPool(CreateIPPoolRequestInput body)
+```
+
+## `email.createIdentity`
+
+Create a sender identity
+
+`POST /v1/identities`
+
+```java
+public Request<IdentityResponse> createIdentity(CreateIdentityRequestInput body)
+```
+
+## `email.createRecipientRule`
+
+Create recipient rule
+
+`POST /v1/identities/{identity_id}/recipient-rules`
+
+```java
+public Request<RecipientRuleResponse> createRecipientRule(String identity_id,CreateRecipientRuleRequestInput body)
+```
+
+## `email.createSuppression`
+
+Add a suppression entry
+
+`POST /v1/suppressions`
+
+```java
+public Request<SuppressionResponse> createSuppression(CreateSuppressionRequestInput body)
+```
+
+## `email.createTemplate`
+
+Create a template
+
+`POST /v1/templates`
+
+```java
+public Request<TemplateResponse> createTemplate(CreateTemplateRequestInput body)
+```
+
+## `email.deleteConfigurationSet`
+
+Delete a configuration set
+
+`DELETE /v1/configuration-sets/{configuration_set_id}`
+
+```java
+public EmptyRequest deleteConfigurationSet(String configuration_set_id)
+```
+
+## `email.deleteIPPool`
+
+Delete an IP pool
+
+`DELETE /v1/ip-pools/{ip_pool_id}`
+
+```java
+public EmptyRequest deleteIPPool(String ip_pool_id)
+```
+
+## `email.deleteIdentity`
+
+Delete an identity
+
+`DELETE /v1/identities/{identity_id}`
+
+```java
+public EmptyRequest deleteIdentity(String identity_id)
+```
+
+## `email.deleteRecipientRule`
+
+Delete recipient rule
+
+`DELETE /v1/identities/{identity_id}/recipient-rules/{rule_id}`
+
+```java
+public EmptyRequest deleteRecipientRule(String identity_id,String rule_id)
+```
+
+## `email.deleteSuppression`
+
+Delete suppression
+
+`DELETE /v1/suppressions/{suppression_id}`
+
+```java
+public EmptyRequest deleteSuppression(String suppression_id)
+```
+
+## `email.deleteTemplate`
+
+Delete a template
+
+`DELETE /v1/templates/{template_id}`
+
+```java
+public EmptyRequest deleteTemplate(String template_id)
+```
+
+## `email.describeConfigurationSet`
+
+Describe a configuration set
+
+`GET /v1/configuration-sets/{configuration_set_id}`
+
+```java
+public Request<ConfigurationSetResponse> describeConfigurationSet(String configuration_set_id)
+```
+
+## `email.describeDedicatedIP`
+
+Describe a dedicated IP
+
+`GET /v1/dedicated-ips/{dedicated_ip_id}`
+
+```java
+public Request<DedicatedIPResponse> describeDedicatedIP(String dedicated_ip_id)
+```
+
+## `email.describeIPPool`
+
+Describe an IP pool
+
+`GET /v1/ip-pools/{ip_pool_id}`
+
+```java
+public Request<IPPoolResponse> describeIPPool(String ip_pool_id)
+```
+
+## `email.describeIdentity`
+
+Describe an identity
+
+`GET /v1/identities/{identity_id}`
+
+```java
+public Request<IdentityResponse> describeIdentity(String identity_id)
+```
+
+## `email.describeReceivedMessage`
+
+Get received message metadata
+
+`GET /v1/received-messages/{message_id}`
+
+```java
+public Request<ReceivedMessageResponse> describeReceivedMessage(String message_id)
+```
+
+## `email.describeRecipientRule`
+
+Get recipient rule
+
+`GET /v1/identities/{identity_id}/recipient-rules/{rule_id}`
+
+```java
+public Request<RecipientRuleResponse> describeRecipientRule(String identity_id,String rule_id)
+```
+
+## `email.describeSentMessage`
+
+Describe a sent message
+
+`GET /v1/sent-messages/{message_id}`
+
+```java
+public Request<MessageResponse> describeSentMessage(String message_id)
+```
+
+## `email.describeSuppression`
+
+Get suppression
+
+`GET /v1/suppressions/{suppression_id}`
+
+```java
+public Request<SuppressionResponse> describeSuppression(String suppression_id)
+```
+
+## `email.describeTemplate`
+
+Describe a template
+
+`GET /v1/templates/{template_id}`
+
+```java
+public Request<TemplateResponse> describeTemplate(String template_id)
+```
+
+## `email.downloadReceivedAttachment`
+
+Download received attachment
+
+`GET /v1/received-messages/{message_id}/attachments/{attachment_id}`
+
+```java
+public BinaryRequest downloadReceivedAttachment(String message_id,String attachment_id)
+```
+
+## `email.downloadReceivedMessage`
+
+Download received message
+
+`GET /v1/received-messages/{message_id}/raw`
+
+```java
+public BinaryRequest downloadReceivedMessage(String message_id)
+```
+
+## `email.downloadSentAttachment`
+
+Download sent attachment
+
+`GET /v1/sent-messages/{message_id}/attachments/{attachment_id}`
+
+```java
+public BinaryRequest downloadSentAttachment(String message_id,String attachment_id)
+```
+
+## `email.downloadSentMessage`
+
+Download sent message
+
+`GET /v1/sent-messages/{message_id}/raw`
+
+```java
+public BinaryRequest downloadSentMessage(String message_id)
+```
+
+## `email.finalizeDKIMRotation`
+
+Finalize DKIM key rotation
+
+`POST /v1/identities/{identity_id}/dkim/rotate/finalize`
+
+```java
+public Request<IdentityResponse> finalizeDKIMRotation(String identity_id)
+```
+
+## `email.getReceivedMessageContent`
+
+Get received message content
+
+`GET /v1/received-messages/{message_id}/content`
+
+```java
+public Request<MessageContentResponse> getReceivedMessageContent(String message_id)
+```
+
+## `email.getReceivingConfiguration`
+
+Get receiving configuration
+
+`GET /v1/identities/{identity_id}/receiving`
+
+```java
+public Request<ReceivingConfigurationResponse> getReceivingConfiguration(String identity_id)
+```
+
+## `email.getSentMessageContent`
+
+Get sent message content
+
+`GET /v1/sent-messages/{message_id}/content`
+
+```java
+public Request<MessageContentResponse> getSentMessageContent(String message_id)
+```
+
+## `email.getSentMessageEngagement`
+
+Sent message engagement
+
+`GET /v1/sent-messages/{message_id}/engagement`
+
+```java
+public Request<MessageEngagementResponse> getSentMessageEngagement(String message_id)
+```
+
+## `email.listConfigurationSets`
+
+List configuration sets
+
+`GET /v1/configuration-sets`
+
+```java
+public PagedRequest<ConfigurationSetListResponse,ConfigurationSet> listConfigurationSets(ListConfigurationSetsQuery query)
+```
+
+## `email.listDMARCReports`
+
+List DMARC report records
+
+`GET /v1/identities/{identity_id}/dmarc-reports`
+
+```java
+public PagedRequest<DMARCReportListResponse,DMARCReportRecord> listDMARCReports(String identity_id,ListDMARCReportsQuery query)
+```
+
+## `email.listDedicatedIPs`
+
+List dedicated IPs
+
+`GET /v1/dedicated-ips`
+
+```java
+public PagedRequest<DedicatedIPListResponse,DedicatedIP> listDedicatedIPs(ListDedicatedIPsQuery query)
+```
+
+## `email.listIPPools`
+
+List IP pools
+
+`GET /v1/ip-pools`
+
+```java
+public PagedRequest<IPPoolListResponse,IPPool> listIPPools(ListIPPoolsQuery query)
+```
+
+## `email.listIdentities`
+
+List sender identities
+
+`GET /v1/identities`
+
+```java
+public PagedRequest<IdentityListResponse,Identity> listIdentities(ListIdentitiesQuery query)
+```
+
+## `email.listReceivedMessages`
+
+List received messages
+
+`GET /v1/received-messages`
+
+```java
+public PagedRequest<ReceivedMessageListResponse,ReceivedMessage> listReceivedMessages(ListReceivedMessagesQuery query)
+```
+
+## `email.listRecipientRules`
+
+List recipient rules
+
+`GET /v1/identities/{identity_id}/recipient-rules`
+
+```java
+public PagedRequest<RecipientRuleListResponse,RecipientRule> listRecipientRules(String identity_id,ListRecipientRulesQuery query)
+```
+
+## `email.listRejections`
+
+List API-side send rejections
+
+`GET /v1/rejections`
+
+```java
+public PagedRequest<RejectionListResponse,Rejection> listRejections(ListRejectionsQuery query)
+```
+
+## `email.listSentMessages`
+
+List sent messages
+
+`GET /v1/sent-messages`
+
+```java
+public PagedRequest<MessageListResponse,Message> listSentMessages(ListSentMessagesQuery query)
+```
+
+## `email.listSuppressions`
+
+List suppression entries
+
+`GET /v1/suppressions`
+
+```java
+public PagedRequest<SuppressionListResponse,Suppression> listSuppressions(ListSuppressionsQuery query)
+```
+
+## `email.listTemplates`
+
+List templates
+
+`GET /v1/templates`
+
+```java
+public PagedRequest<TemplateListResponse,Template> listTemplates(ListTemplatesQuery query)
+```
+
+## `email.releaseDedicatedIP`
+
+Release a dedicated IP
+
+`DELETE /v1/dedicated-ips/{dedicated_ip_id}`
+
+```java
+public EmptyRequest releaseDedicatedIP(String dedicated_ip_id)
+```
+
+## `email.removeSuppressionOverride`
+
+Remove a suppression override address
+
+`DELETE /v1/configuration-sets/{configuration_set_id}/suppression-overrides/{address}`
+
+```java
+public Request<ConfigurationSetResponse> removeSuppressionOverride(String configuration_set_id,String address)
+```
+
+## `email.requestDedicatedIP`
+
+Request a dedicated IP
+
+`POST /v1/dedicated-ips`
+
+```java
+public Request<DedicatedIPResponse> requestDedicatedIP(RequestDedicatedIPRequestInput body)
+```
+
+## `email.sendMessage`
+
+Send a message
+
+`POST /v1/sent-messages`
+
+```java
+public Request<MessageResponse> sendMessage(SendMessageRequestInput body)
+```
+
+## `email.sendMessageBatch`
+
+Send message batch
+
+`POST /v1/sent-messages/batch`
+
+```java
+public Request<BatchSendResponse> sendMessageBatch(BatchSendRequestInput body)
+```
+
+## `email.setBIMI`
+
+Set BIMI logo / VMC URLs
+
+`PATCH /v1/identities/{identity_id}/bimi`
+
+```java
+public Request<IdentityResponse> setBIMI(String identity_id,SetBIMIRequestInput body)
+```
+
+## `email.setMailFromDomain`
+
+Set custom MAIL FROM domain
+
+`PATCH /v1/identities/{identity_id}/mail-from-domain`
+
+```java
+public Request<IdentityResponse> setMailFromDomain(String identity_id,SetMailFromDomainRequestInput body)
+```
+
+## `email.updateConfigurationSet`
+
+Update a configuration set
+
+`PATCH /v1/configuration-sets/{configuration_set_id}`
+
+```java
+public Request<ConfigurationSetResponse> updateConfigurationSet(String configuration_set_id,UpdateConfigurationSetRequestInput body)
+```
+
+## `email.updateDedicatedIP`
+
+Update a dedicated IP
+
+`PATCH /v1/dedicated-ips/{dedicated_ip_id}`
+
+```java
+public Request<DedicatedIPResponse> updateDedicatedIP(String dedicated_ip_id,UpdateDedicatedIPRequestInput body)
+```
+
+## `email.updateIPPool`
+
+Update an IP pool
+
+`PATCH /v1/ip-pools/{ip_pool_id}`
+
+```java
+public Request<IPPoolResponse> updateIPPool(String ip_pool_id,UpdateIPPoolRequestInput body)
+```
+
+## `email.updateIdentity`
+
+Update identity
+
+`PATCH /v1/identities/{identity_id}`
+
+```java
+public Request<IdentityResponse> updateIdentity(String identity_id,UpdateIdentityRequestInput body)
+```
+
+## `email.updateReceivingConfiguration`
+
+Update receiving configuration
+
+`PATCH /v1/identities/{identity_id}/receiving`
+
+```java
+public EmptyRequest updateReceivingConfiguration(String identity_id,UpdateReceivingConfigurationRequestInput body)
+```
+
+## `email.updateRecipientRule`
+
+Update recipient rule
+
+`PATCH /v1/identities/{identity_id}/recipient-rules/{rule_id}`
+
+```java
+public Request<RecipientRuleResponse> updateRecipientRule(String identity_id,String rule_id,UpdateRecipientRuleRequestInput body)
+```
+
+## `email.updateSuppression`
+
+Update suppression
+
+`PATCH /v1/suppressions/{suppression_id}`
+
+```java
+public Request<SuppressionResponse> updateSuppression(String suppression_id,UpdateSuppressionRequestInput body)
+```
+
+## `email.updateTemplate`
+
+Update a template
+
+`PATCH /v1/templates/{template_id}`
+
+```java
+public Request<TemplateResponse> updateTemplate(String template_id,UpdateTemplateRequestInput body)
+```
+
+## `email.verifyBIMI`
+
+Verify BIMI logo (+ optional VMC)
+
+`POST /v1/identities/{identity_id}/bimi/verify`
+
+```java
+public Request<IdentityResponse> verifyBIMI(String identity_id)
+```
+
+## `email.verifyIdentity`
+
+Trigger DNS verification
+
+`POST /v1/identities/{identity_id}/verify`
+
+```java
+public Request<IdentityResponse> verifyIdentity(String identity_id)
+```
+
+## `email.verifyMailFromDomain`
+
+Verify custom MAIL FROM domain MX
+
+`POST /v1/identities/{identity_id}/mail-from-domain/verify`
+
+```java
+public Request<IdentityResponse> verifyMailFromDomain(String identity_id)
+```
+
 ## `iam.assumeRole`
 
 Assume role
@@ -830,16 +1450,6 @@ Attach policy to service account
 
 ```java
 public EmptyRequest attachServiceAccountPolicy(String service_account_id,PolicyAttachRequestInput body)
-```
-
-## `iam.authorizeOAuthClient`
-
-Approve a CLI login and issue an authorization code
-
-`POST /v1/oauth/authorize`
-
-```java
-public Request<OAuthAuthorizeResponse> authorizeOAuthClient(OAuthAuthorizeRequestInput body)
 ```
 
 ## `iam.createOIDCProvider`
@@ -2642,6 +3252,356 @@ Update VPC
 public Request<VpcResponse> updateVpc(String vpc_id,VpcUpdateRequestInput body)
 ```
 
+## `notifications.createTopic`
+
+Create a topic
+
+`POST /v1/topics`
+
+```java
+public Request<TopicResponse> createTopic(CreateTopicRequestInput body)
+```
+
+## `notifications.deleteTopic`
+
+Delete a topic
+
+`DELETE /v1/topics/{topic_id}`
+
+```java
+public EmptyRequest deleteTopic(String topic_id)
+```
+
+## `notifications.deleteTopicPolicy`
+
+Delete the topic's resource policy
+
+`DELETE /v1/topics/{topic_id}/policy`
+
+```java
+public EmptyRequest deleteTopicPolicy(String topic_id)
+```
+
+## `notifications.describeMessage`
+
+Describe a published notification
+
+`GET /v1/topics/{topic_id}/messages/{message_id}`
+
+```java
+public Request<MessageResponse> describeMessage(String topic_id,String message_id)
+```
+
+## `notifications.describeSubscription`
+
+Describe a subscription
+
+`GET /v1/topics/{topic_id}/subscriptions/{subscription_id}`
+
+```java
+public Request<SubscriptionResponse> describeSubscription(String topic_id,String subscription_id)
+```
+
+## `notifications.describeTopic`
+
+Describe a topic
+
+`GET /v1/topics/{topic_id}`
+
+```java
+public Request<TopicResponse> describeTopic(String topic_id)
+```
+
+## `notifications.getSubscriptionSigningSecret`
+
+Read the webhook signing secret
+
+`GET /v1/topics/{topic_id}/subscriptions/{subscription_id}/signing-secret`
+
+```java
+public Request<SigningSecretResponse> getSubscriptionSigningSecret(String topic_id,String subscription_id)
+```
+
+## `notifications.getTopicPolicy`
+
+Read the topic's resource policy
+
+`GET /v1/topics/{topic_id}/policy`
+
+```java
+public Request<TopicPolicyResponse> getTopicPolicy(String topic_id)
+```
+
+## `notifications.listDeliveries`
+
+List delivery records
+
+`GET /v1/topics/{topic_id}/deliveries`
+
+```java
+public PagedRequest<DeliveryListResponse,Delivery> listDeliveries(String topic_id,ListDeliveriesQuery query)
+```
+
+## `notifications.listMessages`
+
+List messages
+
+`GET /v1/topics/{topic_id}/messages`
+
+```java
+public PagedRequest<MessageListResponse,Message> listMessages(String topic_id,ListMessagesQuery query)
+```
+
+## `notifications.listSubscriptions`
+
+List subscriptions
+
+`GET /v1/topics/{topic_id}/subscriptions`
+
+```java
+public PagedRequest<SubscriptionListResponse,Subscription> listSubscriptions(String topic_id,ListSubscriptionsQuery query)
+```
+
+## `notifications.listTopics`
+
+List topics
+
+`GET /v1/topics`
+
+```java
+public PagedRequest<TopicListResponse,Topic> listTopics(ListTopicsQuery query)
+```
+
+## `notifications.publish`
+
+Publish a notification
+
+`POST /v1/topics/{topic_id}/publish`
+
+```java
+public Request<PublishResponse> publish(String topic_id,PublishRequestInput body)
+```
+
+## `notifications.publishBatch`
+
+Publish up to 10 notifications
+
+`POST /v1/topics/{topic_id}/publish-batch`
+
+```java
+public Request<PublishBatchResponse> publishBatch(String topic_id,PublishBatchRequestInput body)
+```
+
+## `notifications.putTopicPolicy`
+
+Set the topic's resource policy
+
+`PUT /v1/topics/{topic_id}/policy`
+
+```java
+public Request<TopicPolicyResponse> putTopicPolicy(String topic_id,PutTopicPolicyRequestInput body)
+```
+
+## `notifications.resendConfirmation`
+
+Re-send the confirmation handshake
+
+`POST /v1/topics/{topic_id}/subscriptions/{subscription_id}/resend-confirmation`
+
+```java
+public Request<SubscriptionResponse> resendConfirmation(String topic_id,String subscription_id)
+```
+
+## `notifications.rotateSubscriptionSigningSecret`
+
+Rotate the webhook signing secret
+
+`POST /v1/topics/{topic_id}/subscriptions/{subscription_id}/signing-secret/rotate`
+
+```java
+public Request<SigningSecretResponse> rotateSubscriptionSigningSecret(String topic_id,String subscription_id)
+```
+
+## `notifications.subscribe`
+
+Subscribe an endpoint to a topic
+
+`POST /v1/topics/{topic_id}/subscriptions`
+
+```java
+public Request<SubscribeResponse> subscribe(String topic_id,SubscribeRequestInput body)
+```
+
+## `notifications.unsubscribe`
+
+Unsubscribe
+
+`DELETE /v1/topics/{topic_id}/subscriptions/{subscription_id}`
+
+```java
+public EmptyRequest unsubscribe(String topic_id,String subscription_id)
+```
+
+## `notifications.updateSubscription`
+
+Update mutable subscription settings
+
+`PATCH /v1/topics/{topic_id}/subscriptions/{subscription_id}`
+
+```java
+public Request<SubscriptionResponse> updateSubscription(String topic_id,String subscription_id,UpdateSubscriptionRequestInput body)
+```
+
+## `notifications.updateTopic`
+
+Update mutable topic metadata
+
+`PATCH /v1/topics/{topic_id}`
+
+```java
+public Request<TopicResponse> updateTopic(String topic_id,UpdateTopicRequestInput body)
+```
+
+## `queue.changeMessageVisibility`
+
+Extend or shorten a lease
+
+`POST /v1/queues/{queue_id}/messages/visibility`
+
+```java
+public EmptyRequest changeMessageVisibility(String queue_id,ChangeVisibilityRequestInput body)
+```
+
+## `queue.changeMessageVisibilityBatch`
+
+Extend or shorten up to ten leases
+
+`POST /v1/queues/{queue_id}/messages/visibility-batch`
+
+```java
+public Request<BatchResponse> changeMessageVisibilityBatch(String queue_id,ChangeVisibilityBatchRequestInput body)
+```
+
+## `queue.createQueue`
+
+Create a queue
+
+`POST /v1/queues`
+
+```java
+public Request<QueueResponse> createQueue(CreateQueueRequestInput body)
+```
+
+## `queue.deleteMessage`
+
+Delete a leased message
+
+`DELETE /v1/queues/{queue_id}/messages`
+
+```java
+public EmptyRequest deleteMessage(String queue_id,DeleteMessageQuery query)
+```
+
+## `queue.deleteMessageBatch`
+
+Delete up to ten leased messages
+
+`POST /v1/queues/{queue_id}/messages/delete-batch`
+
+```java
+public Request<BatchResponse> deleteMessageBatch(String queue_id,DeleteMessageBatchRequestInput body)
+```
+
+## `queue.deleteQueue`
+
+Delete a queue
+
+`DELETE /v1/queues/{queue_id}`
+
+```java
+public EmptyRequest deleteQueue(String queue_id)
+```
+
+## `queue.describeQueue`
+
+Describe a queue
+
+`GET /v1/queues/{queue_id}`
+
+```java
+public Request<QueueResponse> describeQueue(String queue_id)
+```
+
+## `queue.listQueues`
+
+List queues
+
+`GET /v1/queues`
+
+```java
+public PagedRequest<QueueListResponse,Queue2> listQueues(ListQueuesQuery query)
+```
+
+## `queue.peekMessages`
+
+Peek at a queue's messages
+
+`GET /v1/queues/{queue_id}/messages`
+
+```java
+public Request<PeekResponse> peekMessages(String queue_id,PeekMessagesQuery query)
+```
+
+## `queue.purgeQueue`
+
+Delete every message on a queue
+
+`POST /v1/queues/{queue_id}/purge`
+
+```java
+public Request<PurgeQueueResponse> purgeQueue(String queue_id)
+```
+
+## `queue.receiveMessages`
+
+Lease messages
+
+`POST /v1/queues/{queue_id}/messages/receive`
+
+```java
+public Request<ReceiveResponse> receiveMessages(String queue_id,ReceiveRequestInput body)
+```
+
+## `queue.sendMessage`
+
+Send a message
+
+`POST /v1/queues/{queue_id}/messages`
+
+```java
+public Request<SendMessageResponse> sendMessage(String queue_id,SendMessageRequestInput body)
+```
+
+## `queue.sendMessageBatch`
+
+Send up to ten messages
+
+`POST /v1/queues/{queue_id}/messages/batch`
+
+```java
+public Request<BatchResponse> sendMessageBatch(String queue_id,SendMessageBatchRequestInput body)
+```
+
+## `queue.updateQueue`
+
+Update queue attributes
+
+`PATCH /v1/queues/{queue_id}`
+
+```java
+public Request<QueueResponse> updateQueue(String queue_id,UpdateQueueRequestInput body)
+```
+
 ## `quota.listQuotas`
 
 List quotas
@@ -2650,6 +3610,266 @@ List quotas
 
 ```java
 public PagedRequest<QuotaListResponse,QuotaItem> listQuotas(ListQuotasQuery query)
+```
+
+## `registry.batchDeleteImage`
+
+Delete images
+
+`POST /v1/repositories/{repository_id}/images/batch-delete`
+
+```java
+public Request<BatchDeleteResult> batchDeleteImage(String repository_id,BatchDeleteImageRequestInput body)
+```
+
+## `registry.createPullThroughCacheRule`
+
+Create a pull-through cache rule
+
+`POST /v1/pull-through-cache-rules`
+
+```java
+public Request<PullThroughCacheRuleResponse> createPullThroughCacheRule(CreatePullThroughCacheRuleRequestInput body)
+```
+
+## `registry.createRepository`
+
+Create a repository
+
+`POST /v1/repositories`
+
+```java
+public Request<RepositoryResponse> createRepository(CreateRepositoryRequestInput body)
+```
+
+## `registry.deleteEncryptionConfiguration`
+
+Delete encryption configuration
+
+`DELETE /v1/encryption-configuration`
+
+```java
+public EmptyRequest deleteEncryptionConfiguration()
+```
+
+## `registry.deleteLifecyclePolicy`
+
+Delete the lifecycle policy
+
+`DELETE /v1/repositories/{repository_id}/lifecycle-policy`
+
+```java
+public EmptyRequest deleteLifecyclePolicy(String repository_id)
+```
+
+## `registry.deletePullThroughCacheRule`
+
+Delete a pull-through cache rule
+
+`DELETE /v1/pull-through-cache-rules/{prefix}`
+
+```java
+public EmptyRequest deletePullThroughCacheRule(String prefix)
+```
+
+## `registry.deleteRepository`
+
+Delete a repository
+
+`DELETE /v1/repositories/{repository_id}`
+
+```java
+public EmptyRequest deleteRepository(String repository_id,DeleteRepositoryQuery query)
+```
+
+## `registry.deleteRepositoryPolicy`
+
+Delete the repository policy
+
+`DELETE /v1/repositories/{repository_id}/policy`
+
+```java
+public EmptyRequest deleteRepositoryPolicy(String repository_id)
+```
+
+## `registry.describeImage`
+
+Describe an image
+
+`GET /v1/repositories/{repository_id}/images/{image_reference}`
+
+```java
+public Request<ImageResponse> describeImage(String repository_id,String image_reference)
+```
+
+## `registry.describeImages`
+
+List images
+
+`GET /v1/repositories/{repository_id}/images`
+
+```java
+public Request<ImageListResponse> describeImages(String repository_id,DescribeImagesQuery query)
+```
+
+## `registry.describePullThroughCacheRule`
+
+Get a pull-through cache rule
+
+`GET /v1/pull-through-cache-rules/{prefix}`
+
+```java
+public Request<PullThroughCacheRuleResponse> describePullThroughCacheRule(String prefix)
+```
+
+## `registry.describePullThroughCacheRules`
+
+List pull-through cache rules
+
+`GET /v1/pull-through-cache-rules`
+
+```java
+public Request<PullThroughCacheRuleListResponse> describePullThroughCacheRules(DescribePullThroughCacheRulesQuery query)
+```
+
+## `registry.describeRepositories`
+
+List repositories
+
+`GET /v1/repositories`
+
+```java
+public Request<RepositoryListResponse> describeRepositories(DescribeRepositoriesQuery query)
+```
+
+## `registry.describeRepository`
+
+Describe a repository
+
+`GET /v1/repositories/{repository_id}`
+
+```java
+public Request<RepositoryResponse> describeRepository(String repository_id)
+```
+
+## `registry.getAuthorizationToken`
+
+Get a docker login credential
+
+`POST /v1/authorization-token`
+
+```java
+public Request<AuthorizationTokenResponse> getAuthorizationToken()
+```
+
+## `registry.getEncryptionConfiguration`
+
+Get the encryption configuration
+
+`GET /v1/encryption-configuration`
+
+```java
+public Request<EncryptionConfigurationResponse> getEncryptionConfiguration()
+```
+
+## `registry.getLifecyclePolicy`
+
+Get the lifecycle policy
+
+`GET /v1/repositories/{repository_id}/lifecycle-policy`
+
+```java
+public Request<LifecyclePolicyResponse> getLifecyclePolicy(String repository_id)
+```
+
+## `registry.getRepositoryPolicy`
+
+Get the repository policy
+
+`GET /v1/repositories/{repository_id}/policy`
+
+```java
+public Request<RepositoryPolicyResponse> getRepositoryPolicy(String repository_id)
+```
+
+## `registry.getRetainedRegistryPresence`
+
+Check retained registry data presence
+
+`GET /v1/encryption-configuration/retained-data`
+
+```java
+public Request<GetRetainedRegistryPresenceResponse> getRetainedRegistryPresence()
+```
+
+## `registry.listTags`
+
+List tags
+
+`GET /v1/repositories/{repository_id}/tags`
+
+```java
+public PagedRequest<TagListResponse,Tag> listTags(String repository_id,ListTagsQuery query)
+```
+
+## `registry.putEncryptionConfiguration`
+
+Set the encryption configuration
+
+`PUT /v1/encryption-configuration`
+
+```java
+public Request<EncryptionConfigurationResponse> putEncryptionConfiguration(EncryptionConfigurationRequestInput body)
+```
+
+## `registry.putLifecyclePolicy`
+
+Set the lifecycle policy
+
+`PUT /v1/repositories/{repository_id}/lifecycle-policy`
+
+```java
+public Request<LifecyclePolicyResponse> putLifecyclePolicy(String repository_id,LifecyclePolicyRequestInput body)
+```
+
+## `registry.setRepositoryPolicy`
+
+Set the repository policy
+
+`PUT /v1/repositories/{repository_id}/policy`
+
+```java
+public Request<RepositoryPolicyResponse> setRepositoryPolicy(String repository_id,RepositoryPolicyRequestInput body)
+```
+
+## `registry.startLifecyclePolicyPreview`
+
+Preview a lifecycle policy
+
+`POST /v1/repositories/{repository_id}/lifecycle-policy/preview`
+
+```java
+public Request<LifecyclePreviewResponse> startLifecyclePolicyPreview(String repository_id,LifecyclePolicyRequestInput body)
+```
+
+## `registry.updatePullThroughCacheRule`
+
+Update a pull-through cache rule
+
+`PATCH /v1/pull-through-cache-rules/{prefix}`
+
+```java
+public Request<PullThroughCacheRuleResponse> updatePullThroughCacheRule(String prefix,UpdatePullThroughCacheRuleRequestInput body)
+```
+
+## `registry.updateRepository`
+
+Update repository settings
+
+`PATCH /v1/repositories/{repository_id}`
+
+```java
+public Request<RepositoryResponse> updateRepository(String repository_id,UpdateRepositoryRequestInput body)
 ```
 
 ## `secrets.createSecret`
@@ -3302,6 +4522,16 @@ Upload a part
 public Request<UploadPartResponse> uploadPart(String bucket,String upload_id,String part_number,BinaryBody body)
 ```
 
+## `telemetry.createAlert`
+
+Create a metric alert
+
+`POST /v1/alerts`
+
+```java
+public Request<AlertResponse> createAlert(CreateAlertRequestInput body)
+```
+
 ## `telemetry.createLogGroup`
 
 Create a log group
@@ -3310,6 +4540,16 @@ Create a log group
 
 ```java
 public Request<LogGroupResponse> createLogGroup(CreateLogGroupRequestInput body)
+```
+
+## `telemetry.deleteAlert`
+
+Delete a metric alert
+
+`DELETE /v1/alerts/{id}`
+
+```java
+public EmptyRequest deleteAlert(String id)
 ```
 
 ## `telemetry.deleteLogGroup`
@@ -3330,6 +4570,16 @@ Delete trace settings
 
 ```java
 public EmptyRequest deleteTraceSettings()
+```
+
+## `telemetry.getAlert`
+
+Get a metric alert
+
+`GET /v1/alerts/{id}`
+
+```java
+public Request<AlertResponse> getAlert(String id)
 ```
 
 ## `telemetry.getLog`
@@ -3400,6 +4650,16 @@ Ingest a batch of trace spans
 
 ```java
 public Request<IngestResponse> ingestSpans(IngestSpansRequestInput body)
+```
+
+## `telemetry.listAlerts`
+
+List metric alerts
+
+`GET /v1/alerts`
+
+```java
+public PagedRequest<AlertListResponse,Alert> listAlerts(ListAlertsQuery query)
 ```
 
 ## `telemetry.listLogGroups`
@@ -3520,6 +4780,16 @@ List traces
 
 ```java
 public Request<TraceListResponse> searchTraces(SearchTracesQuery query)
+```
+
+## `telemetry.updateAlert`
+
+Update a metric alert
+
+`PATCH /v1/alerts/{id}`
+
+```java
+public Request<AlertResponse> updateAlert(String id,UpdateAlertRequestInput body)
 ```
 
 ## `telemetry.updateLogGroup`
