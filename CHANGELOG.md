@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.8.1
+
+- Add the `scale_in_blocked` autoscaling status constant.
+
 ## 0.8.0
 
 - Choose the exact members to remove when reducing an instance pool with `scale_in_instances`.

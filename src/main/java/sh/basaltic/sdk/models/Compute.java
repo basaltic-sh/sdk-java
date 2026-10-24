@@ -5001,6 +5001,8 @@ public final class Compute {
         new AutoscalingStatusStatus("stabilizing");
     public static final AutoscalingStatusStatus COOLDOWN = new AutoscalingStatusStatus("cooldown");
     public static final AutoscalingStatusStatus DRAINING = new AutoscalingStatusStatus("draining");
+    public static final AutoscalingStatusStatus SCALE_IN_BLOCKED =
+        new AutoscalingStatusStatus("scale_in_blocked");
   }
 
   public static final class AutoscalingStatusHistoryItem extends Model {
