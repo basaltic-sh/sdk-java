@@ -4348,6 +4348,29 @@ public final class Compute {
       return rollout_surge;
     }
 
+    /**
+     * Instance UUIDs protected from manual and automatic scale-in. Protection does not prevent
+     * refresh, failed-instance replacement, or explicit deletion.
+     */
+    @JsonProperty(value = "scale_in_protected_instances", required = false)
+    private List<String> scale_in_protected_instances;
+
+    @JsonProperty("scale_in_protected_instances")
+    public List<String> getScaleInProtectedInstances() {
+      return scale_in_protected_instances;
+    }
+
+    /**
+     * Why scale-in protection currently prevents the requested reduction. Omitted when not blocked.
+     */
+    @JsonProperty(value = "scale_in_blocked_reason", required = false)
+    private String scale_in_blocked_reason;
+
+    @JsonProperty("scale_in_blocked_reason")
+    public String getScaleInBlockedReason() {
+      return scale_in_blocked_reason;
+    }
+
     @JsonProperty(value = "retiring_instances", required = false)
     private List<RetiringPoolMember> retiring_instances;
 
@@ -7342,6 +7365,27 @@ public final class Compute {
     public InstancePoolUpdateRequestInput() {}
 
     /**
+     * Exact member UUIDs to retire. Requires an explicit lower desired_count and exactly current
+     * desired_count minus new desired_count members. The pool must have converged membership and no
+     * retirement or refresh in progress. Selected members must belong to this pool and be
+     * unprotected. Only sizing and autoscaling fields may accompany selection. Selection and sizing
+     * are committed atomically; stale or protected selections return 409 without substituting
+     * another member. Use Idempotency-Key when retrying.
+     */
+    @JsonProperty(value = "scale_in_instances", required = false)
+    private List<String> scale_in_instances;
+
+    @JsonProperty("scale_in_instances")
+    public List<String> getScaleInInstances() {
+      return scale_in_instances;
+    }
+
+    public InstancePoolUpdateRequestInput withScaleInInstances(List<String> value) {
+      this.scale_in_instances = value;
+      return this;
+    }
+
+    /**
      * Replace the eligible placement set. Omit to preserve it. Affects future launches; run an
      * explicit refresh to move existing members. All selected subnets must share a VPC.
      */
@@ -7471,6 +7515,28 @@ public final class Compute {
 
     public InstancePoolUpdateRequestInput withTemplate(InstancePoolTemplateRequestInput value) {
       this.template = value;
+      return this;
+    }
+  }
+
+  public static final class InstancePoolMemberProtectionRequestInput extends Model {
+    public InstancePoolMemberProtectionRequestInput() {}
+
+    /**
+     * Protect this member from manual and automatic scale-in. Remove protection before selecting it
+     * for scale-in. Cannot change a retiring member. Explicit refresh, failed-instance replacement,
+     * instance deletion and pool deletion are unaffected. Replacement instances start unprotected.
+     */
+    @JsonProperty(value = "scale_in_protected", required = true)
+    private Boolean scale_in_protected;
+
+    @JsonProperty("scale_in_protected")
+    public Boolean getScaleInProtected() {
+      return scale_in_protected;
+    }
+
+    public InstancePoolMemberProtectionRequestInput withScaleInProtected(Boolean value) {
+      this.scale_in_protected = value;
       return this;
     }
   }

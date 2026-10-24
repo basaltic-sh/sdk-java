@@ -646,8 +646,9 @@ public final class Iam {
     }
 
     /**
-     * Optional expiry at least one minute in the future. Rotation requires a new credential and
-     * revocation of the old one.
+     * Optional expiry at least one minute in the future. Expired keys stop authorizing new logins
+     * and stop consuming quota immediately; records are automatically deleted after seven days by
+     * an hourly cleanup. Rotation requires a new credential and revocation of the old one.
      */
     @JsonProperty(value = "expires_at", required = false)
     private String expires_at;
@@ -737,7 +738,10 @@ public final class Iam {
       return created_at;
     }
 
-    /** Optional expiry. Expired keys remain listed until revoked. */
+    /**
+     * Optional expiry. Expired keys do not count toward the SSH key quota. They remain listed for
+     * seven days after expiry, then are automatically deleted by an hourly cleanup.
+     */
     @JsonProperty(value = "expires_at", required = false)
     private String expires_at;
 

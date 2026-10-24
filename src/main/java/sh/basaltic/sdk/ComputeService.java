@@ -36,6 +36,7 @@ import sh.basaltic.sdk.models.Compute.InstancePoolCreateRequestInput;
 import sh.basaltic.sdk.models.Compute.InstancePoolFloatingIpAttachRequestInput;
 import sh.basaltic.sdk.models.Compute.InstancePoolFloatingIpResponse;
 import sh.basaltic.sdk.models.Compute.InstancePoolListResponse;
+import sh.basaltic.sdk.models.Compute.InstancePoolMemberProtectionRequestInput;
 import sh.basaltic.sdk.models.Compute.InstancePoolResponse;
 import sh.basaltic.sdk.models.Compute.InstancePoolUpdateRequestInput;
 import sh.basaltic.sdk.models.Compute.InstanceRebootRequestInput;
@@ -565,6 +566,18 @@ public final class ComputeService {
           "application/json",
           "application/json");
   private static final Operation OP_38 =
+      new Operation(
+          "updateInstancePoolMemberProtection",
+          "PATCH",
+          "/v1/instance-pools/{pool_id}/instances/{instance_id}",
+          true,
+          List.of(),
+          List.of(),
+          Map.ofEntries(),
+          true,
+          "application/json",
+          "application/json");
+  private static final Operation OP_39 =
       new Operation(
           "updateInstanceVolumeAttachment",
           "PATCH",
@@ -1318,6 +1331,21 @@ public final class ComputeService {
         new TypeReference<InstancePoolResponse>() {});
   }
 
+  /** Update member scale-in protection */
+  public Request<InstancePoolResponse> updateInstancePoolMemberProtection(
+      String pool_id, String instance_id, InstancePoolMemberProtectionRequestInput body) {
+    return new Request<>(
+        new Core(
+            transport,
+            "compute",
+            "https://compute.{region}.basaltic.sh",
+            OP_38,
+            Map.ofEntries(Map.entry("pool_id", pool_id), Map.entry("instance_id", instance_id)),
+            body,
+            null),
+        new TypeReference<InstancePoolResponse>() {});
+  }
+
   /** Update a volume attachment's settings */
   public EmptyRequest updateInstanceVolumeAttachment(
       String instance_id, String volume_id, UpdateInstanceVolumeAttachmentBody body) {
@@ -1326,7 +1354,7 @@ public final class ComputeService {
             transport,
             "compute",
             "https://compute.{region}.basaltic.sh",
-            OP_38,
+            OP_39,
             Map.ofEntries(Map.entry("instance_id", instance_id), Map.entry("volume_id", volume_id)),
             body,
             null));

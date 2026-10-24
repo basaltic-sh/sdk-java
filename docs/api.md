@@ -602,6 +602,16 @@ Update an instance pool's description, size, tags or launch template
 public Request<InstancePoolResponse> updateInstancePool(String pool_id,InstancePoolUpdateRequestInput body)
 ```
 
+## `compute.updateInstancePoolMemberProtection`
+
+Update member scale-in protection
+
+`PATCH /v1/instance-pools/{pool_id}/instances/{instance_id}`
+
+```java
+public Request<InstancePoolResponse> updateInstancePoolMemberProtection(String pool_id,String instance_id,InstancePoolMemberProtectionRequestInput body)
+```
+
 ## `compute.updateInstanceVolumeAttachment`
 
 Update a volume attachment's settings
@@ -3609,7 +3619,7 @@ List quotas
 `GET /v1/quotas`
 
 ```java
-public PagedRequest<QuotaListResponse,QuotaItem> listQuotas(ListQuotasQuery query)
+public Request<QuotaListResponse> listQuotas(ListQuotasQuery query)
 ```
 
 ## `registry.batchDeleteImage`
